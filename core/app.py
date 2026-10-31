@@ -78,7 +78,8 @@ class RavenApp:
             self._mic_ready.set()
 
         memory = MemoryStore(settings.paths.data_dir / "memory.json")
-        knowledge = KnowledgeStore(settings.paths.data_dir / "knowledge_base.json")
+        knowledge = KnowledgeStore(settings.paths.data_dir / "knowledge_base.json",
+                                   import_folder=settings.paths.data_dir / "knowledge")
         notes = NotesStore(settings.paths.data_dir / "notes.json")
         reminders = ReminderStore(settings.paths.data_dir / "reminders.json")
         pentest = PentestService(

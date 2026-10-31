@@ -306,8 +306,10 @@ class CommandProcessor:
         except OSError:
             logger.exception('Knowledge search failed')
             return {}
-        # Imported files reach a cloud model only with separate consent (phase 2).
-        entries = [entry for entry in entries if entry.get('source', {}).get('kind') == 'manual']
+        # Imported files reach a cloud model only with explicit consent in config.json.
+        consent = getattr(self.settings, 'knowledge_cloud_files', False) is True
+        entries = [entry for entry in entries if entry.get('source', {}).get('kind') == 'manual'
+                   or (consent and entry.get('source', {}).get('kind') == 'file')]
         self._last_knowledge_ids = [entry['id'] for entry in entries]
         if not entries:
             return {}

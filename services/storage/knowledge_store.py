@@ -12,10 +12,19 @@ from datetime import datetime, timezone
 from pathlib import Path
 
 from core.atomic_json import AtomicJSONFile
+from core.command_intent import SENSITIVE_REQUEST
+from core.security import redact_user_text
 
 MAX_TITLE = 120
 MAX_TEXT = 1500
 MAX_ENTRIES = 5000
+MAX_TOTAL_CHARS = 20 * 1024 * 1024
+_SECRET = re.compile(r"парол|password|passwd|secret|токен|token|api.?key|api.?ключ|приватн.{0,8}ключ", re.I)
+
+
+def contains_secret(text: str) -> bool:
+    """Secrets never enter the knowledge base, from a phrase or from a file."""
+    return bool(SENSITIVE_REQUEST.search(text) or _SECRET.search(text) or redact_user_text(text) != text)
 SEARCH_LIMIT = 3
 MIN_SCORE = 2  # two body stems, or one title stem (title stems count double)
 STEM = 6
@@ -38,9 +47,56 @@ class KnowledgeError(ValueError):
     pass
 
 
+def _file_entries(name: str, digest: str, chunks: list[str]) -> list[dict]:
+    """Entries for one imported file: title from the file name, source kept locally."""
+    now = datetime.now(timezone.utc).isoformat()
+    stem = Path(name).stem[:MAX_TITLE - 20] or name[:MAX_TITLE - 20]
+    result = []
+    for index, chunk in enumerate(chunks, 1):
+        title = stem if len(chunks) == 1 else f"{stem}, частина {index}"
+        result.append({
+            "id": f"kb_{uuid.uuid4().hex[:12]}",
+            "title": title,
+            "text": chunk,
+            "terms": sorted(knowledge_terms(title + " " + chunk)),
+            "source": {"kind": "file", "name": name, "folder": "knowledge", "chunk": index},
+            "file_sha256": digest,
+            "added_at": now,
+            "updated_at": now,
+        })
+    return result
+
+
 class KnowledgeStore:
-    def __init__(self, path: Path):
+    def __init__(self, path: Path, import_folder: Path | None = None):
         self.file = AtomicJSONFile(path, {"entries": []})
+        self.import_folder = import_folder
+
+    def imported_files(self) -> dict[str, str]:
+        """name -> sha256 of every imported file currently in the base."""
+        return {entry["source"]["name"]: entry.get("file_sha256", "") for entry in self.entries()
+                if entry.get("source", {}).get("kind") == "file"}
+
+    def apply_import(self, plan) -> dict[str, int]:
+        """Apply a confirmed ImportPlan atomically; files over the limits are skipped."""
+        state = self.file.load()
+        replaced = plan.removed | plan.changed
+        entries = [entry for entry in state["entries"]
+                   if not (entry.get("source", {}).get("kind") == "file" and entry["source"]["name"] in replaced)]
+        total = sum(len(entry["text"]) for entry in entries)
+        added = updated = 0
+        for name in sorted(plan.files):
+            digest, chunks = plan.files[name]
+            if len(entries) + len(chunks) > MAX_ENTRIES or total + sum(map(len, chunks)) > MAX_TOTAL_CHARS:
+                plan.skipped[name] = "limit"
+                continue
+            entries.extend(_file_entries(name, digest, chunks))
+            total += sum(map(len, chunks))
+            added, updated = (added, updated + 1) if name in plan.changed else (added + 1, updated)
+        state["entries"] = entries
+        # Replaced or removed file text must not survive in rotating backups (J128).
+        self.file.save(state, forget_history=bool(replaced))
+        return {"added": added, "updated": updated, "removed": len(plan.removed), "skipped": len(plan.skipped)}
 
     def entries(self) -> list[dict]:
         return self.file.load()["entries"]

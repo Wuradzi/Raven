@@ -118,5 +118,8 @@
     "all_local_drives": false,
     "budget_seconds": 15
   },
+  "knowledge_base": {
+    "cloud_files": false
+  },
   "user_directories": []
 }

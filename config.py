@@ -123,6 +123,7 @@ class Settings:
     user_directories: list[str] = field(default_factory=list)
     file_search_all_local_drives: bool = False
     file_search_budget_seconds: float = 15.0
+    knowledge_cloud_files: bool = False
     performance_profile: str = "fast"
 
     @property
@@ -237,6 +238,8 @@ def default_config(*, fresh: bool = True) -> dict[str, Any]:
             "гугл хром": "Chrome",
         },
         "file_search": {"all_local_drives": False, "budget_seconds": 15},
+        # Imported files reach a cloud model only with this explicit consent.
+        "knowledge_base": {"cloud_files": False},
         "user_directories": [
             str(Path.home() / name)
             for name in ("Desktop", "Documents", "Downloads", "Pictures", "Videos", "Music")
@@ -493,6 +496,11 @@ def _validate_file_search(config: dict[str, Any]) -> None:
         raise ConfigError("file_search.budget_seconds має бути від 1 до 60")
 
 
+def _validate_knowledge_base(config: dict[str, Any]) -> None:
+    if type(config["knowledge_base"]["cloud_files"]) is not bool:
+        raise ConfigError("knowledge_base.cloud_files має бути true або false")
+
+
 def validate_config(config: dict[str, Any]) -> None:
     # Check order is part of the contract: the first failing rule names the error.
     try:
@@ -508,6 +516,7 @@ def validate_config(config: dict[str, Any]) -> None:
         _validate_llm_order(config["llm"])
         _validate_audio_devices(config)
         _validate_file_search(config)
+        _validate_knowledge_base(config)
     except (KeyError, TypeError, ValueError) as exc:
         if isinstance(exc, ConfigError):
             raise
@@ -627,5 +636,6 @@ def load_settings(profile_override: str | None = None, *, read_only=False, root=
         user_directories=list(config["user_directories"]),
         file_search_all_local_drives=config["file_search"]["all_local_drives"],
         file_search_budget_seconds=float(config["file_search"]["budget_seconds"]),
+        knowledge_cloud_files=config["knowledge_base"]["cloud_files"],
         performance_profile=str(config["performance"]["profile"]),
     )
