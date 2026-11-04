@@ -1,6 +1,7 @@
 """Explicit knowledge-base phrases: add, list, forget, clear, update. Changes need confirmation."""
 import asyncio
 import re
+from difflib import SequenceMatcher
 
 from core.confirmation import ConfirmationPrompt
 from core.models import SkillResult
@@ -12,6 +13,10 @@ _LIST = re.compile(r"(?:що (?:є )?(?:у|в) (?:твоїй )?базі (?:зн�
 _FORGET = re.compile(r"(?:забудь(?:те)?|видал(?:и|іть)) довідку(?: про)?\s+(.+)", re.I)
 _CLEAR = re.compile(r"(?:очист(?:и|іть)|видал(?:и|іть)) базу знань", re.I)
 _UPDATE = re.compile(r"(?:онов(?:и|іть)|оновити|імпортуй файли (?:у|в|до)) баз[уи] знань(?: з файлів)?", re.I)
+# STT-damaged whole commands without arguments (live tests 04.11.2026: «О нову базу знань»,
+# «Що я в базі знань?»). Only the read-only list and the update plan, which is confirmed.
+_LIST_LOOSE = re.compile(r"що\s+(?:\S+\s+){0,2}(?:у|в)\s+(?:твоїй\s+)?базі\s+(?:знань|даних)", re.I)
+_UPDATE_TAIL = re.compile(r"(.{1,12}?)\s*баз[уи] знань", re.I)
 IMPORT_FOLDER_LABEL = "data/knowledge"
 _SKIP_REASONS = {
     "secret": "секрети", "unsupported": "непідтримуваний формат", "too_large": "більше 2 МіБ",
@@ -40,7 +45,17 @@ def parse_knowledge_request(text):
         if pattern.fullmatch(value):
             return (operation, "", "")
     match = _FORGET.fullmatch(value)
-    return ("forget", match[1].strip(), "") if match else None
+    return ("forget", match[1].strip(), "") if match else _fuzzy_request(value)
+
+
+def _fuzzy_request(value):
+    """A misheard list or update command; the update still shows its plan for confirmation."""
+    if _LIST_LOOSE.fullmatch(value):
+        return ("list", "", "")
+    match = _UPDATE_TAIL.fullmatch(value)
+    if match and SequenceMatcher(None, match[1].replace(" ", "").casefold(), "онови").ratio() >= 0.6:
+        return ("update", "", "")
+    return None
 
 
 async def _confirmed(context, description):

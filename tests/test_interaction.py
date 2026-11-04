@@ -203,7 +203,7 @@ class CommandProcessorModeTests(unittest.IsolatedAsyncioTestCase):
         self.assertEqual(result.response, 'Не вдалося розібрати відповідь моделі.')
         self.assertEqual(result.data['command_type'], 'llm_unavailable')
 
-    async def test_groq_scoped_app_reply_still_requires_fresh_approval(self):
+    async def test_groq_scoped_app_reply_opens_only_for_an_app_name(self):
         from core.models import TurnEnvelope
         from core.natural_turn import NaturalTurn
         from core.command_intent import CommandIntent
@@ -221,10 +221,12 @@ class CommandProcessorModeTests(unittest.IsolatedAsyncioTestCase):
             self.llm.converse = AsyncMock(return_value=NaturalTurn(kind, 'Яку програму відкрити?'))
             await self.processor.process(envelope('А ти можеш мені відкрити програму?'), AsyncMock())
             self.llm.converse.return_value = NaturalTurn('action', intent=CommandIntent('open_app', {'name': 'браузер'}))
+            launch.reset_mock()
             approval = AsyncMock(return_value=False)
             await self.processor.process(envelope(reply), approval)
-            self.assertEqual(approval.await_count, int(reply == 'браузер'))
-            launch.assert_not_called()
+            # open_app needs no «так» since 04.11.2026; only an app name opens it.
+            approval.assert_not_awaited()
+            self.assertEqual(launch.call_count, int(reply == 'браузер'))
 
     async def test_short_confirmation_prompt_and_vidmina_cancel(self):
         from core.confirmation import ConfirmationPrompt
@@ -236,7 +238,7 @@ class CommandProcessorModeTests(unittest.IsolatedAsyncioTestCase):
         self.assertFalse(await task)
         self.assertEqual(speak.call_args_list[0].args[0], 'Відкрити браузер?')
 
-    async def test_groq_exact_app_skips_llm_but_keeps_confirmation(self):
+    async def test_groq_exact_app_skips_llm_and_opens_without_confirmation(self):
         from core.models import TurnEnvelope
         self.processor.settings.natural_actions_enabled = True
         self.services['enabled_skills'] = {'apps'}
@@ -244,25 +246,18 @@ class CommandProcessorModeTests(unittest.IsolatedAsyncioTestCase):
         self.services['apps'] = SimpleNamespace(has_exact_name=Mock(return_value=True),
                                                 open_default_browser=launch)
         self.llm.converse = AsyncMock()
-        for approved in (False, True):
-            launch.reset_mock()
-            text = 'А ти можеш відкрити мені програму браузер, будь ласка?'
-            turn = TurnEnvelope(turn_id='exact:test', session_id='test', source='voice',
-                text=text, transcript=text, stt_engine='groq', confidence=0,
-                confidence_available=False, action_eligible=False)
+        text = 'А ти можеш відкрити мені програму браузер, будь ласка?'
+        turn = TurnEnvelope(turn_id='exact:test', session_id='test', source='voice',
+            text=text, transcript=text, stt_engine='groq', confidence=0,
+            confidence_available=False, action_eligible=False)
+        approval = AsyncMock(return_value=False)
+        await self.processor.process(turn, approval)
+        # open_app needs no «так» since 04.11.2026, even from unscored Groq voice.
+        approval.assert_not_awaited()
+        launch.assert_called_once()
+        self.llm.converse.assert_not_awaited()
 
-            async def confirm(prompt):
-                launch.assert_not_called()
-                self.assertIn('браузер', prompt)
-                return approved
-
-            approval = AsyncMock(side_effect=confirm)
-            await self.processor.process(turn, approval)
-            approval.assert_awaited_once()
-            self.assertEqual(launch.call_count, int(approved))
-            self.llm.converse.assert_not_awaited()
-
-    async def test_groq_candidate_requires_specific_confirmation_before_execution(self):
+    async def test_groq_candidate_executes_only_audited_tools(self):
         from core.models import TurnEnvelope
         from core.natural_turn import NaturalTurn
         from core.command_intent import CommandIntent
@@ -272,25 +267,16 @@ class CommandProcessorModeTests(unittest.IsolatedAsyncioTestCase):
         self.services['apps'] = SimpleNamespace(open_default_browser=app_open)
         self.llm.converse = AsyncMock(return_value=NaturalTurn(
             'action', intent=CommandIntent('open_app', {'name': 'браузер'})))
-        for approved in (False, True):
-            app_open.reset_mock()
-            text = 'Команда: відкрий браузер'
-            turn = TurnEnvelope(turn_id='groq:test', session_id='test', source='voice', text=text,
-                transcript=text, stt_engine='groq', confidence=0,
-                confidence_available=False, action_eligible=False)
-
-            async def confirm(prompt):
-                app_open.assert_not_called()
-                self.assertIn('браузер', prompt)
-                return approved
-
-            approval = AsyncMock(side_effect=confirm)
-            result = await self.processor.process(turn, approval)
-            approval.assert_awaited_once()
-            self.assertEqual(app_open.call_count, int(approved))
-            self.assertEqual(result.execution.status.value,
-                             'submitted_unverified' if approved else 'cancelled')
-            self.assertFalse(turn.action_eligible)
+        text = 'Команда: відкрий браузер'
+        turn = TurnEnvelope(turn_id='groq:test', session_id='test', source='voice', text=text,
+            transcript=text, stt_engine='groq', confidence=0,
+            confidence_available=False, action_eligible=False)
+        approval = AsyncMock(return_value=False)
+        result = await self.processor.process(turn, approval)
+        approval.assert_not_awaited()
+        app_open.assert_called_once()
+        self.assertEqual(result.execution.status.value, 'submitted_unverified')
+        self.assertFalse(turn.action_eligible)
         self.assertEqual(self.router.commands, [])
 
     async def test_groq_candidate_rejects_unsafe_or_indirect_requests(self):

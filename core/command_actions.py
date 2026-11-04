@@ -1,4 +1,9 @@
-"""The only executor for model-proposed actions: validate, preview, confirm."""
+"""The only executor for model-proposed actions: validate, preview, confirm.
+
+Read-only or easily reversible tools in UNCONFIRMED_TOOLS run without a voice «так»
+(user decision 04.11.2026); every tool that changes files, memory or the system,
+including find_files and window control, keeps the correlated confirmation.
+"""
 from __future__ import annotations
 
 import logging
@@ -7,6 +12,8 @@ from core.command_intent import InvalidIntent, validate_intent
 from core.models import SkillResult
 from core.command_catalog import TOOL_SKILLS, command_help
 from core.confirmation import confirm_action
+
+UNCONFIRMED_TOOLS = frozenset({"web_search", "weather", "open_app"})
 
 
 async def execute_intent(intent, context):
@@ -42,26 +49,18 @@ async def _execute_intent(intent, context):
     if tool == "window_control":
         from skills.windows.skill import control_window
         return await control_window(args["name"], args["action"], context)
-    if tool == "find_files":
-        proposal = f"пошук у дозволених каталогах файлів із назвою, що містить «{args['query']}» (тип: {args['extension'] or 'будь-який'})"
-        question = f"Знайти файли «{args['query']}», тип {args['extension'] or 'будь-який'}"
-    elif tool == "open_app":
-        proposal = f"відкриття встановленої програми «{args['name']}»"
-        question = f"Відкрити «{args['name']}»"
-    elif tool == "weather":
-        period = {"now": "зараз", "today": "сьогодні", "tomorrow": "завтра"}[args["period"]]
-        proposal = f"запит погоди для міста «{args['city']}», {period}"
-        question = f"Перевірити погоду: {args['city']}, {period}"
-    else:
-        proposal = f"пошук в інтернеті за запитом «{args['query']}»"
-        question = f"Знайти в інтернеті «{args['query']}»"
-    cancelled = await confirm_action(context, proposal, question)
-    if cancelled is not None:
-        return cancelled
     # No shell, eval, dynamic code, arbitrary URLs/paths, or router re-entry.
     if tool == "find_files":
+        extension = args['extension'] or 'будь-який'
+        cancelled = await confirm_action(
+            context,
+            f"пошук у дозволених каталогах файлів із назвою, що містить «{args['query']}» (тип: {extension})",
+            f"Знайти файли «{args['query']}», тип {extension}")
+        if cancelled is not None:
+            return cancelled
         from skills.files.skill import find_files
         return await find_files(args["query"], args["extension"], context)
+    # UNCONFIRMED_TOOLS: validated arguments, no confirmation (user decision 04.11.2026).
     if tool == "open_app":
         from skills.apps.skill import open_application
         return await open_application(args["name"], context, context.services)

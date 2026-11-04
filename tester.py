@@ -3659,7 +3659,7 @@ class NaturalTurnChecks(unittest.IsolatedAsyncioTestCase):
                                                      'voice', allow_actions=False)
             self.assertEqual(result.response, 'Розкажіть більше.')
 
-    async def test_final_complete_stt_command_uses_normal_confirmation(self):
+    async def test_final_complete_stt_command_uses_normal_execution(self):
         from tests.platform_fixtures import sounddevice_or_stub
         self.enterContext(sounddevice_or_stub())
         from types import SimpleNamespace
@@ -3680,8 +3680,9 @@ class NaturalTurnChecks(unittest.IsolatedAsyncioTestCase):
         self.action()
         confirm = AsyncMock(return_value=False)
         await processor.process(recognized.text, confirm, 'voice', allow_actions=not recognized.fragmented)
-        confirm.assert_awaited_once()
-        processor.services['apps'].open_default_browser.assert_not_called()
+        # The refined complete command reaches the normal executor; open_app needs no «так» (04.11.2026).
+        confirm.assert_not_awaited()
+        processor.services['apps'].open_default_browser.assert_called_once()
 
     async def test_short_stt_reply_keeps_existing_scoped_clarification(self):
         from unittest.mock import AsyncMock
@@ -3692,10 +3693,15 @@ class NaturalTurnChecks(unittest.IsolatedAsyncioTestCase):
         await processor.process('Відкрий програму', confirm)
         self.assertIsNotNone(processor._natural_pending)
         self.action(arguments={'name': 'Telegram'})
-        await processor.process('Telegram', confirm, 'voice',
-                                allow_actions=not QuietEndpoint.possible_fragment('Telegram'))
-        confirm.assert_awaited_once()
-        self.assertIn('telegram', confirm.await_args.args[0].lower())
+        from unittest.mock import patch
+        from core.models import SkillResult
+        with patch('skills.apps.skill.open_application', new_callable=AsyncMock,
+                   return_value=SkillResult(True, 'opened')) as open_app:
+            await processor.process('Telegram', confirm, 'voice',
+                                    allow_actions=not QuietEndpoint.possible_fragment('Telegram'))
+        # open_app needs no «так» since 04.11.2026; the scoped name still reaches the executor.
+        confirm.assert_not_awaited()
+        self.assertEqual(open_app.await_args.args[0].lower(), 'telegram')
 
     async def test_fragmented_explicit_command_requires_fresh_request(self):
         from unittest.mock import AsyncMock
@@ -3731,29 +3737,27 @@ class NaturalTurnChecks(unittest.IsolatedAsyncioTestCase):
         self.manager._append_history.assert_not_called()
         self.assertEqual(len(self.requests), 1)
 
-    async def test_prefix_free_open_waits_for_confirmation_and_records_actual_result(self):
+    async def test_prefix_free_open_runs_without_confirmation_and_records_actual_result(self):
+        # open_app needs no «так» since 04.11.2026; the history records the real result.
         from unittest.mock import AsyncMock
         self.action()
         processor = self.processor()
-        async def approve(prompt):
-            processor.services["apps"].open_default_browser.assert_not_called()
-            self.assertIn("браузер", prompt)
-            return True
-        confirm = AsyncMock(side_effect=approve)
+        confirm = AsyncMock(return_value=False)
         result = await processor.process("Відкрий браузер", confirm, "voice")
         self.assertTrue(result.data["natural_action"])
-        confirm.assert_awaited_once()
+        confirm.assert_not_awaited()
         processor.services["apps"].open_default_browser.assert_called_once()
         self.assertEqual(len(self.requests), 1)
         self.assertIn("Команду запуску", self.manager._append_history.call_args.args[1])
 
-    async def test_refusal_never_launches_and_does_not_trigger_second_request(self):
-        from unittest.mock import AsyncMock
-        self.action()
+    async def test_file_search_refusal_never_runs_and_does_not_trigger_second_request(self):
+        from unittest.mock import AsyncMock, patch
+        self.action(tool="find_files", arguments={"query": "диплом", "extension": ""})
         processor = self.processor()
-        result = await processor.process("Відкрий браузер", AsyncMock(return_value=False), "voice")
+        with patch("skills.files.skill.find_files", new_callable=AsyncMock) as find:
+            result = await processor.process("Знайди файл диплом", AsyncMock(return_value=False), "voice")
         self.assertEqual(result.data["command_type"], "interpretation_cancelled")
-        processor.services["apps"].open_default_browser.assert_not_called()
+        find.assert_not_awaited()
         self.assertEqual(len(self.requests), 1)
 
     async def test_hallucinated_action_from_mention_or_context_is_blocked_locally(self):
@@ -3804,7 +3808,8 @@ class NaturalTurnChecks(unittest.IsolatedAsyncioTestCase):
         confirm.assert_not_awaited()
         processor.services["apps"].open_default_browser.assert_not_called()
 
-    async def test_app_name_followup_requires_fresh_confirmation_and_uses_literal_name(self):
+    async def test_app_name_followup_uses_literal_name_without_confirmation(self):
+        # open_app needs no «так» since 04.11.2026; the user's literal name still wins.
         from unittest.mock import AsyncMock
         self.chunks = ["CLARIFY\nЯку програму відкрити?"]
         processor = self.processor()
@@ -3813,8 +3818,7 @@ class NaturalTurnChecks(unittest.IsolatedAsyncioTestCase):
         self.action(arguments={"name": "model-invented-app"})
         result = await processor.process("браузер", confirm)
         self.assertTrue(result.data["natural_action"])
-        self.assertIn("браузер", confirm.await_args.args[0])
-        self.assertNotIn("model-invented-app", confirm.await_args.args[0])
+        confirm.assert_not_awaited()
         processor.services["apps"].open_default_browser.assert_called_once()
         self.assertIsNone(processor._natural_pending)
 

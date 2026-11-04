@@ -2,19 +2,21 @@
 
 1. Model prose claiming it saved / forgot something is replaced: only exact
    phrases with confirmation change memory or the knowledge base.
-2. «Не знаю цього напевно» is recorded as Raven's reply, so the model cannot
-   later deny having said it (scored and unscored Groq paths).
+2. The knowledge-gap notice is recorded as Raven's reply, so the model cannot
+   later deny having said it (scored and unscored Groq paths). Since 04.11.2026
+   the notice is «Шукаю в інтернеті «…».» and the search needs no «так».
 3. «Забудь довідку про кафедру» finds the title «кафедра …» (word stems).
 4. «Не шукай про нього» / «ні, не треба» are refusals in a confirmation;
    mixed or accepting replies are unchanged.
 5. A phrase said twice in one utterance is parsed once.
 """
+import asyncio
 import tempfile
 import unittest
 from pathlib import Path
+from types import SimpleNamespace
 from unittest.mock import AsyncMock, Mock, patch
 
-from core.action_policy import KNOWLEDGE_GAP_NOTICE
 from core.command_intent import CommandIntent
 from core.confirmation import ConfirmationService
 from core.models import RecognitionResult, SkillResult, TurnEnvelope
@@ -96,7 +98,8 @@ class NoticeHistoryTests(unittest.IsolatedAsyncioTestCase):
                             TurnEnvelope(turn_id="n", session_id="n", source="text", text=text, transcript=text,
                                          stt_engine="text", confidence=1.0))
                 await self.processor.process(envelope, AsyncMock(return_value=False))
-                self.llm.record_local_action.assert_any_call(text, KNOWLEDGE_GAP_NOTICE)
+                # Since 04.11.2026 the search runs without a «так»; its notice is kept in history.
+                self.llm.record_local_action.assert_any_call(text, "Шукаю в інтернеті «Джузеппе Гарібальді».")
 
 
 class SecondLiveTestFixes(unittest.TestCase):
@@ -170,6 +173,63 @@ class ThirdLiveTestFixes(unittest.TestCase):
         messages = [{"role": "system", "content": "s"}]
         append_knowledge(messages, [{"withheld_file_entries": 2}])
         self.assertIn("withheld_file_entries", messages[-1]["content"])
+
+
+class AssistantModeTests(unittest.IsolatedAsyncioTestCase):
+    """Variant A of the project assessment (04.11.2026): less friction, faster feel."""
+
+    def test_misheard_whole_commands(self):
+        for text in ("О нову базу знань", "Онове базу знань.", "О нове базу знань!", "У нову базу знань"):
+            with self.subTest(text=text):
+                self.assertEqual(parse_knowledge_request(text), ("update", "", ""))
+        for text in ("Що я в базі знань?", "Що місці в базі даних?", "Що зараз є в базі знань?"):
+            with self.subTest(text=text):
+                self.assertEqual(parse_knowledge_request(text), ("list", "", ""))
+        for text in ("Онови базу даних", "Очисти базу даних", "Додай мені нову базу знань про космос",
+                     "Розкажи, що ти думаєш про базу знань"):
+            with self.subTest(text=text):
+                self.assertIsNone(parse_knowledge_request(text))
+
+    def test_yes_synonyms_stay_unknown(self):
+        # J57 kept: only «давай» was added (04.11.2026); other synonyms need the user's decision.
+        for text in ("Ага.", "Звісно!", "Авжеж"):
+            with self.subTest(text=text):
+                self.assertIsNone(ConfirmationService._decision(text))
+
+    async def test_filler_speaks_once_only_when_the_model_is_silent(self):
+        from core.processor import FILLER_PHRASE, _FirstPhraseFiller
+        speaker = SimpleNamespace(say=AsyncMock())
+        silent = _FirstPhraseFiller(speaker, 0.01)
+        await asyncio.sleep(0.05)
+        silent.stop()
+        speaker.say.assert_awaited_once_with(FILLER_PHRASE)
+        speaker.say.reset_mock()
+        quick = _FirstPhraseFiller(speaker, 0.05)
+        quick.heard()
+        await asyncio.sleep(0.08)
+        quick.stop()
+        disabled = _FirstPhraseFiller(speaker, 0)
+        disabled.stop()
+        speaker.say.assert_not_awaited()
+
+    async def test_filler_is_voice_only_and_off_without_setting(self):
+        processor, _router, _llm, _memory, _speaker = build("chat", True)
+        self.assertIsNone(processor._filler("voice")._task)  # fixtures have no llm_filler_seconds
+        processor.settings.llm_filler_seconds = 2.5
+        self.assertIsNone(processor._filler("text")._task)
+        voice = processor._filler("voice")
+        self.assertIsNotNone(voice._task)
+        voice.stop()
+
+    def test_filler_setting_is_validated(self):
+        from config import ConfigError, default_config, validate_config
+        config = default_config()
+        self.assertEqual(config["llm"]["filler_seconds"], 2.5)
+        for bad in (-1, 31, True, "2"):
+            with self.subTest(value=bad):
+                config["llm"]["filler_seconds"] = bad
+                with self.assertRaises(ConfigError):
+                    validate_config(config)
 
 
 if __name__ == "__main__":

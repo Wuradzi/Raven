@@ -103,6 +103,7 @@ class Settings:
     llm_models: dict[str, str] = field(default_factory=dict)
     llm_timeout_seconds: int = 10
     llm_total_timeout_seconds: int = 90
+    llm_filler_seconds: float = 2.5
     llm_failures_before_switch: int = 3
     history_limit: int = 12
     command_interpretation_enabled: bool = True
@@ -204,6 +205,7 @@ def default_config(*, fresh: bool = True) -> dict[str, Any]:
             "order": ["gemini", "groq", "openai", "anthropic", "ollama"],
             "timeout_seconds": 10,
             "total_timeout_seconds": 90,
+            "filler_seconds": 2.5,
             "failures_before_switch": 3,
             "history_limit": 12,
             "models": {
@@ -448,6 +450,9 @@ def _validate_timeouts(config: dict[str, Any]) -> None:
         raise ConfigError("llm.timeout_seconds має бути додатним")
     if int(config["llm"]["total_timeout_seconds"]) <= 0:
         raise ConfigError("llm.total_timeout_seconds має бути додатним")
+    filler = config["llm"]["filler_seconds"]
+    if isinstance(filler, bool) or not isinstance(filler, (int, float)) or not 0 <= filler <= 30:
+        raise ConfigError("llm.filler_seconds має бути числом від 0 до 30; 0 вимикає фразу очікування")
     if not 0 <= int(config["fuzzy_threshold"]) <= 100:
         raise ConfigError("fuzzy_threshold має бути від 0 до 100")
 
@@ -612,6 +617,7 @@ def load_settings(profile_override: str | None = None, *, read_only=False, root=
         llm_models=dict(config["llm"]["models"]),
         llm_timeout_seconds=int(config["llm"]["timeout_seconds"]),
         llm_total_timeout_seconds=int(config["llm"]["total_timeout_seconds"]),
+        llm_filler_seconds=float(config["llm"]["filler_seconds"]),
         llm_failures_before_switch=int(config["llm"]["failures_before_switch"]),
         history_limit=int(config["llm"]["history_limit"]),
         command_interpretation_enabled=config["commands"]["llm_interpretation"],

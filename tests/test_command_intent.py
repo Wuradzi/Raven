@@ -109,22 +109,17 @@ class ContextualProposalTests(unittest.IsolatedAsyncioTestCase):
             source='text', text=text, transcript=text, stt_engine='text', confidence=1, **flags)
         return await self.processor.process(envelope, self.confirm)
 
-    async def test_original_search_is_confirmed_and_executed_not_model_rewrite(self):
+    async def test_original_search_is_announced_and_executed_not_model_rewrite(self):
         self.output = 'ACTION\n' + json.dumps(
             {'tool': 'web_search', 'arguments': {'query': 'реставрація Мейдзі'}})
-        for accepted in (False, True):
-            self.confirm.reset_mock()
-            self.confirm.return_value = accepted
-            with patch('skills.web.skill.search_web', new_callable=AsyncMock,
-                       return_value=SkillResult(True, 'fixture', {'success': True})) as search:
-                await self.turn('Знайди в інтернеті реставрацію Meiji.')
-            self.confirm.assert_awaited_once()
-            # Sentence-final punctuation is not part of the query (live session 30.10.2026).
-            self.assertIn('«реставрацію Meiji»', str(self.confirm.await_args))
-            if accepted:
-                search.assert_awaited_once_with('реставрацію Meiji', self.services)
-            else:
-                search.assert_not_awaited()
+        with patch('skills.web.skill.search_web', new_callable=AsyncMock,
+                   return_value=SkillResult(True, 'fixture', {'success': True})) as search:
+            await self.turn('Знайди в інтернеті реставрацію Meiji.')
+        # No «так» for a web search (user decision 04.11.2026); the exact query is spoken first.
+        self.confirm.assert_not_awaited()
+        # Sentence-final punctuation is not part of the query (live session 30.10.2026).
+        self.speaker.say.assert_any_await('Шукаю в інтернеті «реставрацію Meiji».')
+        search.assert_awaited_once_with('реставрацію Meiji', self.services)
 
     async def test_original_search_cannot_upgrade_unreliable_turn(self):
         self.output = 'ACTION\n' + json.dumps(
@@ -148,7 +143,7 @@ class ContextualProposalTests(unittest.IsolatedAsyncioTestCase):
             data['arguments'] = arguments
         self.output = 'FOLLOWUP\n' + json.dumps(data)
 
-    async def test_accepts_same_proposed_query_and_keeps_safety_confirmation(self):
+    async def test_accepts_same_proposed_query_and_executes_once(self):
         from core.action_policy import natural_action_permission
         for utterance in ('так', 'давай', 'підбери', 'шукай'):
             self.confirm.reset_mock()
@@ -159,7 +154,7 @@ class ContextualProposalTests(unittest.IsolatedAsyncioTestCase):
                     'core.processor.natural_action_permission', wraps=natural_action_permission) as policy:
                 result = await self.turn(utterance)
             search.assert_awaited_once_with('безкоштовні API для STT', self.services)
-            self.confirm.assert_awaited_once()
+            self.confirm.assert_not_awaited()  # the accepted proposal is the approval for a search
             self.assertEqual(result.data['intent_route'], 'contextual_followup')
             self.assertEqual(policy.call_args.args[0].origin, 'contextual_followup')
             self.assertEqual(policy.call_args.args[0].turn_id, f'fixture:{self.sequence}')
@@ -196,7 +191,7 @@ class ContextualProposalTests(unittest.IsolatedAsyncioTestCase):
                    return_value=SkillResult(True)) as search:
             await self.turn('так')
         search.assert_awaited_once_with('тільки безкоштовні API для STT', self.services)
-        self.confirm.assert_awaited_once()
+        self.confirm.assert_not_awaited()
 
     async def test_no_stale_or_cross_session_proposal_can_execute(self):
         from dataclasses import replace
@@ -228,17 +223,28 @@ class ContextualProposalTests(unittest.IsolatedAsyncioTestCase):
         self.assertFalse(self.requests)
         self.confirm.assert_not_awaited()
 
-    async def test_local_action_acceptance_still_requires_distinct_confirmation(self):
-        proposal = await self.offer('open_app', {'name': 'браузер'})
+    async def test_file_search_acceptance_still_requires_distinct_confirmation(self):
+        proposal = await self.offer('find_files', {'query': 'диплом', 'extension': ''})
         self.reply(proposal)
         self.confirm.return_value = False
-        result = await self.turn('відкривай')
-        self.confirm.assert_awaited_once()
-        self.assertEqual(result.execution.status.value, 'cancelled')
-        self.apps.open_default_browser.assert_not_called()
+        with patch('skills.files.skill.find_files', new_callable=AsyncMock) as find:
+            result = await self.turn('шукай')
+            self.confirm.assert_awaited_once()
+            self.assertEqual(result.execution.status.value, 'cancelled')
+            find.assert_not_awaited()
+            self.reply(proposal)
+            await self.turn('так')
+            find.assert_not_awaited()
+
+    async def test_open_app_acceptance_runs_without_second_confirmation(self):
+        proposal = await self.offer('open_app', {'name': 'браузер'})
+        self.reply(proposal)
+        await self.turn('відкривай')
+        self.confirm.assert_not_awaited()
+        self.apps.open_default_browser.assert_called_once()
         self.reply(proposal)
         await self.turn('так')
-        self.apps.open_default_browser.assert_not_called()
+        self.apps.open_default_browser.assert_called_once()  # the receipt is not reused
 
     async def test_unreliable_turn_cannot_accept_or_recreate_proposal(self):
         proposal = await self.offer()
@@ -327,7 +333,7 @@ class ContextualProposalTests(unittest.IsolatedAsyncioTestCase):
         self.output = 'ACTION\n' + json.dumps({'tool': 'open_app', 'arguments': {'name': 'браузер'}})
         await self.turn('браузер')
         self.apps.open_default_browser.assert_called_once()
-        self.confirm.assert_awaited_once()
+        self.confirm.assert_not_awaited()
         self.assertFalse(any('Локально активна пропозиція' in item['content'] for item in self.requests[-1]))
         self.assertIsNone(self.processor.dialogue_state.proposals.pending)
 
@@ -355,7 +361,7 @@ class ContextualProposalTests(unittest.IsolatedAsyncioTestCase):
             task.cancel()
             await asyncio.gather(task, return_exceptions=True)
         self.apps.open_default_browser.assert_called_once()
-        self.confirm.assert_awaited_once()
+        self.confirm.assert_not_awaited()
         self.assertEqual(len(self.requests), 2)
 
     async def test_timeout_during_resolution_cannot_authorize(self):
@@ -648,25 +654,38 @@ class IntentExecutionTests(unittest.IsolatedAsyncioTestCase):
         self.confirm = AsyncMock(return_value=True)
         self.context = CommandContext(SimpleNamespace(), {"apps": self.apps, "enabled_skills": {"apps", "web", "files"},
                                                         "tasks": TaskContext()}, self.confirm)
+        # find_files keeps the correlated confirmation; it exercises the confirmation mechanics.
+        self.files = CommandIntent("find_files", {"query": "диплом", "extension": ""})
+        patcher = patch("skills.files.skill.find_files", new_callable=AsyncMock,
+                        return_value=SkillResult(True, "files", {"success": True}))
+        self.find = patcher.start()
+        self.addCleanup(patcher.stop)
 
     async def test_proposal_is_confirmed_before_execution(self):
         async def confirm(text):
-            self.apps.open_default_browser.assert_not_called()
-            self.assertIn("браузер", text)
+            self.find.assert_not_awaited()
+            self.assertIn("диплом", text)
             return True
         self.confirm.side_effect = confirm
+        await execute_intent(self.files, self.context)
+        self.confirm.assert_awaited_once()
+        self.find.assert_awaited_once()
+
+    async def test_read_only_tools_run_without_confirmation(self):
+        # User decision 04.11.2026: web search, weather and opening an app need no «так».
         result = await execute_intent(CommandIntent("open_app", {"name": "браузер"}), self.context)
         self.assertTrue(result.data["accepted"])
         self.assertFalse(result.execution.verified)
         self.assertFalse(result.execution.success)
         self.apps.open_default_browser.assert_called_once()
+        self.confirm.assert_not_awaited()
 
     async def test_denial_never_executes(self):
         self.confirm.return_value = False
-        result = await execute_intent(CommandIntent("open_app", {"name": "браузер"}), self.context)
+        result = await execute_intent(self.files, self.context)
         self.assertEqual(result.data["command_type"], "interpretation_cancelled")
         self.assertEqual(result.execution.status.value, 'cancelled')
-        self.apps.open_default_browser.assert_not_called()
+        self.find.assert_not_awaited()
 
     async def test_cancelled_approval_cannot_be_reused_by_next_action(self):
         speaking = asyncio.Event()
@@ -678,7 +697,7 @@ class IntentExecutionTests(unittest.IsolatedAsyncioTestCase):
 
         confirmation = ConfirmationService(AsyncMock(), wait_for_speech=speech)
         self.context.confirm = confirmation.ask
-        intent = CommandIntent('open_app', {'name': 'браузер'})
+        intent = self.files
         old = asyncio.create_task(execute_intent(intent, self.context))
         await asyncio.wait_for(speaking.wait(), 1)
         confirmation.submit('так', confirmation.request_id)
@@ -693,11 +712,11 @@ class IntentExecutionTests(unittest.IsolatedAsyncioTestCase):
             await asyncio.wait_for(confirmation.wait_until_requested(), 1)
             self.assertNotEqual(old_id, confirmation.request_id)
             self.assertTrue(confirmation._responses.empty())
-            self.apps.open_default_browser.assert_not_called()
+            self.find.assert_not_awaited()
             confirmation.submit('ні', confirmation.request_id)
             result = await asyncio.wait_for(new, 1)
             self.assertEqual(result.data['command_type'], 'interpretation_cancelled')
-            self.apps.open_default_browser.assert_not_called()
+            self.find.assert_not_awaited()
         finally:
             if not new.done():
                 new.cancel()
@@ -706,13 +725,13 @@ class IntentExecutionTests(unittest.IsolatedAsyncioTestCase):
     async def test_correlated_voice_no_does_not_execute_action(self):
         confirmation = ConfirmationService(AsyncMock(), timeout_seconds=1)
         self.context.confirm = confirmation.ask
-        task = asyncio.create_task(execute_intent(CommandIntent('open_app', {'name': 'браузер'}), self.context))
+        task = asyncio.create_task(execute_intent(self.files, self.context))
         try:
             await confirmation.wait_until_requested()
             self.assertTrue(confirmation.submit('ні', confirmation.request_id, confidence=.95))
             result = await asyncio.wait_for(task, 1)
             self.assertEqual(result.data['command_type'], 'interpretation_cancelled')
-            self.apps.open_default_browser.assert_not_called()
+            self.find.assert_not_awaited()
         finally:
             task.cancel()
             await asyncio.gather(task, return_exceptions=True)
@@ -725,7 +744,7 @@ class IntentExecutionTests(unittest.IsolatedAsyncioTestCase):
         self.assertFalse(result.data['success'])
         self.apps.open_default_browser.assert_called_once()
         self.apps.verify_launch.assert_called_once()
-        self.confirm.assert_awaited_once()
+        self.confirm.assert_not_awaited()
 
     async def test_cancellation_while_speaking_clears_confirmation_and_never_executes(self):
         started = asyncio.Event()
@@ -736,7 +755,7 @@ class IntentExecutionTests(unittest.IsolatedAsyncioTestCase):
 
         confirmation = ConfirmationService(AsyncMock(), wait_for_speech=wait_for_speech)
         self.context.confirm = confirmation.ask
-        task = asyncio.create_task(execute_intent(CommandIntent("open_app", {"name": "браузер"}), self.context))
+        task = asyncio.create_task(execute_intent(self.files, self.context))
         await asyncio.wait_for(started.wait(), 1)
         confirmation.submit("так", confirmation.request_id)
         task.cancel()
@@ -745,7 +764,7 @@ class IntentExecutionTests(unittest.IsolatedAsyncioTestCase):
         self.assertFalse(confirmation.awaiting)
         self.assertTrue(confirmation._responses.empty())
         self.assertFalse(confirmation.submit("так"))
-        self.apps.open_default_browser.assert_not_called()
+        self.find.assert_not_awaited()
 
     async def test_failed_confirmation_speech_clears_state(self):
         confirmation = ConfirmationService(AsyncMock(side_effect=RuntimeError("speech fixture")))
@@ -779,6 +798,7 @@ class IntentExecutionTests(unittest.IsolatedAsyncioTestCase):
         with patch("skills.web.skill.get_weather", new_callable=AsyncMock, return_value=SkillResult(True, "forecast")) as weather:
             await execute_intent(CommandIntent("weather", {"city": "Луцьк", "period": "tomorrow"}), self.context)
             weather.assert_awaited_once_with("Луцьк", "tomorrow", self.context.services)
+        self.confirm.assert_not_awaited()
 
 
 class ProcessorInterpretationTests(unittest.IsolatedAsyncioTestCase):

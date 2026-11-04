@@ -113,7 +113,9 @@ class _ProcessorCase(unittest.IsolatedAsyncioTestCase):
         return self.execute.await_args.args[0].arguments
 
     def noticed(self):
-        return any(call.args == (KNOWLEDGE_GAP_NOTICE,) for call in self.speaker.say.await_args_list)
+        """The exact query is spoken before the search, which runs without a «так» (04.11.2026)."""
+        query = (self.executed_query() or {}).get("query", "")
+        return any(call.args == (f"Шукаю в інтернеті «{query}».",) for call in self.speaker.say.await_args_list)
 
 
 class ScoredPathTests(_ProcessorCase):
@@ -121,7 +123,7 @@ class ScoredPathTests(_ProcessorCase):
         return TurnEnvelope(turn_id="gap", session_id="gap", source="text", text=text, transcript=text,
                             stt_engine="text", confidence=1.0)
 
-    async def test_lookup_says_unknown_then_confirmation_with_model_query(self):
+    async def test_lookup_announces_and_searches_model_query(self):
         self.model("lookup", query="реставрація Мейдзі")
         result = await self.run_turn("Розкажи мені коротко про реставрацію Майджі.")
         self.assertEqual(self.executed_query(), {"query": "реставрація Мейдзі"})

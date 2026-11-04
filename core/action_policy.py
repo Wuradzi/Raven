@@ -31,8 +31,9 @@ class ActionPermission:
     route: str = 'direct'
 
 
-# Tools whose executor shows the exact arguments in its own confirmation; the
-# offer itself only has to name the kind of action.
+# Tools a «так» to Raven's own offer may start; the offer only has to name the kind
+# of action. find_files still confirms its exact arguments in the executor; web
+# search announces its exact query; weather and open_app run directly.
 OFFER_VERBS = {
     'web_search': r'знайд|знайт|пошук|шука',
     'find_files': r'знайд|знайт|пошук|шука|файл',
@@ -130,10 +131,10 @@ def natural_action_permission(decision, request, text, pending, scoped, *, actio
     return _permission(decision, PolicyOutcome.ALLOW, intent)
 
 
-# Knowledge gap: the model has no reliable facts and suggests ONE web search.
+# Knowledge gap: the model has no reliable facts and asks for ONE web search.
 # Only web_search, only for an information request, never with secrets, a
-# refusal of search or several actions. ALLOW still means the executor shows
-# the exact query and asks the correlated confirmation before anything runs.
+# refusal of search or several actions. On ALLOW the processor says the exact
+# query and searches without a «так» (user decision 04.11.2026).
 KNOWLEDGE_GAP_NOTICE = 'Не знаю цього напевно.'
 _INFORMATION_REQUEST = re.compile(
     r'\?|\b(?:що|хто|коли|де|чому|навіщо|як|який|яка|яке|які|якого|скільки|чи|розкажи|поясни|опиши|'

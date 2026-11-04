@@ -8,7 +8,7 @@ import time
 from core.models import CommandContext, SkillResult, TurnEnvelope
 from core.recognition_policy import DialogueState
 from core.dialogue_decision import DialogueDecision, DecisionKind
-from core.action_policy import (KNOWLEDGE_GAP_NOTICE, PolicyOutcome, knowledge_gap_fallback,
+from core.action_policy import (PolicyOutcome, knowledge_gap_fallback,
                                 knowledge_gap_permission, natural_action_permission)
 from core.action_proposal import ReplyKind, proposal_question, needs_proposal
 from core.command_actions import execute_intent
@@ -78,6 +78,37 @@ KNOWLEDGE_SOURCE_QUESTION = re.compile(
     r"з\s+якого\s+джерела(?:\s+це)?)[?.!]*", re.I)
 
 
+FILLER_PHRASE = "Хвилинку."
+
+
+class _FirstPhraseFiller:
+    """One short spoken filler while the model is silent longer than `delay` seconds.
+
+    Voice turns only; never stored in history or the cached reply. 0 disables it.
+    """
+
+    def __init__(self, speaker, delay):
+        self._heard = asyncio.Event()
+        self._speaking = False
+        self._task = asyncio.create_task(self._wait(speaker, delay)) if delay > 0 else None
+
+    async def _wait(self, speaker, delay):
+        try:
+            await asyncio.wait_for(self._heard.wait(), delay)
+        except asyncio.TimeoutError:
+            self._speaking = True
+            await speaker.say(FILLER_PHRASE)
+
+    def heard(self):
+        self._heard.set()
+
+    def stop(self):
+        """Cancel a pending filler; a phrase already handed to TTS finishes normally."""
+        self._heard.set()
+        if self._task is not None and not self._task.done() and not self._speaking:
+            self._task.cancel()
+
+
 def _consent_split(entries, consent):
     """(entries a cloud model may see, count of withheld imported files).
 
@@ -136,6 +167,11 @@ class CommandProcessor:
             return {}
         document = self.documents.document.context(text + '\n' + self._last_question)
         return {'document_context': document} if document else {}
+
+    def _filler(self, source):
+        delay = getattr(self.settings, 'llm_filler_seconds', 0)
+        valid = isinstance(delay, (int, float)) and not isinstance(delay, bool)
+        return _FirstPhraseFiller(self.speaker, delay if source == 'voice' and valid else 0)
 
     def _cache_reply(self, text):
         # Session-only generated text; not a record of physically heard audio.
@@ -553,9 +589,12 @@ class CommandProcessor:
                 spoken_parts.append(part)
                 self._cache_reply(" ".join(spoken_parts))
 
+        filler = self._filler(source)
+
         async def on_chunk(text):
             nonlocal saw_tokens
             saw_tokens = True
+            filler.heard()
             await emit(buffer.feed(text))
 
         system_context, web_options = self._chat_options(control, control_context, source)
@@ -576,6 +615,7 @@ class CommandProcessor:
                 raise
             return SkillResult(True, "", {"command_type": "chat_interrupted"}), provider, True
         finally:
+            filler.stop()
             self._chat_task = None
         if saw_tokens:
             await emit(buffer.feed("", final=True))
@@ -719,8 +759,11 @@ class CommandProcessor:
                 spoken.append(part)
                 self._cache_reply(" ".join(spoken))
 
+        filler = self._filler(context.source)
+
         async def on_chunk(chunk):
             # Explicit CHAT supplies screened sentences; other formats wait for validation.
+            filler.heard()
             await emit(buffer.feed(chunk, final=True))
 
         proposal_options = self._proposal_options(proposal_lease)
@@ -738,6 +781,7 @@ class CommandProcessor:
                 raise
             return SkillResult(True, "", {"command_type": "chat_interrupted"})
         finally:
+            filler.stop()
             self._chat_task = None  # Local operations must not be cancelled by conversation interruption.
         if turn.kind in {'proposal', 'followup'}:
             return await self._natural_proposal(turn, text, context, scoped, proposal_lease,
@@ -879,15 +923,17 @@ class CommandProcessor:
         return result
 
     async def _run_permission(self, permission, context):
-        """Shared ALLOW/refusal handling; the executor still previews and confirms."""
+        """Shared ALLOW/refusal handling; the executor validates and confirms state changes."""
         if permission.outcome is not PolicyOutcome.ALLOW:
             return SkillResult(True, permission.response,
                                {"command_type": "intent_clarification", "success": False})
-        if permission.route == "knowledge_gap":
-            # Honest notice before the executor's exact-query confirmation. It is kept
-            # in the dialogue history too, so the model never denies having said it.
-            await self.speaker.say(KNOWLEDGE_GAP_NOTICE)
-            self._remember_notice(context.raw_text, KNOWLEDGE_GAP_NOTICE)
+        if permission.intent.tool == "web_search":
+            # A web search runs without a «так»: say the exact query first. After a
+            # knowledge gap the notice is kept in history, so the model knows it searched.
+            notice = f"Шукаю в інтернеті «{permission.intent.arguments['query']}»."
+            await self.speaker.say(notice)
+            if permission.route == "knowledge_gap":
+                self._remember_notice(context.raw_text, notice)
         result = await asyncio.wait_for(execute_intent(permission.intent, context), timeout=120)
         result.data["natural_action"] = True
         if permission.route != "direct":
@@ -905,8 +951,9 @@ class CommandProcessor:
                                      previous_reply, context):
         """Unscored Groq voice: separate candidate path, not ACTION eligibility or router re-entry.
 
-        Only audited executor branches which ALWAYS preview exact args and ask
-        the existing correlated confirmation may be reached.
+        Only four audited executor branches may be reached. find_files keeps the
+        correlated confirmation; web_search, weather and open_app run without one
+        (user decision 04.11.2026: a misheard query may reach the search engine).
         """
         from core.command_intent import validate_intent, InvalidIntent
         try:
