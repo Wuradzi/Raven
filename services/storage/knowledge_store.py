@@ -135,8 +135,11 @@ class KnowledgeStore:
         return [entry for _score, _updated, entry in scored[:limit]]
 
     def matching(self, topic: str) -> list[dict]:
-        topic = " ".join(topic.casefold().split())
-        return [entry for entry in self.entries() if topic and topic in entry["title"].casefold()]
+        """Entries whose title holds the phrase or every topic stem («кафедру» → «кафедра»)."""
+        phrase = " ".join(topic.casefold().split())
+        stems = knowledge_terms(topic)
+        return [entry for entry in self.entries() if phrase and (
+            phrase in entry["title"].casefold() or (stems and stems <= knowledge_terms(entry["title"])))]
 
     def get(self, ids) -> list[dict]:
         wanted = list(ids)

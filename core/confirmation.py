@@ -190,12 +190,21 @@ class ConfirmationService:
             return words[0]
         return normalized
 
+    # Negative forms only: a refusal never authorizes anything, positives are not widened.
+    _REFUSAL_START = re.compile(r"(?:ні|не (?:треба|потрібно|хочу|шукай|шукати|роби|відкривай|запускай|"
+                                r"згоден|згодна))(?:\s|$)")
+    _ACCEPTING_WORDS = {"так", "гаразд", "добре", "підтверджую", "підтверджує"}
+
+    @classmethod
+    def _refusal(cls, normalized: str) -> bool:
+        return bool(cls._REFUSAL_START.match(normalized)) and not cls._ACCEPTING_WORDS & set(normalized.split())
+
     @classmethod
     def _decision(cls, answer: str, confidence: float | None = None) -> bool | None:
         if confidence is not None and (not math.isfinite(confidence) or not 0 <= confidence <= 1):
             return None
         normalized = cls._normalized_reply(answer)
-        if normalized in cls.REJECTED:
+        if normalized in cls.REJECTED or cls._refusal(normalized):
             return False if confidence is None or confidence >= cls.VOICE_DENY_MIN_CONFIDENCE else None
         if normalized in cls.ACCEPTED:
             return True if confidence is None or confidence >= cls.VOICE_MIN_CONFIDENCE else None

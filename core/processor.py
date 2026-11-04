@@ -14,7 +14,8 @@ from core.action_proposal import ReplyKind, proposal_question, needs_proposal
 from core.command_actions import execute_intent
 from core.command_intent import CommandIntent, InterpretationUnavailable, MULTI_ACTION, can_interpret, original_search_intent, preserves_search_intent
 from core.command_catalog import chat_catalog, local_intent_candidates
-from core.natural_turn import (direct_request, application_name_reply, final_request, request_scope,
+from core.natural_turn import (direct_request, application_name_reply, final_request, memory_change_claim,
+                               request_scope,
                                short_clarification, voice_request, window_request)
 from core.local_action_resolver import resolve_exact_app
 from core.performance import DISABLED_PERFORMANCE
@@ -39,6 +40,11 @@ LOCAL_ACTION_CLAIM = re.compile(
     r"^(?:відкриваю|відкрив|відкрила|запускаю|запустив|запустила|"
     r"закриваю|закрив|закрила|вимикаю|вимкнув|увімкнув)\b"
 )
+def _claims_local_change(text):
+    """Model prose that claims a local action or a memory change it cannot perform."""
+    return bool(LOCAL_ACTION_CLAIM.match(text.lower().strip()) or memory_change_claim(text))
+
+
 LAST_OPEN_QUESTION = re.compile(
     r"^(?:що|яку програму|який браузер|ти\b).*"
     r"(?:відкрив|відкривав|запустив)"
@@ -523,7 +529,7 @@ class CommandProcessor:
         async def emit(parts):
             for part in parts:
                 part = part.strip("*#` ")
-                if LOCAL_ACTION_CLAIM.match(part.lower()):
+                if _claims_local_change(part):
                     part = "Я не виконую локальні дії в розмові. Скажіть: Команда, а потім назвіть дію."
                 if not spoken_parts:
                     self.services.get("performance", DISABLED_PERFORMANCE).record(
@@ -579,7 +585,7 @@ class CommandProcessor:
 
     def _screen_unstreamed_chat_answer(self, answer):
         """A non-streamed chat answer must not claim a local action was performed."""
-        if LOCAL_ACTION_CLAIM.match(answer.lower().strip()):
+        if _claims_local_change(answer):
             answer = (
                 "Я не виконую локальні дії в режимі розмови. "
                 "Скажіть: «Команда», а потім назвіть дію."
@@ -766,7 +772,7 @@ class CommandProcessor:
     @staticmethod
     def _screen_natural_part(part):
         part = part.strip("*#` ")
-        if LOCAL_ACTION_CLAIM.match(part.lower()):
+        if _claims_local_change(part):
             part = "Дію ще не виконано. Для запуску потрібен погоджений план."
         return part
 
@@ -869,13 +875,22 @@ class CommandProcessor:
             return SkillResult(True, permission.response,
                                {"command_type": "intent_clarification", "success": False})
         if permission.route == "knowledge_gap":
-            # Honest notice before the executor's exact-query confirmation.
+            # Honest notice before the executor's exact-query confirmation. It is kept
+            # in the dialogue history too, so the model never denies having said it.
             await self.speaker.say(KNOWLEDGE_GAP_NOTICE)
+            self._remember_notice(context.raw_text, KNOWLEDGE_GAP_NOTICE)
         result = await asyncio.wait_for(execute_intent(permission.intent, context), timeout=120)
         result.data["natural_action"] = True
         if permission.route != "direct":
             result.data["intent_route"] = permission.route
         return result
+
+    def _remember_notice(self, user_text, notice):
+        """Record a locally spoken notice as Raven's reply in session state and history."""
+        self._cache_reply(notice)
+        record = getattr(self.llm_manager, "record_local_action", None)
+        if callable(record):
+            record(user_text, notice)
 
     async def _groq_candidate_action(self, turn, candidate_text, prior_clarification, scoped_name,
                                      previous_reply, context):
@@ -907,7 +922,7 @@ class CommandProcessor:
     def _natural_answer(self, turn, spoken):
         """Final CHAT/CLARIFY text: spoken parts win; local-action claims are rewritten."""
         answer = " ".join(spoken) if spoken else turn.response
-        if LOCAL_ACTION_CLAIM.match(answer.lower().strip()):
+        if _claims_local_change(answer):
             answer = "Дію ще не виконано. Для запуску потрібен погоджений план."
         if spoken and answer != turn.response:
             self.llm_manager.rewrite_last_answer(answer)

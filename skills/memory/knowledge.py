@@ -19,9 +19,17 @@ _SKIP_REASONS = {
 }
 
 
+def _collapse_repeats(value):
+    """The same sentence said twice in one utterance counts once."""
+    sentences = [part.strip().rstrip(".!?") for part in re.split(r"(?<=[.!?])\s+", value) if part.strip()]
+    if len(sentences) > 1 and len({sentence.casefold() for sentence in sentences}) == 1:
+        return sentences[0]
+    return value
+
+
 def parse_knowledge_request(text):
     """(operation, title, body) or None; never matches personal-memory phrases."""
-    value = re.sub(r"[’ʼ]", "'", text.strip()).rstrip(".!?")
+    value = _collapse_repeats(re.sub(r"[’ʼ]", "'", text.strip())).rstrip(".!?")
     match = _ADD.fullmatch(value)
     if match:
         content = match[1].strip()

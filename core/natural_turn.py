@@ -195,12 +195,32 @@ class ChatPreview:
         return phrases
 
 
+MEMORY_CLAIM_NOTICE = ("Нічого не змінено: пам'ять і базу знань змінюють лише точні фрази з підтвердженням, "
+                       "наприклад «Додай у базу знань …», «Забудь довідку про …», «Онови базу знань».")
+_MEMORY_VERB = (r"(?:збережено|зберіг|зберегла|зберегли|додано|додав|додала|запам'ятав|запам'ятала|"
+                r"запам'ятовано|забуто|забув|забула|видалено|видалив|видалила|очищено|очистив|очистила|"
+                r"оновлено|оновив|оновила)")
+_MEMORY_OBJECT = r"(?:пам'ят\w*|баз\w*\s+знань|довідк\w*|факт\w*|запис\w*|інформаці\w*)"
+_MEMORY_CLAIM = re.compile(rf"\b{_MEMORY_VERB}\b[^.!?]{{0,80}}\b{_MEMORY_OBJECT}|"
+                           rf"\b{_MEMORY_OBJECT}[^.!?]{{0,80}}\b{_MEMORY_VERB}\b", re.I)
+
+
+def memory_change_claim(text):
+    """Model prose claiming it saved, forgot or updated memory / the knowledge base.
+
+    Only exact local phrases with confirmation change them; a model sentence never does.
+    """
+    return bool(_MEMORY_CLAIM.search(re.sub(r"[’ʼ]", "'", text)))
+
+
 def safe_dialogue(text):
     """Model prose is not an execution receipt or a running background job."""
     if re.search(r"\b(?:відкриваю|запускаю|закриваю|припиняю|шукаємо|шукаю|розпочинаю пошук|"
                  r"пошук (?:триває|запущено|завершено)|виконавець (?:перевірить|завершить)|"
                  r"зачекай.{0,30}результат|результат.{0,30}з'явиться|(?:я |вже )(?:знайшов|відкрив|запустив))", text, re.I):
         return "Дію ще не виконано. Уточніть, будь ласка, що саме потрібно зробити."
+    if memory_change_claim(text):
+        return MEMORY_CLAIM_NOTICE
     return text
 
 
