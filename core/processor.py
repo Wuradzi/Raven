@@ -74,8 +74,18 @@ OPEN_ACTION_TYPES = {"open_browser", "open_application", "file_open", "agent_wor
 STOP_SPEECH = re.compile(r"^(?:команда\s*[:,]?\s*)?(?:стоп|замовкни|зупини озвучення)[.!?]*$", re.I)
 WEB_CORRECTION = re.compile(r"^(?:це не те|не те|ти не те знайшов|не те знайшов)[.!?]*$", re.I)
 KNOWLEDGE_SOURCE_QUESTION = re.compile(
-    r"(?:а\s+)?(?:звідки\s+(?:ти\s+)?(?:це\s+)?знаєш|звідки\s+це|яке\s+(?:в\s+тебе\s+)?джерело|"
+    r"(?:(?:а|і|й|та|ну)\s+)?(?:звідки\s+(?:ти\s+)?(?:це\s+)?знаєш|звідки\s+це|яке\s+(?:в\s+тебе\s+)?джерело|"
     r"з\s+якого\s+джерела(?:\s+це)?)[?.!]*", re.I)
+
+
+def _consent_split(entries, consent):
+    """(entries a cloud model may see, count of withheld imported files).
+
+    Imported files reach a cloud model only with explicit consent in config.json.
+    """
+    sendable = [entry for entry in entries if entry.get('source', {}).get('kind') == 'manual'
+                or (consent and entry.get('source', {}).get('kind') == 'file')]
+    return sendable, len(entries) - len(sendable)
 
 
 def _knowledge_source_label(entry):
@@ -312,17 +322,16 @@ class CommandProcessor:
         except OSError:
             logger.exception('Knowledge search failed')
             return {}
-        # Imported files reach a cloud model only with explicit consent in config.json.
-        consent = getattr(self.settings, 'knowledge_cloud_files', False) is True
-        entries = [entry for entry in entries if entry.get('source', {}).get('kind') == 'manual'
-                   or (consent and entry.get('source', {}).get('kind') == 'file')]
+        entries, withheld = _consent_split(entries, getattr(self.settings, 'knowledge_cloud_files', False) is True)
         self._last_knowledge_ids = [entry['id'] for entry in entries]
-        if not entries:
-            return {}
-        logger.info('Knowledge context entries=%d ids=%s', len(entries), ','.join(self._last_knowledge_ids))
         # Source and date stay local: the model must not volunteer them.
-        return {'knowledge_context': [{'id': entry['id'], 'title': entry['title'], 'text': entry['text']}
-                                      for entry in entries]}
+        context = [{'id': entry['id'], 'title': entry['title'], 'text': entry['text']} for entry in entries]
+        if withheld:
+            # Only a count: no title, name or text of a file the user did not release to the cloud.
+            context.append({'withheld_file_entries': withheld})
+        if entries:
+            logger.info('Knowledge context entries=%d ids=%s', len(entries), ','.join(self._last_knowledge_ids))
+        return {'knowledge_context': context} if context else {}
 
     async def _restricted_turn(self, raw_text, normalized, input_turn, gate, mode, source, confirm):
         """Turn that failed the pre-routing gate: tool-free reply or scoped Groq candidate."""

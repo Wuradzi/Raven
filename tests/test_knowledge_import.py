@@ -191,7 +191,8 @@ class CloudConsentTests(_Folder, unittest.IsolatedAsyncioTestCase):
         self.write("кафедра кібербезпеки.txt", DEPARTMENT)
         self.apply()
         _processor, sent = await self.run_turn(False)
-        self.assertIsNone(sent)
+        # Only a count reaches the model: no file name, title or text.
+        self.assertEqual(sent, [{"withheld_file_entries": 1}])
         processor, sent = await self.run_turn(True)
         self.assertEqual(len(sent), 1)
         self.assertNotIn("кафедра кібербезпеки.txt", json.dumps(sent, ensure_ascii=False))  # no file name

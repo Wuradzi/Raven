@@ -177,7 +177,8 @@ class ProcessorTests(_Store, unittest.IsolatedAsyncioTestCase):
         state["entries"][0]["source"] = {"kind": "file", "name": "довідка.docx"}
         self.store.file.save(state)
         await self.turn("Де розташована кафедра кібербезпеки?")
-        self.assertIsNone(self.knowledge_sent())
+        # Only a count of withheld files reaches the model: no id, title or text.
+        self.assertEqual(self.knowledge_sent(), [{"withheld_file_entries": 1}])
         self.assertNotIn(entry["id"], self.processor._last_knowledge_ids)
 
     async def test_source_question_is_answered_locally(self):

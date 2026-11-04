@@ -40,6 +40,7 @@ class ConfirmationService:
         "підтверджує",
         "так підтверджую",
         "так підтверджує",
+        "давай",
     }
     REJECTED = {
         "ні",
@@ -64,12 +65,16 @@ class ConfirmationService:
         Only a complete, successful Groq utterance may use exact semantic
         parsing without a confidence threshold. Request correlation is still
         enforced by submit; malformed/truncated/late audio cannot approve.
+        A lexical fragment hint («не хочу» ends with «хочу») is not damage:
+        such a reply may still refuse, never approve.
         """
         if result.engine == 'groq':
-            if (not result.confidence_available and result.text.strip()
-                    and not result.recognition_unreliable and not result.capture_truncated
-                    and not result.utterance_incomplete and not result.incomplete):
-                return None
+            damaged = result.recognition_unreliable or result.capture_truncated
+            if not result.confidence_available and result.text.strip() and not damaged:
+                fragment = result.utterance_incomplete or result.incomplete
+                if not fragment or ConfirmationService._is_refusal(
+                        ConfirmationService._normalized_reply(result.text)):
+                    return None
             return float('nan')
         return result.confidence
 
@@ -193,18 +198,22 @@ class ConfirmationService:
     # Negative forms only: a refusal never authorizes anything, positives are not widened.
     _REFUSAL_START = re.compile(r"(?:ні|не (?:треба|потрібно|хочу|шукай|шукати|роби|відкривай|запускай|"
                                 r"згоден|згодна))(?:\s|$)")
-    _ACCEPTING_WORDS = {"так", "гаразд", "добре", "підтверджую", "підтверджує"}
+    _ACCEPTING_WORDS = {"так", "гаразд", "добре", "підтверджую", "підтверджує", "давай"}
 
     @classmethod
     def _refusal(cls, normalized: str) -> bool:
         return bool(cls._REFUSAL_START.match(normalized)) and not cls._ACCEPTING_WORDS & set(normalized.split())
 
     @classmethod
+    def _is_refusal(cls, normalized: str) -> bool:
+        return normalized in cls.REJECTED or cls._refusal(normalized)
+
+    @classmethod
     def _decision(cls, answer: str, confidence: float | None = None) -> bool | None:
         if confidence is not None and (not math.isfinite(confidence) or not 0 <= confidence <= 1):
             return None
         normalized = cls._normalized_reply(answer)
-        if normalized in cls.REJECTED or cls._refusal(normalized):
+        if cls._is_refusal(normalized):
             return False if confidence is None or confidence >= cls.VOICE_DENY_MIN_CONFIDENCE else None
         if normalized in cls.ACCEPTED:
             return True if confidence is None or confidence >= cls.VOICE_MIN_CONFIDENCE else None

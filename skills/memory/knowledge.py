@@ -7,10 +7,11 @@ from core.models import SkillResult
 from services.storage.knowledge_store import MAX_TEXT, MAX_TITLE, KnowledgeError, contains_secret
 
 _ADD = re.compile(r"(?:додай (?:у|в|до) баз[иу] знань|запам'ятай як довідку)[,:\s]+(.+)", re.I | re.S)
-_LIST = re.compile(r"(?:що (?:є )?(?:у|в) базі знань|покажи базу знань)", re.I)
-_FORGET = re.compile(r"(?:забудь|видали) довідку(?: про)?\s+(.+)", re.I)
-_CLEAR = re.compile(r"(?:очисти|видали) базу знань", re.I)
-_UPDATE = re.compile(r"(?:онови|оновити|імпортуй файли (?:у|в|до)) баз[уи] знань(?: з файлів)?", re.I)
+# «База даних» is accepted only for the read-only list; changes need the exact «базу знань».
+_LIST = re.compile(r"(?:що (?:є )?(?:у|в) (?:твоїй )?базі (?:знань|даних)|покажи базу (?:знань|даних))", re.I)
+_FORGET = re.compile(r"(?:забудь(?:те)?|видал(?:и|іть)) довідку(?: про)?\s+(.+)", re.I)
+_CLEAR = re.compile(r"(?:очист(?:и|іть)|видал(?:и|іть)) базу знань", re.I)
+_UPDATE = re.compile(r"(?:онов(?:и|іть)|оновити|імпортуй файли (?:у|в|до)) баз[уи] знань(?: з файлів)?", re.I)
 IMPORT_FOLDER_LABEL = "data/knowledge"
 _SKIP_REASONS = {
     "secret": "секрети", "unsupported": "непідтримуваний формат", "too_large": "більше 2 МіБ",
