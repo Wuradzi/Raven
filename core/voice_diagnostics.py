@@ -21,7 +21,7 @@ def backend_failure_reason(outcome, backend):
         return outcome if outcome in {'timeout', 'cancelled', 'busy', 'error'} else 'not_completed'
     reason = getattr(backend, 'last_error', '')
     return reason if reason in {
-        'non_ukrainian_transcript', 'empty_transcription', 'timeout', 'network',
+        'non_ukrainian_transcript', 'subtitle_hallucination', 'empty_transcription', 'timeout', 'network',
         'authorization', 'rate_limit', 'server', 'http_error', 'malformed_response',
         'cancelled', 'invalid_audio', 'missing_key', 'client_error',
     } else 'empty_or_unreliable'

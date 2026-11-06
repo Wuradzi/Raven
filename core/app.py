@@ -352,11 +352,12 @@ class RavenApp:
                     continue
 
                 if source == "voice":
+                    selection_reply = (self.services.get("tasks") is not None
+                                       and self.services["tasks"].is_selection_reply(text))
                     is_local = (
                         self.services["state"].get("mode") == "pentest"
                         or COMMAND_PREFIX.match(text.strip())
-                        or (self.services.get("tasks") is not None
-                            and self.services["tasks"].is_selection_reply(text))
+                        or selection_reply
                     )
                     threshold = (
                         self.settings.stt_command_confidence_threshold if is_local
@@ -365,9 +366,9 @@ class RavenApp:
                     unscored_chat = (not turn.confidence_available and not turn.action_eligible
                         and not turn.recognition_unreliable and not turn.capture_truncated
                         and (not turn.clarification_required or turn.utterance_incomplete)
-                        and (not is_local or (turn.stt_engine == 'groq'
-                            and getattr(self.settings, 'natural_actions_enabled', False)
-                            and COMMAND_PREFIX.match(text.strip())))
+                        and (not is_local or (turn.stt_engine == 'groq' and (selection_reply
+                            or (getattr(self.settings, 'natural_actions_enabled', False)
+                                and COMMAND_PREFIX.match(text.strip())))))
                         and self.services['state'].get('mode', 'chat') == 'chat')
                     if not math.isfinite(confidence) or (confidence < threshold and not unscored_chat):
                         await self.speaker.say(

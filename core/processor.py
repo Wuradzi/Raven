@@ -38,11 +38,19 @@ COMMAND_PREFIX = re.compile(
 )
 LOCAL_ACTION_CLAIM = re.compile(
     r"^(?:відкриваю|відкрив|відкрила|запускаю|запустив|запустила|"
-    r"закриваю|закрив|закрила|вимикаю|вимкнув|увімкнув)\b"
+    r"закриваю|закрив|закрила|вимикаю|вимкнув|вимкнула|вмикаю|увімкнув|увімкнула|"
+    # Live test 06.11.2026: «Зменшую гучність.» was spoken although nothing ran.
+    r"зменшую|зменшив|зменшила|збільшую|збільшив|збільшила|перемикаю|перемкнув|перемкнула|"
+    r"налаштовую|налаштував|налаштувала)\b"
 )
+# A bare protocol token is never a reply (live test 06.11.2026: «UNSUPPORTED» was spoken).
+CONTROL_TOKEN = re.compile(r"^(?:unsupported|chat|clarify|action|proposal|followup|lookup)[.!?]*$", re.I)
+
+
 def _claims_local_change(text):
-    """Model prose that claims a local action or a memory change it cannot perform."""
-    return bool(LOCAL_ACTION_CLAIM.match(text.lower().strip()) or memory_change_claim(text))
+    """Model prose that claims a local action or a memory change, or a bare protocol token."""
+    value = text.lower().strip()
+    return bool(LOCAL_ACTION_CLAIM.match(value) or CONTROL_TOKEN.match(value) or memory_change_claim(text))
 
 
 LAST_OPEN_QUESTION = re.compile(
@@ -229,7 +237,7 @@ class CommandProcessor:
             proposal_lease = None
         permission = gate.outcome(stop_phrase=bool(STOP_SPEECH.fullmatch(raw_text)))
         if permission is not PolicyOutcome.ALLOW:
-            return await self._restricted_turn(raw_text, normalized, input_turn, gate, mode, source, confirm)
+            return await self._gated_turn(raw_text, normalized, input_turn, gate, mode, source, confirm)
         success = True
         provider = "local"
         command_match = COMMAND_PREFIX.match(raw_text)
@@ -368,6 +376,23 @@ class CommandProcessor:
         if entries:
             logger.info('Knowledge context entries=%d ids=%s', len(entries), ','.join(self._last_knowledge_ids))
         return {'knowledge_context': context} if context else {}
+
+    async def _gated_turn(self, raw_text, normalized, input_turn, gate, mode, source, confirm):
+        """A clean unscored Groq reply may pick from Raven's own pending offer (06.11.2026).
+
+        Same bar as a Groq confirmation reply: reliable, not truncated or cut off. Only the
+        offered entries, once, within their TTL; file stamps and risky types are still checked.
+        """
+        tasks = self.services.get("tasks")
+        if (tasks is not None and mode == "chat" and gate.voice and gate.groq_unscored and gate.reliable
+                and gate.caller_allows and tasks.is_selection_reply(raw_text)):
+            context = CommandContext(self.settings, self.services, confirm, source, raw_text=raw_text,
+                                     normalized_text=normalized,
+                                     turn_id=input_turn.turn_id if input_turn is not None else None)
+            result = await tasks.consume(raw_text, context)
+            if result is not None:
+                return result
+        return await self._restricted_turn(raw_text, normalized, input_turn, gate, mode, source, confirm)
 
     async def _restricted_turn(self, raw_text, normalized, input_turn, gate, mode, source, confirm):
         """Turn that failed the pre-routing gate: tool-free reply or scoped Groq candidate."""

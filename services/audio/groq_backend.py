@@ -15,6 +15,33 @@ logger = logging.getLogger(__name__)
 MODELS = ('whisper-large-v3-turbo', 'whisper-large-v3')
 ENDPOINT = 'https://api.groq.com/openai/v1/audio/transcriptions'
 
+# Whisper subtitle artifacts on silence or noise (live test 06.11.2026: 6 of 39 turns).
+# Whole-utterance match only; the same words inside a longer phrase are kept.
+_HALLUCINATIONS = frozenset({
+    'дякую за перегляд', 'дякуємо за перегляд', 'дякую за перегляд і до нових зустрічей',
+    'підписуйтесь на канал', 'підписуйтеся на канал', 'продовження слідує',
+    'субтитри зроблені спільнотою amara org', 'субтитри створено спільнотою amara org',
+})
+
+
+def subtitle_hallucination(text):
+    return ' '.join(re.findall(r"[^\W_]+", text.casefold())) in _HALLUCINATIONS
+
+
+
+def _transcript_guard(text, error, contextual_name):
+    """Error class for a transcript that must not reach the dialogue, else the given one."""
+    if text and not error and subtitle_hallucination(text):
+        logger.info('stt.hallucination_guard decision=reject chars=%s', len(text))
+        return 'subtitle_hallucination'
+    if text and not plausible_ukrainian(text) and not contextual_name:
+        logger.info('stt.language_guard decision=reject chars=%s words=%s foreign_cyrillic=%s',
+                    len(text), len(text.split()), any(c in text.casefold() for c in 'ыэёъ'))
+        return 'non_ukrainian_transcript'
+    if contextual_name:
+        logger.info('stt.language_guard decision=accept reason=scoped_catalogue_name')
+    return error
+
 
 def plausible_ukrainian(text):
     """Conservative script guard, not a language classifier or text repair.
@@ -127,12 +154,7 @@ class GroqBackend:
                         contextual_name = name_reply_allowed(text) is True
                     except Exception:
                         logger.info('stt.language_guard scope_check=unavailable')
-            if text and not plausible_ukrainian(text) and not contextual_name:
-                error = 'non_ukrainian_transcript'
-                logger.info('stt.language_guard decision=reject chars=%s words=%s foreign_cyrillic=%s',
-                            len(text), len(text.split()), any(c in text.casefold() for c in 'ыэёъ'))
-            elif contextual_name:
-                logger.info('stt.language_guard decision=accept reason=scoped_catalogue_name')
+            error = _transcript_guard(text, error, contextual_name)
             if error:
                 text = ''
             self.last_error = error

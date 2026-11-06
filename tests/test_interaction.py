@@ -338,9 +338,13 @@ class CommandProcessorModeTests(unittest.IsolatedAsyncioTestCase):
                     task.cancel()
                     await asyncio.gather(task, return_exceptions=True)
 
-    async def test_unscored_cannot_consume_pending_selection_or_execute_explicit_action(self):
+    async def test_unscored_selection_reply_only_reaches_task_context(self):
+        # 06.11.2026: a clean unscored Groq «так» may pick Raven's own pending offer
+        # (same bar as a Groq confirmation reply); it never executes a tool or a command.
         from core.models import TurnEnvelope
-        self.services['tasks'] = SimpleNamespace(pending=object(), consume=AsyncMock())
+        self.services['tasks'] = SimpleNamespace(
+            pending=object(), consume=AsyncMock(return_value=None),
+            is_selection_reply=lambda text: text.strip(' .').lower() == 'так')
         self.llm.converse = AsyncMock(return_value=SimpleNamespace(kind='chat', response='chat'))
         for text in ('Команда: відкрий браузер', 'Telegram', 'так', 'стоп'):
             turn = TurnEnvelope(turn_id='test', session_id='test', source='voice', text=text,
@@ -351,7 +355,8 @@ class CommandProcessorModeTests(unittest.IsolatedAsyncioTestCase):
                 await self.processor.process(turn, confirm)
                 execute.assert_not_awaited()
                 confirm.assert_not_awaited()
-        self.services['tasks'].consume.assert_not_awaited()
+        self.services['tasks'].consume.assert_awaited_once()
+        self.assertEqual(self.services['tasks'].consume.await_args.args[0], 'так')
         self.assertEqual(self.router.commands, [])
 
     async def test_unscored_bypass_rejects_failures_fragments_and_local_commands(self):

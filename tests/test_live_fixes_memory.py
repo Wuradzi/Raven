@@ -232,5 +232,104 @@ class AssistantModeTests(unittest.IsolatedAsyncioTestCase):
                     validate_config(config)
 
 
+class SpokenClaimTests(unittest.TestCase):
+    """Live test 06.11.2026 (E269): claims spoken although nothing changed."""
+
+    def test_volume_and_settings_claims_are_screened(self):
+        from core.processor import _claims_local_change
+        for text in ("Зменшую гучність.", "Збільшив гучність на 3.", "Вмикаю звук.", "Перемикаю на навушники.",
+                     "Налаштував мікрофон."):
+            with self.subTest(text=text):
+                self.assertTrue(_claims_local_change(text))
+        for text in ("Гучність можна зменшити командою.", "Я можу зменшити гучність, якщо скажете «Команда».",
+                     "Перепрошую."):
+            with self.subTest(text=text):
+                self.assertFalse(_claims_local_change(text))
+
+    def test_bare_protocol_token_is_never_spoken(self):
+        from core.processor import _claims_local_change
+        for text in ("UNSUPPORTED", "unsupported.", "CHAT", "Lookup"):
+            with self.subTest(text=text):
+                self.assertTrue(_claims_local_change(text))
+        self.assertFalse(_claims_local_change("Ця функція поки unsupported у бета-версії, на жаль."))
+
+    def test_forgotten_name_claim_is_replaced(self):
+        self.assertTrue(memory_change_claim("Зрозумів, забув це ім'я."))
+        self.assertTrue(memory_change_claim("Запам’ятав ваше ім’я."))
+        self.assertFalse(memory_change_claim("Я забув, як це називається."))
+        self.assertFalse(memory_change_claim("Ваше ім'я Вурадзі."))
+
+
+class GroqSelectionTests(unittest.IsolatedAsyncioTestCase):
+    """Live test 06.11.2026: «Так.» to «Відкрити цей файл?» was refused for unscored Groq voice."""
+
+    def setUp(self):
+        from core.task_context import TaskContext
+        self.processor, _router, self.llm, _memory, _speaker = build("chat", True)
+        self.tasks = TaskContext()
+        self.processor.services["tasks"] = self.tasks
+        self.temp = tempfile.TemporaryDirectory()
+        self.addCleanup(self.temp.cleanup)
+        self.path = Path(self.temp.name) / "dyplom.txt"
+        self.path.write_text("fixture", encoding="utf-8")
+        patcher = patch.object(self.tasks, "open_file", new_callable=AsyncMock,
+                               return_value=SkillResult(True, "opened", {"command_type": "file_open"}))
+        self.open_file = patcher.start()
+        self.addCleanup(patcher.stop)
+
+    @staticmethod
+    def envelope(text, **flags):
+        return TurnEnvelope(turn_id=text, session_id="sel", source="voice", text=text, transcript=text,
+                            stt_engine="groq", confidence=0, confidence_available=False,
+                            action_eligible=False, **flags)
+
+    async def test_clean_groq_yes_opens_the_single_offered_file_once(self):
+        self.tasks.offer("file", [self.path], command_type="file_search")
+        result = await self.processor.process(self.envelope("Так."), AsyncMock())
+        self.assertEqual(result.response, "opened")
+        self.open_file.assert_awaited_once()
+        self.assertEqual(self.open_file.await_args.args[0], self.path)
+        self.assertIsNone(self.tasks.pending)  # consumed once, never replayed
+
+    async def test_groq_no_cancels_and_damaged_reply_never_selects(self):
+        self.tasks.offer("file", [self.path], command_type="file_search")
+        result = await self.processor.process(self.envelope("Ні."), AsyncMock())
+        self.assertEqual(result.data["command_type"], "task_cancelled")
+        for flags in ({"recognition_unreliable": True}, {"capture_truncated": True},
+                      {"utterance_incomplete": True}):
+            with self.subTest(flags=flags):
+                self.tasks.offer("file", [self.path], command_type="file_search")
+                await self.processor.process(self.envelope("Так.", **flags), AsyncMock())
+                self.open_file.assert_not_awaited()
+
+    async def test_without_an_offer_yes_is_not_a_selection(self):
+        await self.processor.process(self.envelope("Так."), AsyncMock())
+        self.open_file.assert_not_awaited()
+
+    async def test_voice_loop_gate_passes_clean_groq_selection(self):
+        from core.app import RavenApp
+        self.tasks.offer("file", [self.path], command_type="file_search")
+        app = object.__new__(RavenApp)
+        app.command_queue, app.command_idle = asyncio.Queue(), asyncio.Event()
+        app.running, app.web_ui = True, None
+        app.services, app.processor = self.processor.services, self.processor
+        app.speaker = SimpleNamespace(say=AsyncMock(), stop=AsyncMock())
+        app.settings = SimpleNamespace(stt_command_confidence_threshold=.8, stt_chat_confidence_threshold=.6,
+                                       natural_actions_enabled=True)
+        app.confirmation = SimpleNamespace(ask=AsyncMock(return_value=False))
+        recognition = RecognitionResult("Так.", 0.0, engine="groq", fragmented=True, utterance_incomplete=False,
+                                        confidence_available=False)
+        await app._enqueue_command("Так.", "voice", 0.0, recognition=recognition)
+        task = asyncio.create_task(app._command_loop())
+        try:
+            await asyncio.wait_for(app.command_queue.join(), 2)
+        finally:
+            task.cancel()
+            await asyncio.gather(task, return_exceptions=True)
+        self.open_file.assert_awaited_once()
+        self.assertNotIn("Не розібрав фразу. Повторіть її, будь ласка.",
+                         [call.args[0] for call in app.speaker.say.await_args_list])
+
+
 if __name__ == "__main__":
     unittest.main()

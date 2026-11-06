@@ -121,6 +121,18 @@ class GroqSTTTests(unittest.TestCase):
             self.assertTrue(result.recognition_unreliable)
             self.assertEqual(self.backend.last_error, 'non_ukrainian_transcript')
 
+    def test_subtitle_hallucination_is_discarded_without_authority(self):
+        # Live test 06.11.2026: «Дякую за перегляд!» on silence in 6 of 39 turns.
+        for text in ('Дякую за перегляд!', 'дякую за перегляд', 'Продовження слідує...'):
+            self.response({'text': text})
+            result = self.backend.transcribe(bytes(3200), 16000)
+            self.assertEqual(result.text, '')
+            self.assertTrue(result.recognition_unreliable)
+            self.assertEqual(self.backend.last_error, 'subtitle_hallucination')
+        for text in ('Дякую.', 'Дякую за перегляд фільму, а тепер скажи погоду'):
+            self.response({'text': text})
+            self.assertEqual(self.backend.transcribe(bytes(3200), 16000).text, text)
+
     def test_ukrainian_requests_and_product_names_survive_guard(self):
         for text in ('Запусти Telegram', 'Відкрий Obsidian', 'Знайди документацію FastAPI',
                      'Відкрий VeryLongUnknownProductName', 'Покажи файл report_final.docx',
