@@ -321,12 +321,18 @@ class GroqSelectionTests(unittest.IsolatedAsyncioTestCase):
                                         confidence_available=False)
         await app._enqueue_command("Так.", "voice", 0.0, recognition=recognition)
         task = asyncio.create_task(app._command_loop())
-        try:
-            await asyncio.wait_for(app.command_queue.join(), 2)
-        finally:
-            task.cancel()
-            await asyncio.gather(task, return_exceptions=True)
+        with self.assertLogs("core.app", level="INFO") as logs:
+            try:
+                await asyncio.wait_for(app.command_queue.join(), 2)
+            finally:
+                task.cancel()
+                await asyncio.gather(task, return_exceptions=True)
         self.open_file.assert_awaited_once()
+        # Roadmap phase 0: one content-free route line per turn.
+        routes = [line for line in logs.output if "turn.route" in line]
+        self.assertEqual(len(routes), 1)
+        self.assertIn("source=voice engine=groq scored=False", routes[0])
+        self.assertNotIn("Так", routes[0])
         self.assertNotIn("Не розібрав фразу. Повторіть її, будь ласка.",
                          [call.args[0] for call in app.speaker.say.await_args_list])
 

@@ -383,6 +383,11 @@ class RavenApp:
                     turn,
                     self.confirmation.ask,
                 )
+                # Content-free route trace (roadmap phase 0): which path a turn took, never its text.
+                logger.info('turn.route source=%s engine=%s scored=%s eligible=%s type=%s route=%s natural_action=%s',
+                            source, turn.stt_engine, turn.confidence_available, turn.action_eligible,
+                            result.data.get('command_type', 'none'), result.data.get('intent_route', 'none'),
+                            bool(result.data.get('natural_action')))
                 if self.web_ui is not None:
                     if result.data.get("command_type") == "conversation_new":
                         self.web_ui.publish("new_conversation")
