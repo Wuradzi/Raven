@@ -20,6 +20,45 @@ def parse_request(text):
             'forget' if match[1].lower() == 'забудь' else 'update'), match[2].strip()
 
 
+_FORGET_LEAD = re.compile(
+    r"^(?:(?:інформацію|дані|факти?|записи?)(?:\s+|$))?(?:з\s+(?:особистої\s+)?пам'яті(?:\s+|$))?(?:про(?:\s+|$))?",
+    re.I)
+
+
+def forget_query(content):
+    """Topic of a forget request without filler words; empty when the user named no topic."""
+    return _FORGET_LEAD.sub('', content.strip(), count=1).strip()
+
+
+def matching_facts(items, query):
+    """Facts whose key/value hold the phrase or every keyword stem of the topic («кафедру» → «кафедра»)."""
+    from services.storage.knowledge_store import knowledge_terms
+    phrase, stems = query.casefold(), knowledge_terms(query)
+    if not stems:  # only stop words («про», «мене»): never match everything
+        return []
+    return [item for item in items
+            if phrase in (item['key'] + ' ' + item['value']).casefold()
+            or stems <= knowledge_terms(item['key'] + ' ' + item['value'])]
+
+
+def forget_selection(store, operation, content):
+    """(facts to forget, None) or (None, reply) when nothing may be forgotten yet."""
+    if operation == 'clear':
+        return store.all(), None
+    query = forget_query(content)
+    if not query:
+        return None, SkillResult(True, 'Назвіть, що саме забути: «забудь про …».')
+    items = matching_facts(store.all(), query)
+    if not items:
+        return None, SkillResult(True, 'Відповідних записів пам’яті не знайшов.')
+    return items, None
+
+
+def fact_text(key, value):
+    """«тема: значення», or the fact once when it was saved without a separate topic."""
+    return value if key.casefold() == value.casefold() else f"{key}: {value}"
+
+
 async def handle_request(request, context, llm):
     operation, content = request
     store = context.services['memory']
@@ -28,7 +67,8 @@ async def handle_request(request, context, llm):
         return SkillResult(True, 'Секрети не зберігаю як звичайні факти пам’яті.', {'command_type': 'memory_rejected'})
     if operation == 'list':
         items = [item for item in store.all() if not item.get('sensitive')]
-        return SkillResult(True, '\n'.join(f"{i['key']}: {i['value']}" for i in items[:20]) or
+        # Live test 06.11.2026: «кафедра…: кафедра…» was read out twice.
+        return SkillResult(True, '\n'.join(fact_text(i['key'], i['value']) for i in items[:20]) or
                            'Збережених фактів поки немає.', {'command_type': 'memory_list'})
     key = value = ''
     if operation in {'remember', 'update'}:
@@ -41,13 +81,11 @@ async def handle_request(request, context, llm):
         if operation == 'update' and not existing:
             return SkillResult(True, 'Не знайшов точну тему. Скажіть «що ти пам’ятаєш», потім «онови тема: значення».')
         reset = bool(existing)
-        description = f'Зберегти факт «{key}: {value}»'
+        description = f'Зберегти факт «{fact_text(key, value)}»'
     else:
-        query = re.sub(r'^(?:інформацію\s+)?про\s+', '', content, flags=re.I)
-        items = store.all() if operation == 'clear' else [item for item in store.all()
-            if query.casefold() in (item['key'] + ' ' + item['value']).casefold()]
-        if not items and operation != 'clear':
-            return SkillResult(True, 'Відповідних записів пам’яті не знайшов.')
+        items, early = forget_selection(store, operation, content)
+        if early is not None:
+            return early
         reset = True
         description = 'Забути всі збережені факти' if operation == 'clear' else (
             'Забути записи: ' + '; '.join(item['key'] for item in items))

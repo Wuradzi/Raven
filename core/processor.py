@@ -127,9 +127,13 @@ def _consent_split(entries, consent):
     return sendable, len(entries) - len(sendable)
 
 
+def _date_label(iso):
+    day = (iso or '')[:10]
+    return '.'.join(reversed(day.split('-'))) if day else 'дата невідома'
+
+
 def _knowledge_source_label(entry):
-    added = entry.get('added_at', '')[:10]
-    date = '.'.join(reversed(added.split('-'))) if added else 'дата невідома'
+    date = _date_label(entry.get('added_at', ''))
     source = entry.get('source', {})
     if source.get('kind') == 'manual':
         return f'додано вами {date}'
@@ -166,6 +170,7 @@ class CommandProcessor:
         self._reply_truncated = False
         self._natural_pending = None
         self._last_knowledge_ids = []
+        self._last_memory_ids = []
         from core.document_reading import DocumentReading
         self.documents = DocumentReading()
 
@@ -344,16 +349,49 @@ class CommandProcessor:
         return result
 
     def _knowledge_source_reply(self, text):
-        """«Звідки ти це знаєш?» about entries used in the last reply; None otherwise."""
+        """«Звідки ти це знаєш?» about local data used in the last reply; None otherwise."""
         if not KNOWLEDGE_SOURCE_QUESTION.fullmatch(text.strip()):
             return None
+        parts = [part for part in (self._knowledge_source_part(), self._memory_source_part()) if part]
+        if not parts:
+            return None  # the model answers about web or its own knowledge
+        return SkillResult(True, ' '.join(parts), {'command_type': 'knowledge_source'})
+
+    def _knowledge_source_part(self):
         store = self.services.get('knowledge')
         ids = getattr(self, '_last_knowledge_ids', [])
         entries = store.get(ids) if store is not None and ids else []
         if not entries:
-            return None  # the model answers about web or its own knowledge
-        sources = '; '.join(f"«{entry['title']}» — {_knowledge_source_label(entry)}" for entry in entries)
-        return SkillResult(True, 'З локальної бази знань: ' + sources + '.', {'command_type': 'knowledge_source'})
+            return ''
+        return 'З локальної бази знань: ' + '; '.join(
+            f"«{entry['title']}» — {_knowledge_source_label(entry)}" for entry in entries) + '.'
+
+    def _memory_source_part(self):
+        """Personal facts given to the model that the last reply actually mentions.
+
+        Live test 06.11.2026: a saved fact was called «загальновідома інформація».
+        A fact counts only when it shares a keyword with the last reply.
+        """
+        ids = set(getattr(self, '_last_memory_ids', []))
+        store = self.services.get('memory')
+        if not ids or not callable(getattr(store, 'all', None)):
+            return ''
+        from services.storage.knowledge_store import knowledge_terms
+        from skills.memory.personal import fact_text
+        said = knowledge_terms(self._last_reply or '')
+        facts = [item for item in store.all() if item.get('id') in ids and not item.get('sensitive')
+                 and knowledge_terms(f"{item.get('key', '')} {item.get('value', '')}") & said]
+        if not facts:
+            return ''
+        return "З вашої особистої пам'яті: " + '; '.join(
+            f"«{fact_text(item['key'], item['value'])[:80]}» — збережено вами {_date_label(item.get('created_at', ''))}"
+            for item in facts) + '.'
+
+    def _memory_context(self, normalized):
+        """Relevant personal facts for the model; their ids answer a later source question."""
+        items = self.services["memory"].relevant(normalized) if normalized else []
+        self._last_memory_ids = [item['id'] for item in items if isinstance(item, dict) and 'id' in item]
+        return items
 
     def _knowledge_options(self, text):
         """Matching reference entries for conversation; never for an action request."""
@@ -428,8 +466,11 @@ class CommandProcessor:
                       if scoped_name else candidate_text)
         web = self.services.get("web_answers")
         streamed_parts = []
+        # The unscored Groq path was missed by the first filler (live test 06.11.2026: a 60 s stall was silent).
+        filler = self._filler(source)
 
         async def speak_preview(phrase):
+            filler.heard()
             phrase = phrase.strip()
             await self.speaker.say(phrase)
             streamed_parts.append(phrase)
@@ -442,7 +483,7 @@ class CommandProcessor:
                 logger.info('Groq proposal route=local_exact; confirmation_required=true')
                 return NaturalTurn('action', intent=intent)
             return await self.llm_manager.converse(
-                model_text, self.services["memory"].relevant(normalized),
+                model_text, self._memory_context(normalized),
                 enabled_skills=self.services.get("enabled_skills", set()),
                 web_context=web.dialogue_context() if web is not None else None,
                 **self._document_options(model_text),
@@ -458,6 +499,7 @@ class CommandProcessor:
                 raise
             return SkillResult(True, "", {"command_type": "chat_interrupted"})
         finally:
+            filler.stop()
             self._chat_task = None
         if groq_candidate and turn.kind in {'action', 'lookup'}:
             context = CommandContext(self.settings, self.services, confirm, source,
@@ -625,7 +667,7 @@ class CommandProcessor:
         system_context, web_options = self._chat_options(control, control_context, source)
         chat_task = asyncio.create_task(self.llm_manager.chat(
             raw_text,
-            [] if control else self.services["memory"].relevant(normalized),
+            self._memory_context('' if control else normalized),
             system_context,
             on_chunk=on_chunk,
             **web_options,
@@ -793,7 +835,7 @@ class CommandProcessor:
 
         proposal_options = self._proposal_options(proposal_lease)
         task = asyncio.create_task(self.llm_manager.converse(
-            model_text, self.services["memory"].relevant(normalized),
+            model_text, self._memory_context(normalized),
             enabled_skills=self.services.get("enabled_skills", set()), web_context=web_context,
             **self._document_options(model_text),
             **self._knowledge_options(model_text),
@@ -994,7 +1036,7 @@ class CommandProcessor:
         if kind is DecisionKind.KNOWLEDGE_GAP:
             return await self._run_permission(knowledge_gap_permission(decision, candidate_text), context)
         # A conversational lead-in must not hide the direct request (J131).
-        request = prior_clarification['request'] if scoped_name else final_request(candidate_text)
+        request = prior_clarification['request'] if scoped_name else final_request(voice_request(candidate_text))
         permission = natural_action_permission(decision, request, candidate_text,
             prior_clarification if scoped_name else None, bool(scoped_name), assistant_offer=previous_reply)
         permission = knowledge_gap_fallback(permission, decision, request, candidate_text, bool(scoped_name))

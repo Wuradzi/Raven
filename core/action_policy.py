@@ -153,17 +153,36 @@ def knowledge_gap_permission(decision, text, *, action_eligible=True):
     intent = decision.intent
     if not action_eligible or intent is None or intent.tool != 'web_search':
         return _permission(decision, PolicyOutcome.SAFE_NO_ACTION)
-    refused = _permission(decision, PolicyOutcome.CLARIFY,
-                          response=KNOWLEDGE_GAP_NOTICE + ' Пошук в інтернеті не запускаю.')
     try:
         intent = validate_intent({'tool': intent.tool, 'arguments': intent.arguments})
     except (InvalidIntent, AttributeError, TypeError):
-        return refused
-    if (not _safe_search_text(text) or not _safe_search_text(intent.arguments['query'])
-            or not _INFORMATION_REQUEST.search(text) or _SEARCH_REFUSAL.search(text)
-            or MULTI_ACTION.search(text)):
-        return refused
+        intent = None
+    reason = _gap_refusal(text, intent)
+    if reason is not None:
+        return _permission(decision, PolicyOutcome.CLARIFY, response=reason)
     return _permission(decision, PolicyOutcome.ALLOW, intent, route='knowledge_gap')
+
+
+def _gap_refusal(text, intent):
+    """Spoken reason a knowledge-gap search does not run, or None when it may run.
+
+    «Пошук не запускаю» is said only when the user refused search or the text is
+    sensitive; a statement or an unclear turn gets the plain notice (live test 06.11.2026).
+    """
+    if _SEARCH_REFUSAL.search(text or ''):
+        return KNOWLEDGE_GAP_NOTICE + ' Пошук в інтернеті не запускаю.'
+    if not _safe_search_text(text) or (intent is not None and not _safe_search_text(intent.arguments['query'])):
+        return KNOWLEDGE_GAP_NOTICE + ' Пошук не запускаю: у запиті є чутливі дані.'
+    if (intent is None or not _INFORMATION_REQUEST.search(text) or MULTI_ACTION.search(text)
+            or not _substantive(text)):
+        return KNOWLEDGE_GAP_NOTICE
+    return None
+
+
+def _substantive(text):
+    """At least two keyword stems: «Точно?» / «Серйозно?» must not start a web search (live test 06.11.2026)."""
+    from services.storage.knowledge_store import knowledge_terms
+    return len(knowledge_terms(text)) >= 2
 
 
 def knowledge_gap_fallback(permission, decision, request, text, scoped, *, action_eligible=True):

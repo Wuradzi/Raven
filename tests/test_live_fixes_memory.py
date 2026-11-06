@@ -232,6 +232,127 @@ class AssistantModeTests(unittest.IsolatedAsyncioTestCase):
                     validate_config(config)
 
 
+class PhaseSevenMemoryTests(unittest.IsolatedAsyncioTestCase):
+    """Roadmap phase 7 (06.11.2026): memory and knowledge-base defects from live tests."""
+
+    def setUp(self):
+        from services.storage.memory_store import MemoryStore
+        self.temp = tempfile.TemporaryDirectory()
+        self.addCleanup(self.temp.cleanup)
+        self.memory = MemoryStore(Path(self.temp.name) / "memory.json")
+        self.fact = self.memory.remember("кафедра кібербезпеки", "корпус 7, аудиторія 412", category="user_explicit")
+        self.processor, _router, self.llm, _memory, _speaker = build("chat", True)
+        self.processor.services["memory"] = self.memory
+
+    async def test_source_of_a_personal_fact_is_answered_locally(self):
+        self.processor._last_memory_ids = [self.fact["id"]]
+        self.processor._cache_reply("Кафедра кібербезпеки — у корпусі 7, аудиторія 412.")
+        result = self.processor._knowledge_source_reply("Звідки ти це знаєш?")
+        self.assertIn("З вашої особистої пам'яті", result.response)
+        self.assertIn("корпус 7, аудиторія 412", result.response)
+        self.assertEqual(result.data["command_type"], "knowledge_source")
+
+    async def test_unmentioned_personal_fact_is_not_claimed(self):
+        self.processor._last_memory_ids = [self.fact["id"]]
+        self.processor._cache_reply("Гарібальді народився в Ніцці.")
+        self.assertIsNone(self.processor._knowledge_source_reply("Звідки ти це знаєш?"))
+
+    async def test_turn_records_which_facts_reached_the_model(self):
+        self.llm.converse = AsyncMock(return_value=NaturalTurn("chat", "Кафедра в корпусі 7."))
+        text = "Де кафедра кібербезпеки?"
+        await self.processor.process(TurnEnvelope(turn_id="m", session_id="m", source="text", text=text,
+                                                  transcript=text, stt_engine="text", confidence=1.0), AsyncMock())
+        self.assertEqual(self.processor._last_memory_ids, [self.fact["id"]])
+
+    def test_fact_without_topic_is_shown_once(self):
+        from skills.memory.personal import fact_text
+        self.assertEqual(fact_text("кафедра у корпусі П", "кафедра у корпусі П"), "кафедра у корпусі П")
+        self.assertEqual(fact_text("браузер", "Firefox"), "браузер: Firefox")
+
+    def test_database_spelling_and_gap_messages(self):
+        from core.action_policy import KNOWLEDGE_GAP_NOTICE, _gap_refusal
+        self.assertEqual(parse_knowledge_request("Що є в базі данних?"), ("list", "", ""))
+        search = CommandIntent("web_search", {"query": "кафедра"})
+        self.assertEqual(_gap_refusal("Ти помиляєшся, вона там є.", search), KNOWLEDGE_GAP_NOTICE)
+        self.assertIn("не запускаю", _gap_refusal("Не шукай в інтернеті, хто такий Гарібальді?", search))
+        self.assertIn("чутливі дані", _gap_refusal("Який мій пароль 1234?", search))
+        self.assertIsNone(_gap_refusal("Хто такий Гарібальді?", search))
+
+    def test_notepad_alias_is_a_default(self):
+        from config import default_config
+        aliases = default_config()["application_aliases"]
+        self.assertEqual((aliases["блокнот"], aliases["пейнт"]), ("Notepad", "Paint"))
+
+
+class LiveTestFixesRound5(unittest.IsolatedAsyncioTestCase):
+    """Live test 06.11.2026 (E274) after phase 7."""
+
+    async def _slow_voice_turn(self, groq):
+        processor, _router, llm, _memory, speaker = build("chat", True)
+        processor.settings.llm_filler_seconds = 0.05
+
+        async def slow(*args, **kwargs):
+            await asyncio.sleep(0.4)
+            return NaturalTurn("chat", "Відповідь.")
+        llm.converse = slow
+        text = "Розкажи щось цікаве про космос"
+        envelope = TurnEnvelope(turn_id="f", session_id="f", source="voice", text=text, transcript=text,
+                                stt_engine="groq" if groq else "vosk", confidence=0 if groq else .95,
+                                confidence_available=not groq, action_eligible=not groq)
+        await processor.process(envelope, AsyncMock())
+        return [call.args for call in speaker.say.await_args_list]
+
+    async def test_filler_speaks_on_the_unscored_groq_path_too(self):
+        # The first filler missed it: all live Groq turns go through _restricted_turn (60 s of silence).
+        for groq in (True, False):
+            with self.subTest(groq=groq):
+                spoken = await self._slow_voice_turn(groq)
+                self.assertEqual(spoken.count(("Хвилинку.",)), 1)
+
+    def test_stt_spelling_of_open_is_repaired(self):
+        from core.natural_turn import direct_request, final_request, voice_request
+        for text in ("Відкрай блокнот.", "відкрай блокнот"):
+            with self.subTest(text=text):
+                self.assertTrue(direct_request(final_request(voice_request(text)), "open_app"), text)
+        self.assertFalse(direct_request(final_request(voice_request("Я вчора відкрив браузер")), "open_app"))
+
+    def test_bare_challenge_does_not_start_a_search(self):
+        from core.action_policy import KNOWLEDGE_GAP_NOTICE, _gap_refusal
+        search = CommandIntent("web_search", {"query": "кафедра кібербезпеки Луцький технічний"})
+        for text in ("Точно?", "Серйозно?", "Невже?"):
+            with self.subTest(text=text):
+                self.assertEqual(_gap_refusal(text, search), KNOWLEDGE_GAP_NOTICE)
+        self.assertIsNone(_gap_refusal("Хто такий Гарібальді?", search))
+        self.assertIsNone(_gap_refusal("Який курс долара?", search))
+
+    def test_forget_phrases_with_personal_memory_wording(self):
+        from skills.memory.personal import forget_query, matching_facts
+        for text, query in (("інформацію з особистої пам'яті про кафедру кібербезпеки", "кафедру кібербезпеки"),
+                            ("про проєкт", "проєкт"), ("інформацію з особистої пам'яті", ""), ("про", "")):
+            with self.subTest(text=text):
+                self.assertEqual(forget_query(text), query)
+        facts = [{"key": "кафедра кібербезпеки", "value": "корпус 7"}, {"key": "браузер", "value": "Firefox"}]
+        self.assertEqual(matching_facts(facts, "кафедру кібербезпеки"), facts[:1])
+        self.assertEqual(matching_facts(facts, "про"), [])   # stop words only: never everything
+        self.assertEqual(matching_facts(facts, ""), [])
+
+    async def test_forget_without_a_topic_changes_nothing(self):
+        from skills.memory.personal import handle_request
+        from services.storage.memory_store import MemoryStore
+        with tempfile.TemporaryDirectory() as temp:
+            memory = MemoryStore(Path(temp) / "memory.json")
+            memory.remember("кафедра", "корпус 7", category="user_explicit")
+            confirm = AsyncMock(return_value=True)
+            context = SimpleNamespace(services={"memory": memory}, confirm=confirm)
+            result = await handle_request(("forget", "інформацію з особистої пам'яті"), context, Mock())
+            self.assertIn("Назвіть, що саме забути", result.response)
+            confirm.assert_not_awaited()
+            self.assertEqual(len(memory.all()), 1)
+            result = await handle_request(("forget", "інформацію з особистої пам'яті про кафедру"), context, Mock())
+            confirm.assert_awaited_once()
+            self.assertEqual(memory.all(), [])
+
+
 class SpokenClaimTests(unittest.TestCase):
     """Live test 06.11.2026 (E269): claims spoken although nothing changed."""
 

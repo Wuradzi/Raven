@@ -238,6 +238,9 @@ def default_config(*, fresh: bool = True) -> dict[str, Any]:
             "код": "Visual Studio Code",
             "хром": "Chrome",
             "гугл хром": "Chrome",
+            # Windows shortcuts are indexed under English names (live test 06.11.2026).
+            "блокнот": "Notepad",
+            "пейнт": "Paint",
         },
         "file_search": {"all_local_drives": False, "budget_seconds": 15},
         # Imported files reach a cloud model only with this explicit consent.

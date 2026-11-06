@@ -9,13 +9,14 @@ from services.storage.knowledge_store import MAX_TEXT, MAX_TITLE, KnowledgeError
 
 _ADD = re.compile(r"(?:додай (?:у|в|до) баз[иу] знань|запам'ятай як довідку)[,:\s]+(.+)", re.I | re.S)
 # «База даних» is accepted only for the read-only list; changes need the exact «базу знань».
-_LIST = re.compile(r"(?:що (?:є )?(?:у|в) (?:твоїй )?базі (?:знань|даних)|покажи базу (?:знань|даних))", re.I)
+# «данних» is a common STT spelling (live test 06.11.2026: it became a web search).
+_LIST = re.compile(r"(?:що (?:є )?(?:у|в) (?:твоїй )?базі (?:знань|дан+их)|покажи базу (?:знань|дан+их))", re.I)
 _FORGET = re.compile(r"(?:забудь(?:те)?|видал(?:и|іть)) довідку(?: про)?\s+(.+)", re.I)
 _CLEAR = re.compile(r"(?:очист(?:и|іть)|видал(?:и|іть)) базу знань", re.I)
 _UPDATE = re.compile(r"(?:онов(?:и|іть)|оновити|імпортуй файли (?:у|в|до)) баз[уи] знань(?: з файлів)?", re.I)
 # STT-damaged whole commands without arguments (live tests 04.11.2026: «О нову базу знань»,
 # «Що я в базі знань?»). Only the read-only list and the update plan, which is confirmed.
-_LIST_LOOSE = re.compile(r"що\s+(?:\S+\s+){0,2}(?:у|в)\s+(?:твоїй\s+)?базі\s+(?:знань|даних)", re.I)
+_LIST_LOOSE = re.compile(r"що\s+(?:\S+\s+){0,2}(?:у|в)\s+(?:твоїй\s+)?базі\s+(?:знань|дан+их)", re.I)
 _UPDATE_TAIL = re.compile(r"(.{1,12}?)\s*баз[уи] знань", re.I)
 IMPORT_FOLDER_LABEL = "data/knowledge"
 _SKIP_REASONS = {

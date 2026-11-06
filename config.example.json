@@ -113,7 +113,9 @@
     "музика": "Spotify",
     "код": "Visual Studio Code",
     "хром": "Chrome",
-    "гугл хром": "Chrome"
+    "гугл хром": "Chrome",
+    "блокнот": "Notepad",
+    "пейнт": "Paint"
   },
   "file_search": {
     "all_local_drives": false,
