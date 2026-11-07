@@ -30,6 +30,8 @@ TEXTS = {
     "open": "Відкрий блокнот",
     "find": "Знайди файл звіт",
     "chat": "Розкажи про Марс",
+    "volume": "Зроби тихіше",
+    "close": "Закрий вікно Блокнот",
 }
 REPLIES = {
     "chat": NaturalTurn("chat", "Марс — четверта планета."),
@@ -45,6 +47,13 @@ REPLIES = {
     "action_find": NaturalTurn("action", intent=CommandIntent("find_files", {"query": "звіт", "extension": ""})),
     "action_window": NaturalTurn("action", intent=CommandIntent("window_control",
                                                                 {"name": "Notepad", "action": "minimize"})),
+    # Computer control (07.11.2026).
+    "action_media": NaturalTurn("action", intent=CommandIntent("media_control",
+                                                               {"action": "volume_down", "steps": "3"})),
+    "action_close": NaturalTurn("action", intent=CommandIntent("window_control",
+                                                               {"name": "Notepad", "action": "close"})),
+    "action_desktop": NaturalTurn("action", intent=CommandIntent("show_desktop", {})),
+    "action_lock": NaturalTurn("action", intent=CommandIntent("lock_screen", {})),
     "lookup": NaturalTurn("lookup", intent=CommandIntent("web_search", {"query": "Марс"})),
     "proposal": NaturalTurn("proposal", intent=CommandIntent("open_app", {"name": "Notepad"})),
     "unavailable": NaturalTurn("unavailable", "Мовна модель недоступна. Нічого не виконано."),

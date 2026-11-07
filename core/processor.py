@@ -11,7 +11,7 @@ from core.dialogue_decision import DialogueDecision, DecisionKind
 from core.action_policy import (PolicyOutcome, knowledge_gap_fallback,
                                 knowledge_gap_permission, natural_action_permission)
 from core.action_proposal import ReplyKind, proposal_question, needs_proposal
-from core.command_actions import execute_intent
+from core.command_actions import UNSCORED_VOICE_TOOLS, execute_intent
 from core.command_intent import CommandIntent, InterpretationUnavailable, MULTI_ACTION, can_interpret, original_search_intent, preserves_search_intent
 from core.command_catalog import chat_catalog, local_intent_candidates
 from core.natural_turn import (direct_request, application_name_reply, final_request,
@@ -911,7 +911,9 @@ class CommandProcessor:
     async def _natural_window(self, text, request, pending, scoped, context):
         """Window control from a direct request or a scoped name reply; None if not a window turn."""
         window = window_request(request) if direct_request(request, "window_control") else None
-        if scoped and pending["tool"] == "window_control":
+        # Only a pending local window request carries window_action; a model clarification
+        # for «закрий / перейди» (07.11.2026) continues through the model instead.
+        if scoped and pending["tool"] == "window_control" and "window_action" in pending:
             name = application_name_reply(text)
             if name is None:
                 self._natural_pending = pending
@@ -1010,9 +1012,10 @@ class CommandProcessor:
                                      previous_reply, context):
         """Unscored Groq voice: separate candidate path, not ACTION eligibility or router re-entry.
 
-        Only four audited executor branches may be reached. find_files keeps the
-        correlated confirmation; web_search, weather and open_app run without one
-        (user decision 04.11.2026: a misheard query may reach the search engine).
+        Only UNSCORED_VOICE_TOOLS may be reached, through the same policy and executor
+        (user decisions 04.11.2026 and 07.11.2026). The executor confirms state changes;
+        UNCONFIRMED_TOOLS run without one: a misheard query may reach the search engine
+        or press a media key.
         """
         from core.command_intent import validate_intent, InvalidIntent
         try:
@@ -1020,7 +1023,7 @@ class CommandProcessor:
         except (InvalidIntent, AttributeError, TypeError):
             return SkillResult(True, 'Не вдалося перевірити дію. Уточніть повне прохання.',
                                {'command_type': 'intent_clarification'})
-        if intent.tool not in {'open_app', 'find_files', 'weather', 'web_search'}:
+        if intent.tool not in UNSCORED_VOICE_TOOLS:
             return SkillResult(True, 'Для цієї дії введіть прохання текстом. Нічого не виконано.',
                                {'command_type': 'intent_clarification'})
         kind = DecisionKind.KNOWLEDGE_GAP if turn.kind == 'lookup' else DecisionKind.ACTION_CANDIDATE

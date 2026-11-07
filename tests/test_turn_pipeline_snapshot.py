@@ -7,6 +7,7 @@ is regenerated (see tests/turn_pipeline_snapshot.py).
 import json
 import unittest
 
+from core.command_actions import UNSCORED_VOICE_TOOLS
 from tests.turn_pipeline_snapshot import FIELDS, GOLDEN, key, cases, observe
 
 
@@ -28,8 +29,9 @@ class TurnPipelineSnapshotTests(unittest.IsolatedAsyncioTestCase):
         self.assertEqual(set(expected) - seen, set())
 
     async def test_damaged_or_unscored_voice_never_executes_a_state_change(self):
-        # Contract, independent of the golden file: only UNCONFIRMED_TOOLS may run without
-        # a scored, eligible turn, and never from damaged speech.
+        # Contract, independent of the golden file: damaged speech reaches no executor;
+        # clean unscored Groq voice reaches only UNSCORED_VOICE_TOOLS (the executor then
+        # confirms every state change except UNCONFIRMED_TOOLS and window focus).
         for case in cases():
             trust, _natural, _text, _reply = case
             if trust in {"unreliable", "truncated", "incomplete", "not_eligible"}:
@@ -38,7 +40,7 @@ class TurnPipelineSnapshotTests(unittest.IsolatedAsyncioTestCase):
             elif trust == "unscored_groq":
                 with self.subTest(case=key(*case)):
                     executed = (await observe(*case))[2]
-                    self.assertLessEqual(set(executed), {"open_app", "find_files", "weather", "web_search"})
+                    self.assertLessEqual(set(executed), UNSCORED_VOICE_TOOLS)
 
 
 if __name__ == "__main__":

@@ -4,6 +4,7 @@ import re
 import asyncio
 from pathlib import Path
 
+from core.command_intent import WINDOW_PHRASES
 from core.models import SkillResult
 from core.confirmation import confirm_action
 
@@ -46,29 +47,52 @@ async def control_window(name, action, context):
     return await execute_window_target(entries[0], context)
 
 
+# Switching to a window is easily reversible and runs without a «так» (user decision
+# 07.11.2026); every other change, including close, keeps the correlated confirmation.
+UNCONFIRMED_WINDOW_ACTIONS = frozenset({"focus"})
+_DONE = {"maximize": "Вікно розгорнуто.", "minimize": "Вікно згорнуто.", "restore": "Вікно відновлено.",
+         "focus": "Перейшов до вікна.", "close": "Вікно закрито."}
+
+
 async def execute_window_target(target, context):
     if "windows" not in context.services.get("enabled_skills", set()):
         return SkillResult(True, "Керування вікнами вимкнено.", {"command_type": "window_unavailable", "success": False})
     action = target["action"]
-    verb = {"maximize": "Розгорнути", "minimize": "Згорнути", "restore": "Відновити"}[action]
-    details = f"{verb} вікно «{target['name']}», програма {Path(target['exe']).name}, PID {target['pid']}"
-    cancelled = await confirm_action(context, details, f"{verb} вікно «{target['name'][:100]}»")
-    if cancelled is not None:
-        return cancelled
+    phrase = WINDOW_PHRASES[action]
+    if action not in UNCONFIRMED_WINDOW_ACTIONS:
+        details = f"{phrase} «{target['name']}», програма {Path(target['exe']).name}, PID {target['pid']}"
+        cancelled = await confirm_action(context, details, f"{phrase} «{target['name'][:100]}»")
+        if cancelled is not None:
+            return cancelled
     try:
         evidence = await asyncio.wait_for(asyncio.to_thread(context.services["windows"].change_target, target, action), 4)
     except Exception:
         evidence = {"accepted": True, "verified": False, "status": "unverified"}
     data = {**evidence, "command_type": "window_" + action, "success": bool(evidence["verified"])}
+    return SkillResult(True, _window_response(action, evidence), data)
+
+
+def _window_response(action, evidence):
     if evidence["verified"]:
-        response = {"maximize": "Вікно розгорнуто.", "minimize": "Вікно згорнуто.", "restore": "Вікно відновлено."}[action]
-        if action != "minimize" and not evidence.get("foreground"):
+        if action == "close" and evidence.get("hidden"):
+            return "Вікно сховано: програма могла лишитися працювати в треї."
+        response = _DONE[action]
+        if action not in {"minimize", "close"} and not evidence.get("foreground"):
             response += " Перехід на передній план не підтверджено."
-    elif not evidence["accepted"]:
-        response = "Вікно змінилося або вже недоступне. Повторіть запит; інше вікно не обираю."
-    else:
-        response = "Стан вікна не вдалося підтвердити. Автоматично не повторюю дію."
-    return SkillResult(True, response, data)
+        return response
+    if not evidence["accepted"]:
+        return "Вікно змінилося або вже недоступне. Повторіть запит; інше вікно не обираю."
+    if action == "close":
+        return "Вікно ще відкрите: програма може питати про збереження. Автоматично не повторюю."
+    return "Стан вікна не вдалося підтвердити. Автоматично не повторюю дію."
+
+
+async def show_desktop(context):
+    """Win+D: hides or brings back all windows. Only a key press is confirmed, not the result."""
+    import pyautogui
+    await asyncio.to_thread(pyautogui.hotkey, "win", "d")
+    return SkillResult(True, "Надіслав команду «показати робочий стіл»; повторна команда поверне вікна.",
+                       {"command_type": "show_desktop", "accepted": True, "verified": False, "status": "sent"})
 
 
 async def handle(command, context, services):

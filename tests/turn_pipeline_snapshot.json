@@ -132,6 +132,50 @@
    true,
    null
   ],
+  "reliable|natural=False|open|action_media": [
+   "chat",
+   "chat-response",
+   [],
+   false,
+   [],
+   [],
+   false,
+   true,
+   null
+  ],
+  "reliable|natural=False|open|action_close": [
+   "chat",
+   "chat-response",
+   [],
+   false,
+   [],
+   [],
+   false,
+   true,
+   null
+  ],
+  "reliable|natural=False|open|action_desktop": [
+   "chat",
+   "chat-response",
+   [],
+   false,
+   [],
+   [],
+   false,
+   true,
+   null
+  ],
+  "reliable|natural=False|open|action_lock": [
+   "chat",
+   "chat-response",
+   [],
+   false,
+   [],
+   [],
+   false,
+   true,
+   null
+  ],
   "reliable|natural=False|open|lookup": [
    "chat",
    "chat-response",
@@ -276,6 +320,50 @@
    null
   ],
   "reliable|natural=False|find|action_window": [
+   "chat",
+   "chat-response",
+   [],
+   false,
+   [],
+   [],
+   false,
+   true,
+   null
+  ],
+  "reliable|natural=False|find|action_media": [
+   "chat",
+   "chat-response",
+   [],
+   false,
+   [],
+   [],
+   false,
+   true,
+   null
+  ],
+  "reliable|natural=False|find|action_close": [
+   "chat",
+   "chat-response",
+   [],
+   false,
+   [],
+   [],
+   false,
+   true,
+   null
+  ],
+  "reliable|natural=False|find|action_desktop": [
+   "chat",
+   "chat-response",
+   [],
+   false,
+   [],
+   [],
+   false,
+   true,
+   null
+  ],
+  "reliable|natural=False|find|action_lock": [
    "chat",
    "chat-response",
    [],
@@ -440,6 +528,50 @@
    true,
    null
   ],
+  "reliable|natural=False|chat|action_media": [
+   "chat",
+   "chat-response",
+   [],
+   false,
+   [],
+   [],
+   false,
+   true,
+   null
+  ],
+  "reliable|natural=False|chat|action_close": [
+   "chat",
+   "chat-response",
+   [],
+   false,
+   [],
+   [],
+   false,
+   true,
+   null
+  ],
+  "reliable|natural=False|chat|action_desktop": [
+   "chat",
+   "chat-response",
+   [],
+   false,
+   [],
+   [],
+   false,
+   true,
+   null
+  ],
+  "reliable|natural=False|chat|action_lock": [
+   "chat",
+   "chat-response",
+   [],
+   false,
+   [],
+   [],
+   false,
+   true,
+   null
+  ],
   "reliable|natural=False|chat|lookup": [
    "chat",
    "chat-response",
@@ -463,6 +595,402 @@
    null
   ],
   "reliable|natural=False|chat|unavailable": [
+   "chat",
+   "chat-response",
+   [],
+   false,
+   [],
+   [],
+   false,
+   true,
+   null
+  ],
+  "reliable|natural=False|volume|chat": [
+   "chat",
+   "chat-response",
+   [],
+   false,
+   [],
+   [],
+   false,
+   true,
+   null
+  ],
+  "reliable|natural=False|volume|claim_volume": [
+   "chat",
+   "chat-response",
+   [],
+   false,
+   [],
+   [],
+   false,
+   true,
+   null
+  ],
+  "reliable|natural=False|volume|claim_open": [
+   "chat",
+   "chat-response",
+   [],
+   false,
+   [],
+   [],
+   false,
+   true,
+   null
+  ],
+  "reliable|natural=False|volume|claim_memory": [
+   "chat",
+   "chat-response",
+   [],
+   false,
+   [],
+   [],
+   false,
+   true,
+   null
+  ],
+  "reliable|natural=False|volume|token": [
+   "chat",
+   "chat-response",
+   [],
+   false,
+   [],
+   [],
+   false,
+   true,
+   null
+  ],
+  "reliable|natural=False|volume|token_lead": [
+   "chat",
+   "chat-response",
+   [],
+   false,
+   [],
+   [],
+   false,
+   true,
+   null
+  ],
+  "reliable|natural=False|volume|token_lead_claim": [
+   "chat",
+   "chat-response",
+   [],
+   false,
+   [],
+   [],
+   false,
+   true,
+   null
+  ],
+  "reliable|natural=False|volume|clarify": [
+   "chat",
+   "chat-response",
+   [],
+   false,
+   [],
+   [],
+   false,
+   true,
+   null
+  ],
+  "reliable|natural=False|volume|action_open": [
+   "chat",
+   "chat-response",
+   [],
+   false,
+   [],
+   [],
+   false,
+   true,
+   null
+  ],
+  "reliable|natural=False|volume|action_find": [
+   "chat",
+   "chat-response",
+   [],
+   false,
+   [],
+   [],
+   false,
+   true,
+   null
+  ],
+  "reliable|natural=False|volume|action_window": [
+   "chat",
+   "chat-response",
+   [],
+   false,
+   [],
+   [],
+   false,
+   true,
+   null
+  ],
+  "reliable|natural=False|volume|action_media": [
+   "chat",
+   "chat-response",
+   [],
+   false,
+   [],
+   [],
+   false,
+   true,
+   null
+  ],
+  "reliable|natural=False|volume|action_close": [
+   "chat",
+   "chat-response",
+   [],
+   false,
+   [],
+   [],
+   false,
+   true,
+   null
+  ],
+  "reliable|natural=False|volume|action_desktop": [
+   "chat",
+   "chat-response",
+   [],
+   false,
+   [],
+   [],
+   false,
+   true,
+   null
+  ],
+  "reliable|natural=False|volume|action_lock": [
+   "chat",
+   "chat-response",
+   [],
+   false,
+   [],
+   [],
+   false,
+   true,
+   null
+  ],
+  "reliable|natural=False|volume|lookup": [
+   "chat",
+   "chat-response",
+   [],
+   false,
+   [],
+   [],
+   false,
+   true,
+   null
+  ],
+  "reliable|natural=False|volume|proposal": [
+   "chat",
+   "chat-response",
+   [],
+   false,
+   [],
+   [],
+   false,
+   true,
+   null
+  ],
+  "reliable|natural=False|volume|unavailable": [
+   "chat",
+   "chat-response",
+   [],
+   false,
+   [],
+   [],
+   false,
+   true,
+   null
+  ],
+  "reliable|natural=False|close|chat": [
+   "chat",
+   "chat-response",
+   [],
+   false,
+   [],
+   [],
+   false,
+   true,
+   null
+  ],
+  "reliable|natural=False|close|claim_volume": [
+   "chat",
+   "chat-response",
+   [],
+   false,
+   [],
+   [],
+   false,
+   true,
+   null
+  ],
+  "reliable|natural=False|close|claim_open": [
+   "chat",
+   "chat-response",
+   [],
+   false,
+   [],
+   [],
+   false,
+   true,
+   null
+  ],
+  "reliable|natural=False|close|claim_memory": [
+   "chat",
+   "chat-response",
+   [],
+   false,
+   [],
+   [],
+   false,
+   true,
+   null
+  ],
+  "reliable|natural=False|close|token": [
+   "chat",
+   "chat-response",
+   [],
+   false,
+   [],
+   [],
+   false,
+   true,
+   null
+  ],
+  "reliable|natural=False|close|token_lead": [
+   "chat",
+   "chat-response",
+   [],
+   false,
+   [],
+   [],
+   false,
+   true,
+   null
+  ],
+  "reliable|natural=False|close|token_lead_claim": [
+   "chat",
+   "chat-response",
+   [],
+   false,
+   [],
+   [],
+   false,
+   true,
+   null
+  ],
+  "reliable|natural=False|close|clarify": [
+   "chat",
+   "chat-response",
+   [],
+   false,
+   [],
+   [],
+   false,
+   true,
+   null
+  ],
+  "reliable|natural=False|close|action_open": [
+   "chat",
+   "chat-response",
+   [],
+   false,
+   [],
+   [],
+   false,
+   true,
+   null
+  ],
+  "reliable|natural=False|close|action_find": [
+   "chat",
+   "chat-response",
+   [],
+   false,
+   [],
+   [],
+   false,
+   true,
+   null
+  ],
+  "reliable|natural=False|close|action_window": [
+   "chat",
+   "chat-response",
+   [],
+   false,
+   [],
+   [],
+   false,
+   true,
+   null
+  ],
+  "reliable|natural=False|close|action_media": [
+   "chat",
+   "chat-response",
+   [],
+   false,
+   [],
+   [],
+   false,
+   true,
+   null
+  ],
+  "reliable|natural=False|close|action_close": [
+   "chat",
+   "chat-response",
+   [],
+   false,
+   [],
+   [],
+   false,
+   true,
+   null
+  ],
+  "reliable|natural=False|close|action_desktop": [
+   "chat",
+   "chat-response",
+   [],
+   false,
+   [],
+   [],
+   false,
+   true,
+   null
+  ],
+  "reliable|natural=False|close|action_lock": [
+   "chat",
+   "chat-response",
+   [],
+   false,
+   [],
+   [],
+   false,
+   true,
+   null
+  ],
+  "reliable|natural=False|close|lookup": [
+   "chat",
+   "chat-response",
+   [],
+   false,
+   [],
+   [],
+   false,
+   true,
+   null
+  ],
+  "reliable|natural=False|close|proposal": [
+   "chat",
+   "chat-response",
+   [],
+   false,
+   [],
+   [],
+   false,
+   true,
+   null
+  ],
+  "reliable|natural=False|close|unavailable": [
    "chat",
    "chat-response",
    [],
@@ -618,6 +1146,58 @@
    null
   ],
   "reliable|natural=True|open|action_window": [
+   "intent_clarification",
+   "Запропонована дія не відповідає типу вашого запиту. Уточніть",
+   [],
+   false,
+   [],
+   [
+    true
+   ],
+   false,
+   false,
+   null
+  ],
+  "reliable|natural=True|open|action_media": [
+   "intent_clarification",
+   "Запропонована дія не відповідає типу вашого запиту. Уточніть",
+   [],
+   false,
+   [],
+   [
+    true
+   ],
+   false,
+   false,
+   null
+  ],
+  "reliable|natural=True|open|action_close": [
+   "intent_clarification",
+   "Запропонована дія не відповідає типу вашого запиту. Уточніть",
+   [],
+   false,
+   [],
+   [
+    true
+   ],
+   false,
+   false,
+   null
+  ],
+  "reliable|natural=True|open|action_desktop": [
+   "intent_clarification",
+   "Запропонована дія не відповідає типу вашого запиту. Уточніть",
+   [],
+   false,
+   [],
+   [
+    true
+   ],
+   false,
+   false,
+   null
+  ],
+  "reliable|natural=True|open|action_lock": [
    "intent_clarification",
    "Запропонована дія не відповідає типу вашого запиту. Уточніть",
    [],
@@ -814,6 +1394,58 @@
    null
   ],
   "reliable|natural=True|find|action_window": [
+   "intent_clarification",
+   "Запропонована дія не відповідає типу вашого запиту. Уточніть",
+   [],
+   false,
+   [],
+   [
+    true
+   ],
+   false,
+   false,
+   null
+  ],
+  "reliable|natural=True|find|action_media": [
+   "intent_clarification",
+   "Запропонована дія не відповідає типу вашого запиту. Уточніть",
+   [],
+   false,
+   [],
+   [
+    true
+   ],
+   false,
+   false,
+   null
+  ],
+  "reliable|natural=True|find|action_close": [
+   "intent_clarification",
+   "Запропонована дія не відповідає типу вашого запиту. Уточніть",
+   [],
+   false,
+   [],
+   [
+    true
+   ],
+   false,
+   false,
+   null
+  ],
+  "reliable|natural=True|find|action_desktop": [
+   "intent_clarification",
+   "Запропонована дія не відповідає типу вашого запиту. Уточніть",
+   [],
+   false,
+   [],
+   [
+    true
+   ],
+   false,
+   false,
+   null
+  ],
+  "reliable|natural=True|find|action_lock": [
    "intent_clarification",
    "Запропонована дія не відповідає типу вашого запиту. Уточніть",
    [],
@@ -1024,6 +1656,58 @@
    false,
    null
   ],
+  "reliable|natural=True|chat|action_media": [
+   "intent_clarification",
+   "Не впевнений, що це пряме прохання виконати дію. Уточніть, б",
+   [],
+   false,
+   [],
+   [
+    true
+   ],
+   false,
+   false,
+   null
+  ],
+  "reliable|natural=True|chat|action_close": [
+   "intent_clarification",
+   "Не впевнений, що це пряме прохання виконати дію. Уточніть, б",
+   [],
+   false,
+   [],
+   [
+    true
+   ],
+   false,
+   false,
+   null
+  ],
+  "reliable|natural=True|chat|action_desktop": [
+   "intent_clarification",
+   "Не впевнений, що це пряме прохання виконати дію. Уточніть, б",
+   [],
+   false,
+   [],
+   [
+    true
+   ],
+   false,
+   false,
+   null
+  ],
+  "reliable|natural=True|chat|action_lock": [
+   "intent_clarification",
+   "Не впевнений, що це пряме прохання виконати дію. Уточніть, б",
+   [],
+   false,
+   [],
+   [
+    true
+   ],
+   false,
+   false,
+   null
+  ],
   "reliable|natural=True|chat|lookup": [
    "intent_clarification",
    "Не знаю цього напевно.",
@@ -1051,6 +1735,504 @@
    null
   ],
   "reliable|natural=True|chat|unavailable": [
+   "chat",
+   "Мовна модель недоступна. Нічого не виконано.",
+   [],
+   false,
+   [],
+   [
+    true
+   ],
+   false,
+   false,
+   null
+  ],
+  "reliable|natural=True|volume|chat": [
+   "chat",
+   "Марс — четверта планета.",
+   [],
+   false,
+   [
+    "Марс — четверта планета."
+   ],
+   [
+    true
+   ],
+   false,
+   false,
+   null
+  ],
+  "reliable|natural=True|volume|claim_volume": [
+   "chat",
+   "Дію ще не виконано. Для запуску потрібен погоджений план.",
+   [],
+   false,
+   [
+    "Дію ще не виконано. Для запуску потрібен погоджений план."
+   ],
+   [
+    true
+   ],
+   false,
+   false,
+   null
+  ],
+  "reliable|natural=True|volume|claim_open": [
+   "chat",
+   "Дію ще не виконано. Для запуску потрібен погоджений план.",
+   [],
+   false,
+   [
+    "Дію ще не виконано. Для запуску потрібен погоджений план."
+   ],
+   [
+    true
+   ],
+   false,
+   false,
+   null
+  ],
+  "reliable|natural=True|volume|claim_memory": [
+   "chat",
+   "Дію ще не виконано. Для запуску потрібен погоджений план.",
+   [],
+   false,
+   [
+    "Дію ще не виконано. Для запуску потрібен погоджений план."
+   ],
+   [
+    true
+   ],
+   false,
+   false,
+   null
+  ],
+  "reliable|natural=True|volume|token": [
+   "chat",
+   "Дію ще не виконано. Для запуску потрібен погоджений план.",
+   [],
+   false,
+   [],
+   [
+    true
+   ],
+   false,
+   false,
+   null
+  ],
+  "reliable|natural=True|volume|token_lead": [
+   "chat",
+   "Цю дію не підтримує поточний каталог команд.",
+   [],
+   false,
+   [
+    "Цю дію не підтримує поточний каталог команд."
+   ],
+   [
+    true
+   ],
+   false,
+   false,
+   null
+  ],
+  "reliable|natural=True|volume|token_lead_claim": [
+   "chat",
+   "Дію ще не виконано. Для запуску потрібен погоджений план.",
+   [],
+   false,
+   [
+    "Дію ще не виконано. Для запуску потрібен погоджений план."
+   ],
+   [
+    true
+   ],
+   false,
+   false,
+   null
+  ],
+  "reliable|natural=True|volume|clarify": [
+   "chat",
+   "Яку програму відкрити?",
+   [],
+   false,
+   [],
+   [
+    true
+   ],
+   false,
+   false,
+   "media_control"
+  ],
+  "reliable|natural=True|volume|action_open": [
+   "intent_clarification",
+   "Запропонована дія не відповідає типу вашого запиту. Уточніть",
+   [],
+   false,
+   [],
+   [
+    true
+   ],
+   false,
+   false,
+   null
+  ],
+  "reliable|natural=True|volume|action_find": [
+   "intent_clarification",
+   "Запропонована дія не відповідає типу вашого запиту. Уточніть",
+   [],
+   false,
+   [],
+   [
+    true
+   ],
+   false,
+   false,
+   null
+  ],
+  "reliable|natural=True|volume|action_window": [
+   "intent_clarification",
+   "Запропонована дія не відповідає типу вашого запиту. Уточніть",
+   [],
+   false,
+   [],
+   [
+    true
+   ],
+   false,
+   false,
+   null
+  ],
+  "reliable|natural=True|volume|action_media": [
+   "executed_media_control",
+   "executed media_control",
+   [
+    "media_control"
+   ],
+   false,
+   [],
+   [
+    true
+   ],
+   false,
+   false,
+   null
+  ],
+  "reliable|natural=True|volume|action_close": [
+   "intent_clarification",
+   "Запропонована дія не відповідає типу вашого запиту. Уточніть",
+   [],
+   false,
+   [],
+   [
+    true
+   ],
+   false,
+   false,
+   null
+  ],
+  "reliable|natural=True|volume|action_desktop": [
+   "intent_clarification",
+   "Запропонована дія не відповідає типу вашого запиту. Уточніть",
+   [],
+   false,
+   [],
+   [
+    true
+   ],
+   false,
+   false,
+   null
+  ],
+  "reliable|natural=True|volume|action_lock": [
+   "intent_clarification",
+   "Запропонована дія не відповідає типу вашого запиту. Уточніть",
+   [],
+   false,
+   [],
+   [
+    true
+   ],
+   false,
+   false,
+   null
+  ],
+  "reliable|natural=True|volume|lookup": [
+   "intent_clarification",
+   "Не знаю цього напевно.",
+   [],
+   false,
+   [],
+   [
+    true
+   ],
+   false,
+   false,
+   null
+  ],
+  "reliable|natural=True|volume|proposal": [
+   "action_proposal",
+   "Відкрити програму «Notepad»?",
+   [],
+   false,
+   [],
+   [
+    true
+   ],
+   false,
+   false,
+   null
+  ],
+  "reliable|natural=True|volume|unavailable": [
+   "chat",
+   "Мовна модель недоступна. Нічого не виконано.",
+   [],
+   false,
+   [],
+   [
+    true
+   ],
+   false,
+   false,
+   null
+  ],
+  "reliable|natural=True|close|chat": [
+   "chat",
+   "Марс — четверта планета.",
+   [],
+   false,
+   [
+    "Марс — четверта планета."
+   ],
+   [
+    true
+   ],
+   false,
+   false,
+   null
+  ],
+  "reliable|natural=True|close|claim_volume": [
+   "chat",
+   "Дію ще не виконано. Для запуску потрібен погоджений план.",
+   [],
+   false,
+   [
+    "Дію ще не виконано. Для запуску потрібен погоджений план."
+   ],
+   [
+    true
+   ],
+   false,
+   false,
+   null
+  ],
+  "reliable|natural=True|close|claim_open": [
+   "chat",
+   "Дію ще не виконано. Для запуску потрібен погоджений план.",
+   [],
+   false,
+   [
+    "Дію ще не виконано. Для запуску потрібен погоджений план."
+   ],
+   [
+    true
+   ],
+   false,
+   false,
+   null
+  ],
+  "reliable|natural=True|close|claim_memory": [
+   "chat",
+   "Дію ще не виконано. Для запуску потрібен погоджений план.",
+   [],
+   false,
+   [
+    "Дію ще не виконано. Для запуску потрібен погоджений план."
+   ],
+   [
+    true
+   ],
+   false,
+   false,
+   null
+  ],
+  "reliable|natural=True|close|token": [
+   "chat",
+   "Дію ще не виконано. Для запуску потрібен погоджений план.",
+   [],
+   false,
+   [],
+   [
+    true
+   ],
+   false,
+   false,
+   null
+  ],
+  "reliable|natural=True|close|token_lead": [
+   "chat",
+   "Цю дію не підтримує поточний каталог команд.",
+   [],
+   false,
+   [
+    "Цю дію не підтримує поточний каталог команд."
+   ],
+   [
+    true
+   ],
+   false,
+   false,
+   null
+  ],
+  "reliable|natural=True|close|token_lead_claim": [
+   "chat",
+   "Дію ще не виконано. Для запуску потрібен погоджений план.",
+   [],
+   false,
+   [
+    "Дію ще не виконано. Для запуску потрібен погоджений план."
+   ],
+   [
+    true
+   ],
+   false,
+   false,
+   null
+  ],
+  "reliable|natural=True|close|clarify": [
+   "chat",
+   "Яку програму відкрити?",
+   [],
+   false,
+   [],
+   [
+    true
+   ],
+   false,
+   false,
+   "window_control"
+  ],
+  "reliable|natural=True|close|action_open": [
+   "intent_clarification",
+   "Запропонована дія не відповідає типу вашого запиту. Уточніть",
+   [],
+   false,
+   [],
+   [
+    true
+   ],
+   false,
+   false,
+   null
+  ],
+  "reliable|natural=True|close|action_find": [
+   "intent_clarification",
+   "Запропонована дія не відповідає типу вашого запиту. Уточніть",
+   [],
+   false,
+   [],
+   [
+    true
+   ],
+   false,
+   false,
+   null
+  ],
+  "reliable|natural=True|close|action_window": [
+   "executed_window_control",
+   "executed window_control",
+   [
+    "window_control"
+   ],
+   false,
+   [],
+   [
+    true
+   ],
+   false,
+   false,
+   null
+  ],
+  "reliable|natural=True|close|action_media": [
+   "intent_clarification",
+   "Запропонована дія не відповідає типу вашого запиту. Уточніть",
+   [],
+   false,
+   [],
+   [
+    true
+   ],
+   false,
+   false,
+   null
+  ],
+  "reliable|natural=True|close|action_close": [
+   "executed_window_control",
+   "executed window_control",
+   [
+    "window_control"
+   ],
+   false,
+   [],
+   [
+    true
+   ],
+   false,
+   false,
+   null
+  ],
+  "reliable|natural=True|close|action_desktop": [
+   "intent_clarification",
+   "Запропонована дія не відповідає типу вашого запиту. Уточніть",
+   [],
+   false,
+   [],
+   [
+    true
+   ],
+   false,
+   false,
+   null
+  ],
+  "reliable|natural=True|close|action_lock": [
+   "intent_clarification",
+   "Запропонована дія не відповідає типу вашого запиту. Уточніть",
+   [],
+   false,
+   [],
+   [
+    true
+   ],
+   false,
+   false,
+   null
+  ],
+  "reliable|natural=True|close|lookup": [
+   "intent_clarification",
+   "Не знаю цього напевно.",
+   [],
+   false,
+   [],
+   [
+    true
+   ],
+   false,
+   false,
+   null
+  ],
+  "reliable|natural=True|close|proposal": [
+   "action_proposal",
+   "Відкрити програму «Notepad»?",
+   [],
+   false,
+   [],
+   [
+    true
+   ],
+   false,
+   false,
+   null
+  ],
+  "reliable|natural=True|close|unavailable": [
    "chat",
    "Мовна модель недоступна. Нічого не виконано.",
    [],
@@ -1194,6 +2376,58 @@
    null
   ],
   "not_eligible|natural=False|open|action_window": [
+   "fragment_clarify",
+   "Почув фразу частинами. Повторіть повне прохання про дію; ніч",
+   [],
+   false,
+   [],
+   [
+    false
+   ],
+   false,
+   false,
+   null
+  ],
+  "not_eligible|natural=False|open|action_media": [
+   "fragment_clarify",
+   "Почув фразу частинами. Повторіть повне прохання про дію; ніч",
+   [],
+   false,
+   [],
+   [
+    false
+   ],
+   false,
+   false,
+   null
+  ],
+  "not_eligible|natural=False|open|action_close": [
+   "fragment_clarify",
+   "Почув фразу частинами. Повторіть повне прохання про дію; ніч",
+   [],
+   false,
+   [],
+   [
+    false
+   ],
+   false,
+   false,
+   null
+  ],
+  "not_eligible|natural=False|open|action_desktop": [
+   "fragment_clarify",
+   "Почув фразу частинами. Повторіть повне прохання про дію; ніч",
+   [],
+   false,
+   [],
+   [
+    false
+   ],
+   false,
+   false,
+   null
+  ],
+  "not_eligible|natural=False|open|action_lock": [
    "fragment_clarify",
    "Почув фразу частинами. Повторіть повне прохання про дію; ніч",
    [],
@@ -1388,6 +2622,58 @@
    false,
    null
   ],
+  "not_eligible|natural=False|find|action_media": [
+   "fragment_clarify",
+   "Почув фразу частинами. Повторіть повне прохання про дію; ніч",
+   [],
+   false,
+   [],
+   [
+    false
+   ],
+   false,
+   false,
+   null
+  ],
+  "not_eligible|natural=False|find|action_close": [
+   "fragment_clarify",
+   "Почув фразу частинами. Повторіть повне прохання про дію; ніч",
+   [],
+   false,
+   [],
+   [
+    false
+   ],
+   false,
+   false,
+   null
+  ],
+  "not_eligible|natural=False|find|action_desktop": [
+   "fragment_clarify",
+   "Почув фразу частинами. Повторіть повне прохання про дію; ніч",
+   [],
+   false,
+   [],
+   [
+    false
+   ],
+   false,
+   false,
+   null
+  ],
+  "not_eligible|natural=False|find|action_lock": [
+   "fragment_clarify",
+   "Почув фразу частинами. Повторіть повне прохання про дію; ніч",
+   [],
+   false,
+   [],
+   [
+    false
+   ],
+   false,
+   false,
+   null
+  ],
   "not_eligible|natural=False|find|lookup": [
    "fragment_clarify",
    "Почув фразу частинами. Повторіть повне прохання про дію; ніч",
@@ -1570,6 +2856,58 @@
    false,
    null
   ],
+  "not_eligible|natural=False|chat|action_media": [
+   "fragment_clarify",
+   "Почув фразу частинами. Повторіть повне прохання про дію; ніч",
+   [],
+   false,
+   [],
+   [
+    false
+   ],
+   false,
+   false,
+   null
+  ],
+  "not_eligible|natural=False|chat|action_close": [
+   "fragment_clarify",
+   "Почув фразу частинами. Повторіть повне прохання про дію; ніч",
+   [],
+   false,
+   [],
+   [
+    false
+   ],
+   false,
+   false,
+   null
+  ],
+  "not_eligible|natural=False|chat|action_desktop": [
+   "fragment_clarify",
+   "Почув фразу частинами. Повторіть повне прохання про дію; ніч",
+   [],
+   false,
+   [],
+   [
+    false
+   ],
+   false,
+   false,
+   null
+  ],
+  "not_eligible|natural=False|chat|action_lock": [
+   "fragment_clarify",
+   "Почув фразу частинами. Повторіть повне прохання про дію; ніч",
+   [],
+   false,
+   [],
+   [
+    false
+   ],
+   false,
+   false,
+   null
+  ],
   "not_eligible|natural=False|chat|lookup": [
    "fragment_clarify",
    "Почув фразу частинами. Повторіть повне прохання про дію; ніч",
@@ -1597,6 +2935,474 @@
    null
   ],
   "not_eligible|natural=False|chat|unavailable": [
+   "llm_unavailable",
+   "Мовна модель недоступна. Нічого не виконано.",
+   [],
+   false,
+   [],
+   [
+    false
+   ],
+   false,
+   false,
+   null
+  ],
+  "not_eligible|natural=False|volume|chat": [
+   "fragment_chat",
+   "Марс — четверта планета.",
+   [],
+   false,
+   [],
+   [
+    false
+   ],
+   false,
+   false,
+   null
+  ],
+  "not_eligible|natural=False|volume|claim_volume": [
+   "fragment_chat",
+   "Дію ще не виконано. Для запуску потрібен погоджений план.",
+   [],
+   false,
+   [],
+   [
+    false
+   ],
+   false,
+   false,
+   null
+  ],
+  "not_eligible|natural=False|volume|claim_open": [
+   "fragment_chat",
+   "Дію ще не виконано. Для запуску потрібен погоджений план.",
+   [],
+   false,
+   [],
+   [
+    false
+   ],
+   false,
+   false,
+   null
+  ],
+  "not_eligible|natural=False|volume|claim_memory": [
+   "fragment_chat",
+   "Дію ще не виконано. Для запуску потрібен погоджений план.",
+   [],
+   false,
+   [],
+   [
+    false
+   ],
+   false,
+   false,
+   null
+  ],
+  "not_eligible|natural=False|volume|token": [
+   "fragment_chat",
+   "Дію ще не виконано. Для запуску потрібен погоджений план.",
+   [],
+   false,
+   [],
+   [
+    false
+   ],
+   false,
+   false,
+   null
+  ],
+  "not_eligible|natural=False|volume|token_lead": [
+   "fragment_chat",
+   "Цю дію не підтримує поточний каталог команд.",
+   [],
+   false,
+   [],
+   [
+    false
+   ],
+   false,
+   false,
+   null
+  ],
+  "not_eligible|natural=False|volume|token_lead_claim": [
+   "fragment_chat",
+   "Дію ще не виконано. Для запуску потрібен погоджений план.",
+   [],
+   false,
+   [],
+   [
+    false
+   ],
+   false,
+   false,
+   null
+  ],
+  "not_eligible|natural=False|volume|clarify": [
+   "fragment_clarify",
+   "Яку програму відкрити?",
+   [],
+   false,
+   [],
+   [
+    false
+   ],
+   false,
+   false,
+   null
+  ],
+  "not_eligible|natural=False|volume|action_open": [
+   "fragment_clarify",
+   "Почув фразу частинами. Повторіть повне прохання про дію; ніч",
+   [],
+   false,
+   [],
+   [
+    false
+   ],
+   false,
+   false,
+   null
+  ],
+  "not_eligible|natural=False|volume|action_find": [
+   "fragment_clarify",
+   "Почув фразу частинами. Повторіть повне прохання про дію; ніч",
+   [],
+   false,
+   [],
+   [
+    false
+   ],
+   false,
+   false,
+   null
+  ],
+  "not_eligible|natural=False|volume|action_window": [
+   "fragment_clarify",
+   "Почув фразу частинами. Повторіть повне прохання про дію; ніч",
+   [],
+   false,
+   [],
+   [
+    false
+   ],
+   false,
+   false,
+   null
+  ],
+  "not_eligible|natural=False|volume|action_media": [
+   "fragment_clarify",
+   "Почув фразу частинами. Повторіть повне прохання про дію; ніч",
+   [],
+   false,
+   [],
+   [
+    false
+   ],
+   false,
+   false,
+   null
+  ],
+  "not_eligible|natural=False|volume|action_close": [
+   "fragment_clarify",
+   "Почув фразу частинами. Повторіть повне прохання про дію; ніч",
+   [],
+   false,
+   [],
+   [
+    false
+   ],
+   false,
+   false,
+   null
+  ],
+  "not_eligible|natural=False|volume|action_desktop": [
+   "fragment_clarify",
+   "Почув фразу частинами. Повторіть повне прохання про дію; ніч",
+   [],
+   false,
+   [],
+   [
+    false
+   ],
+   false,
+   false,
+   null
+  ],
+  "not_eligible|natural=False|volume|action_lock": [
+   "fragment_clarify",
+   "Почув фразу частинами. Повторіть повне прохання про дію; ніч",
+   [],
+   false,
+   [],
+   [
+    false
+   ],
+   false,
+   false,
+   null
+  ],
+  "not_eligible|natural=False|volume|lookup": [
+   "fragment_clarify",
+   "Почув фразу частинами. Повторіть повне прохання про дію; ніч",
+   [],
+   false,
+   [],
+   [
+    false
+   ],
+   false,
+   false,
+   null
+  ],
+  "not_eligible|natural=False|volume|proposal": [
+   "intent_clarification",
+   "Уточніть повне прохання, якщо хочете виконати дію. Нічого не",
+   [],
+   false,
+   [],
+   [
+    false
+   ],
+   false,
+   false,
+   null
+  ],
+  "not_eligible|natural=False|volume|unavailable": [
+   "llm_unavailable",
+   "Мовна модель недоступна. Нічого не виконано.",
+   [],
+   false,
+   [],
+   [
+    false
+   ],
+   false,
+   false,
+   null
+  ],
+  "not_eligible|natural=False|close|chat": [
+   "fragment_chat",
+   "Марс — четверта планета.",
+   [],
+   false,
+   [],
+   [
+    false
+   ],
+   false,
+   false,
+   null
+  ],
+  "not_eligible|natural=False|close|claim_volume": [
+   "fragment_chat",
+   "Дію ще не виконано. Для запуску потрібен погоджений план.",
+   [],
+   false,
+   [],
+   [
+    false
+   ],
+   false,
+   false,
+   null
+  ],
+  "not_eligible|natural=False|close|claim_open": [
+   "fragment_chat",
+   "Дію ще не виконано. Для запуску потрібен погоджений план.",
+   [],
+   false,
+   [],
+   [
+    false
+   ],
+   false,
+   false,
+   null
+  ],
+  "not_eligible|natural=False|close|claim_memory": [
+   "fragment_chat",
+   "Дію ще не виконано. Для запуску потрібен погоджений план.",
+   [],
+   false,
+   [],
+   [
+    false
+   ],
+   false,
+   false,
+   null
+  ],
+  "not_eligible|natural=False|close|token": [
+   "fragment_chat",
+   "Дію ще не виконано. Для запуску потрібен погоджений план.",
+   [],
+   false,
+   [],
+   [
+    false
+   ],
+   false,
+   false,
+   null
+  ],
+  "not_eligible|natural=False|close|token_lead": [
+   "fragment_chat",
+   "Цю дію не підтримує поточний каталог команд.",
+   [],
+   false,
+   [],
+   [
+    false
+   ],
+   false,
+   false,
+   null
+  ],
+  "not_eligible|natural=False|close|token_lead_claim": [
+   "fragment_chat",
+   "Дію ще не виконано. Для запуску потрібен погоджений план.",
+   [],
+   false,
+   [],
+   [
+    false
+   ],
+   false,
+   false,
+   null
+  ],
+  "not_eligible|natural=False|close|clarify": [
+   "fragment_clarify",
+   "Яку програму відкрити?",
+   [],
+   false,
+   [],
+   [
+    false
+   ],
+   false,
+   false,
+   null
+  ],
+  "not_eligible|natural=False|close|action_open": [
+   "fragment_clarify",
+   "Почув фразу частинами. Повторіть повне прохання про дію; ніч",
+   [],
+   false,
+   [],
+   [
+    false
+   ],
+   false,
+   false,
+   null
+  ],
+  "not_eligible|natural=False|close|action_find": [
+   "fragment_clarify",
+   "Почув фразу частинами. Повторіть повне прохання про дію; ніч",
+   [],
+   false,
+   [],
+   [
+    false
+   ],
+   false,
+   false,
+   null
+  ],
+  "not_eligible|natural=False|close|action_window": [
+   "fragment_clarify",
+   "Почув фразу частинами. Повторіть повне прохання про дію; ніч",
+   [],
+   false,
+   [],
+   [
+    false
+   ],
+   false,
+   false,
+   null
+  ],
+  "not_eligible|natural=False|close|action_media": [
+   "fragment_clarify",
+   "Почув фразу частинами. Повторіть повне прохання про дію; ніч",
+   [],
+   false,
+   [],
+   [
+    false
+   ],
+   false,
+   false,
+   null
+  ],
+  "not_eligible|natural=False|close|action_close": [
+   "fragment_clarify",
+   "Почув фразу частинами. Повторіть повне прохання про дію; ніч",
+   [],
+   false,
+   [],
+   [
+    false
+   ],
+   false,
+   false,
+   null
+  ],
+  "not_eligible|natural=False|close|action_desktop": [
+   "fragment_clarify",
+   "Почув фразу частинами. Повторіть повне прохання про дію; ніч",
+   [],
+   false,
+   [],
+   [
+    false
+   ],
+   false,
+   false,
+   null
+  ],
+  "not_eligible|natural=False|close|action_lock": [
+   "fragment_clarify",
+   "Почув фразу частинами. Повторіть повне прохання про дію; ніч",
+   [],
+   false,
+   [],
+   [
+    false
+   ],
+   false,
+   false,
+   null
+  ],
+  "not_eligible|natural=False|close|lookup": [
+   "fragment_clarify",
+   "Почув фразу частинами. Повторіть повне прохання про дію; ніч",
+   [],
+   false,
+   [],
+   [
+    false
+   ],
+   false,
+   false,
+   null
+  ],
+  "not_eligible|natural=False|close|proposal": [
+   "intent_clarification",
+   "Уточніть повне прохання, якщо хочете виконати дію. Нічого не",
+   [],
+   false,
+   [],
+   [
+    false
+   ],
+   false,
+   false,
+   null
+  ],
+  "not_eligible|natural=False|close|unavailable": [
    "llm_unavailable",
    "Мовна модель недоступна. Нічого не виконано.",
    [],
@@ -1740,6 +3546,58 @@
    null
   ],
   "not_eligible|natural=True|open|action_window": [
+   "fragment_clarify",
+   "Почув фразу частинами. Повторіть повне прохання про дію; ніч",
+   [],
+   false,
+   [],
+   [
+    false
+   ],
+   false,
+   false,
+   null
+  ],
+  "not_eligible|natural=True|open|action_media": [
+   "fragment_clarify",
+   "Почув фразу частинами. Повторіть повне прохання про дію; ніч",
+   [],
+   false,
+   [],
+   [
+    false
+   ],
+   false,
+   false,
+   null
+  ],
+  "not_eligible|natural=True|open|action_close": [
+   "fragment_clarify",
+   "Почув фразу частинами. Повторіть повне прохання про дію; ніч",
+   [],
+   false,
+   [],
+   [
+    false
+   ],
+   false,
+   false,
+   null
+  ],
+  "not_eligible|natural=True|open|action_desktop": [
+   "fragment_clarify",
+   "Почув фразу частинами. Повторіть повне прохання про дію; ніч",
+   [],
+   false,
+   [],
+   [
+    false
+   ],
+   false,
+   false,
+   null
+  ],
+  "not_eligible|natural=True|open|action_lock": [
    "fragment_clarify",
    "Почув фразу частинами. Повторіть повне прохання про дію; ніч",
    [],
@@ -1934,6 +3792,58 @@
    false,
    null
   ],
+  "not_eligible|natural=True|find|action_media": [
+   "fragment_clarify",
+   "Почув фразу частинами. Повторіть повне прохання про дію; ніч",
+   [],
+   false,
+   [],
+   [
+    false
+   ],
+   false,
+   false,
+   null
+  ],
+  "not_eligible|natural=True|find|action_close": [
+   "fragment_clarify",
+   "Почув фразу частинами. Повторіть повне прохання про дію; ніч",
+   [],
+   false,
+   [],
+   [
+    false
+   ],
+   false,
+   false,
+   null
+  ],
+  "not_eligible|natural=True|find|action_desktop": [
+   "fragment_clarify",
+   "Почув фразу частинами. Повторіть повне прохання про дію; ніч",
+   [],
+   false,
+   [],
+   [
+    false
+   ],
+   false,
+   false,
+   null
+  ],
+  "not_eligible|natural=True|find|action_lock": [
+   "fragment_clarify",
+   "Почув фразу частинами. Повторіть повне прохання про дію; ніч",
+   [],
+   false,
+   [],
+   [
+    false
+   ],
+   false,
+   false,
+   null
+  ],
   "not_eligible|natural=True|find|lookup": [
    "fragment_clarify",
    "Почув фразу частинами. Повторіть повне прохання про дію; ніч",
@@ -2116,6 +4026,58 @@
    false,
    null
   ],
+  "not_eligible|natural=True|chat|action_media": [
+   "fragment_clarify",
+   "Почув фразу частинами. Повторіть повне прохання про дію; ніч",
+   [],
+   false,
+   [],
+   [
+    false
+   ],
+   false,
+   false,
+   null
+  ],
+  "not_eligible|natural=True|chat|action_close": [
+   "fragment_clarify",
+   "Почув фразу частинами. Повторіть повне прохання про дію; ніч",
+   [],
+   false,
+   [],
+   [
+    false
+   ],
+   false,
+   false,
+   null
+  ],
+  "not_eligible|natural=True|chat|action_desktop": [
+   "fragment_clarify",
+   "Почув фразу частинами. Повторіть повне прохання про дію; ніч",
+   [],
+   false,
+   [],
+   [
+    false
+   ],
+   false,
+   false,
+   null
+  ],
+  "not_eligible|natural=True|chat|action_lock": [
+   "fragment_clarify",
+   "Почув фразу частинами. Повторіть повне прохання про дію; ніч",
+   [],
+   false,
+   [],
+   [
+    false
+   ],
+   false,
+   false,
+   null
+  ],
   "not_eligible|natural=True|chat|lookup": [
    "fragment_clarify",
    "Почув фразу частинами. Повторіть повне прохання про дію; ніч",
@@ -2143,6 +4105,474 @@
    null
   ],
   "not_eligible|natural=True|chat|unavailable": [
+   "llm_unavailable",
+   "Мовна модель недоступна. Нічого не виконано.",
+   [],
+   false,
+   [],
+   [
+    false
+   ],
+   false,
+   false,
+   null
+  ],
+  "not_eligible|natural=True|volume|chat": [
+   "fragment_chat",
+   "Марс — четверта планета.",
+   [],
+   false,
+   [],
+   [
+    false
+   ],
+   false,
+   false,
+   null
+  ],
+  "not_eligible|natural=True|volume|claim_volume": [
+   "fragment_chat",
+   "Дію ще не виконано. Для запуску потрібен погоджений план.",
+   [],
+   false,
+   [],
+   [
+    false
+   ],
+   false,
+   false,
+   null
+  ],
+  "not_eligible|natural=True|volume|claim_open": [
+   "fragment_chat",
+   "Дію ще не виконано. Для запуску потрібен погоджений план.",
+   [],
+   false,
+   [],
+   [
+    false
+   ],
+   false,
+   false,
+   null
+  ],
+  "not_eligible|natural=True|volume|claim_memory": [
+   "fragment_chat",
+   "Дію ще не виконано. Для запуску потрібен погоджений план.",
+   [],
+   false,
+   [],
+   [
+    false
+   ],
+   false,
+   false,
+   null
+  ],
+  "not_eligible|natural=True|volume|token": [
+   "fragment_chat",
+   "Дію ще не виконано. Для запуску потрібен погоджений план.",
+   [],
+   false,
+   [],
+   [
+    false
+   ],
+   false,
+   false,
+   null
+  ],
+  "not_eligible|natural=True|volume|token_lead": [
+   "fragment_chat",
+   "Цю дію не підтримує поточний каталог команд.",
+   [],
+   false,
+   [],
+   [
+    false
+   ],
+   false,
+   false,
+   null
+  ],
+  "not_eligible|natural=True|volume|token_lead_claim": [
+   "fragment_chat",
+   "Дію ще не виконано. Для запуску потрібен погоджений план.",
+   [],
+   false,
+   [],
+   [
+    false
+   ],
+   false,
+   false,
+   null
+  ],
+  "not_eligible|natural=True|volume|clarify": [
+   "fragment_clarify",
+   "Яку програму відкрити?",
+   [],
+   false,
+   [],
+   [
+    false
+   ],
+   false,
+   false,
+   null
+  ],
+  "not_eligible|natural=True|volume|action_open": [
+   "fragment_clarify",
+   "Почув фразу частинами. Повторіть повне прохання про дію; ніч",
+   [],
+   false,
+   [],
+   [
+    false
+   ],
+   false,
+   false,
+   null
+  ],
+  "not_eligible|natural=True|volume|action_find": [
+   "fragment_clarify",
+   "Почув фразу частинами. Повторіть повне прохання про дію; ніч",
+   [],
+   false,
+   [],
+   [
+    false
+   ],
+   false,
+   false,
+   null
+  ],
+  "not_eligible|natural=True|volume|action_window": [
+   "fragment_clarify",
+   "Почув фразу частинами. Повторіть повне прохання про дію; ніч",
+   [],
+   false,
+   [],
+   [
+    false
+   ],
+   false,
+   false,
+   null
+  ],
+  "not_eligible|natural=True|volume|action_media": [
+   "fragment_clarify",
+   "Почув фразу частинами. Повторіть повне прохання про дію; ніч",
+   [],
+   false,
+   [],
+   [
+    false
+   ],
+   false,
+   false,
+   null
+  ],
+  "not_eligible|natural=True|volume|action_close": [
+   "fragment_clarify",
+   "Почув фразу частинами. Повторіть повне прохання про дію; ніч",
+   [],
+   false,
+   [],
+   [
+    false
+   ],
+   false,
+   false,
+   null
+  ],
+  "not_eligible|natural=True|volume|action_desktop": [
+   "fragment_clarify",
+   "Почув фразу частинами. Повторіть повне прохання про дію; ніч",
+   [],
+   false,
+   [],
+   [
+    false
+   ],
+   false,
+   false,
+   null
+  ],
+  "not_eligible|natural=True|volume|action_lock": [
+   "fragment_clarify",
+   "Почув фразу частинами. Повторіть повне прохання про дію; ніч",
+   [],
+   false,
+   [],
+   [
+    false
+   ],
+   false,
+   false,
+   null
+  ],
+  "not_eligible|natural=True|volume|lookup": [
+   "fragment_clarify",
+   "Почув фразу частинами. Повторіть повне прохання про дію; ніч",
+   [],
+   false,
+   [],
+   [
+    false
+   ],
+   false,
+   false,
+   null
+  ],
+  "not_eligible|natural=True|volume|proposal": [
+   "intent_clarification",
+   "Уточніть повне прохання, якщо хочете виконати дію. Нічого не",
+   [],
+   false,
+   [],
+   [
+    false
+   ],
+   false,
+   false,
+   null
+  ],
+  "not_eligible|natural=True|volume|unavailable": [
+   "llm_unavailable",
+   "Мовна модель недоступна. Нічого не виконано.",
+   [],
+   false,
+   [],
+   [
+    false
+   ],
+   false,
+   false,
+   null
+  ],
+  "not_eligible|natural=True|close|chat": [
+   "fragment_chat",
+   "Марс — четверта планета.",
+   [],
+   false,
+   [],
+   [
+    false
+   ],
+   false,
+   false,
+   null
+  ],
+  "not_eligible|natural=True|close|claim_volume": [
+   "fragment_chat",
+   "Дію ще не виконано. Для запуску потрібен погоджений план.",
+   [],
+   false,
+   [],
+   [
+    false
+   ],
+   false,
+   false,
+   null
+  ],
+  "not_eligible|natural=True|close|claim_open": [
+   "fragment_chat",
+   "Дію ще не виконано. Для запуску потрібен погоджений план.",
+   [],
+   false,
+   [],
+   [
+    false
+   ],
+   false,
+   false,
+   null
+  ],
+  "not_eligible|natural=True|close|claim_memory": [
+   "fragment_chat",
+   "Дію ще не виконано. Для запуску потрібен погоджений план.",
+   [],
+   false,
+   [],
+   [
+    false
+   ],
+   false,
+   false,
+   null
+  ],
+  "not_eligible|natural=True|close|token": [
+   "fragment_chat",
+   "Дію ще не виконано. Для запуску потрібен погоджений план.",
+   [],
+   false,
+   [],
+   [
+    false
+   ],
+   false,
+   false,
+   null
+  ],
+  "not_eligible|natural=True|close|token_lead": [
+   "fragment_chat",
+   "Цю дію не підтримує поточний каталог команд.",
+   [],
+   false,
+   [],
+   [
+    false
+   ],
+   false,
+   false,
+   null
+  ],
+  "not_eligible|natural=True|close|token_lead_claim": [
+   "fragment_chat",
+   "Дію ще не виконано. Для запуску потрібен погоджений план.",
+   [],
+   false,
+   [],
+   [
+    false
+   ],
+   false,
+   false,
+   null
+  ],
+  "not_eligible|natural=True|close|clarify": [
+   "fragment_clarify",
+   "Яку програму відкрити?",
+   [],
+   false,
+   [],
+   [
+    false
+   ],
+   false,
+   false,
+   null
+  ],
+  "not_eligible|natural=True|close|action_open": [
+   "fragment_clarify",
+   "Почув фразу частинами. Повторіть повне прохання про дію; ніч",
+   [],
+   false,
+   [],
+   [
+    false
+   ],
+   false,
+   false,
+   null
+  ],
+  "not_eligible|natural=True|close|action_find": [
+   "fragment_clarify",
+   "Почув фразу частинами. Повторіть повне прохання про дію; ніч",
+   [],
+   false,
+   [],
+   [
+    false
+   ],
+   false,
+   false,
+   null
+  ],
+  "not_eligible|natural=True|close|action_window": [
+   "fragment_clarify",
+   "Почув фразу частинами. Повторіть повне прохання про дію; ніч",
+   [],
+   false,
+   [],
+   [
+    false
+   ],
+   false,
+   false,
+   null
+  ],
+  "not_eligible|natural=True|close|action_media": [
+   "fragment_clarify",
+   "Почув фразу частинами. Повторіть повне прохання про дію; ніч",
+   [],
+   false,
+   [],
+   [
+    false
+   ],
+   false,
+   false,
+   null
+  ],
+  "not_eligible|natural=True|close|action_close": [
+   "fragment_clarify",
+   "Почув фразу частинами. Повторіть повне прохання про дію; ніч",
+   [],
+   false,
+   [],
+   [
+    false
+   ],
+   false,
+   false,
+   null
+  ],
+  "not_eligible|natural=True|close|action_desktop": [
+   "fragment_clarify",
+   "Почув фразу частинами. Повторіть повне прохання про дію; ніч",
+   [],
+   false,
+   [],
+   [
+    false
+   ],
+   false,
+   false,
+   null
+  ],
+  "not_eligible|natural=True|close|action_lock": [
+   "fragment_clarify",
+   "Почув фразу частинами. Повторіть повне прохання про дію; ніч",
+   [],
+   false,
+   [],
+   [
+    false
+   ],
+   false,
+   false,
+   null
+  ],
+  "not_eligible|natural=True|close|lookup": [
+   "fragment_clarify",
+   "Почув фразу частинами. Повторіть повне прохання про дію; ніч",
+   [],
+   false,
+   [],
+   [
+    false
+   ],
+   false,
+   false,
+   null
+  ],
+  "not_eligible|natural=True|close|proposal": [
+   "intent_clarification",
+   "Уточніть повне прохання, якщо хочете виконати дію. Нічого не",
+   [],
+   false,
+   [],
+   [
+    false
+   ],
+   false,
+   false,
+   null
+  ],
+  "not_eligible|natural=True|close|unavailable": [
    "llm_unavailable",
    "Мовна модель недоступна. Нічого не виконано.",
    [],
@@ -2286,6 +4716,58 @@
    null
   ],
   "unreliable|natural=False|open|action_window": [
+   "fragment_clarify",
+   "Почув фразу частинами. Повторіть повне прохання про дію; ніч",
+   [],
+   false,
+   [],
+   [
+    false
+   ],
+   false,
+   false,
+   null
+  ],
+  "unreliable|natural=False|open|action_media": [
+   "fragment_clarify",
+   "Почув фразу частинами. Повторіть повне прохання про дію; ніч",
+   [],
+   false,
+   [],
+   [
+    false
+   ],
+   false,
+   false,
+   null
+  ],
+  "unreliable|natural=False|open|action_close": [
+   "fragment_clarify",
+   "Почув фразу частинами. Повторіть повне прохання про дію; ніч",
+   [],
+   false,
+   [],
+   [
+    false
+   ],
+   false,
+   false,
+   null
+  ],
+  "unreliable|natural=False|open|action_desktop": [
+   "fragment_clarify",
+   "Почув фразу частинами. Повторіть повне прохання про дію; ніч",
+   [],
+   false,
+   [],
+   [
+    false
+   ],
+   false,
+   false,
+   null
+  ],
+  "unreliable|natural=False|open|action_lock": [
    "fragment_clarify",
    "Почув фразу частинами. Повторіть повне прохання про дію; ніч",
    [],
@@ -2480,6 +4962,58 @@
    false,
    null
   ],
+  "unreliable|natural=False|find|action_media": [
+   "fragment_clarify",
+   "Почув фразу частинами. Повторіть повне прохання про дію; ніч",
+   [],
+   false,
+   [],
+   [
+    false
+   ],
+   false,
+   false,
+   null
+  ],
+  "unreliable|natural=False|find|action_close": [
+   "fragment_clarify",
+   "Почув фразу частинами. Повторіть повне прохання про дію; ніч",
+   [],
+   false,
+   [],
+   [
+    false
+   ],
+   false,
+   false,
+   null
+  ],
+  "unreliable|natural=False|find|action_desktop": [
+   "fragment_clarify",
+   "Почув фразу частинами. Повторіть повне прохання про дію; ніч",
+   [],
+   false,
+   [],
+   [
+    false
+   ],
+   false,
+   false,
+   null
+  ],
+  "unreliable|natural=False|find|action_lock": [
+   "fragment_clarify",
+   "Почув фразу частинами. Повторіть повне прохання про дію; ніч",
+   [],
+   false,
+   [],
+   [
+    false
+   ],
+   false,
+   false,
+   null
+  ],
   "unreliable|natural=False|find|lookup": [
    "fragment_clarify",
    "Почув фразу частинами. Повторіть повне прохання про дію; ніч",
@@ -2662,6 +5196,58 @@
    false,
    null
   ],
+  "unreliable|natural=False|chat|action_media": [
+   "fragment_clarify",
+   "Почув фразу частинами. Повторіть повне прохання про дію; ніч",
+   [],
+   false,
+   [],
+   [
+    false
+   ],
+   false,
+   false,
+   null
+  ],
+  "unreliable|natural=False|chat|action_close": [
+   "fragment_clarify",
+   "Почув фразу частинами. Повторіть повне прохання про дію; ніч",
+   [],
+   false,
+   [],
+   [
+    false
+   ],
+   false,
+   false,
+   null
+  ],
+  "unreliable|natural=False|chat|action_desktop": [
+   "fragment_clarify",
+   "Почув фразу частинами. Повторіть повне прохання про дію; ніч",
+   [],
+   false,
+   [],
+   [
+    false
+   ],
+   false,
+   false,
+   null
+  ],
+  "unreliable|natural=False|chat|action_lock": [
+   "fragment_clarify",
+   "Почув фразу частинами. Повторіть повне прохання про дію; ніч",
+   [],
+   false,
+   [],
+   [
+    false
+   ],
+   false,
+   false,
+   null
+  ],
   "unreliable|natural=False|chat|lookup": [
    "fragment_clarify",
    "Почув фразу частинами. Повторіть повне прохання про дію; ніч",
@@ -2689,6 +5275,474 @@
    null
   ],
   "unreliable|natural=False|chat|unavailable": [
+   "llm_unavailable",
+   "Мовна модель недоступна. Нічого не виконано.",
+   [],
+   false,
+   [],
+   [
+    false
+   ],
+   false,
+   false,
+   null
+  ],
+  "unreliable|natural=False|volume|chat": [
+   "fragment_chat",
+   "Марс — четверта планета.",
+   [],
+   false,
+   [],
+   [
+    false
+   ],
+   false,
+   false,
+   null
+  ],
+  "unreliable|natural=False|volume|claim_volume": [
+   "fragment_chat",
+   "Дію ще не виконано. Для запуску потрібен погоджений план.",
+   [],
+   false,
+   [],
+   [
+    false
+   ],
+   false,
+   false,
+   null
+  ],
+  "unreliable|natural=False|volume|claim_open": [
+   "fragment_chat",
+   "Дію ще не виконано. Для запуску потрібен погоджений план.",
+   [],
+   false,
+   [],
+   [
+    false
+   ],
+   false,
+   false,
+   null
+  ],
+  "unreliable|natural=False|volume|claim_memory": [
+   "fragment_chat",
+   "Дію ще не виконано. Для запуску потрібен погоджений план.",
+   [],
+   false,
+   [],
+   [
+    false
+   ],
+   false,
+   false,
+   null
+  ],
+  "unreliable|natural=False|volume|token": [
+   "fragment_chat",
+   "Дію ще не виконано. Для запуску потрібен погоджений план.",
+   [],
+   false,
+   [],
+   [
+    false
+   ],
+   false,
+   false,
+   null
+  ],
+  "unreliable|natural=False|volume|token_lead": [
+   "fragment_chat",
+   "Цю дію не підтримує поточний каталог команд.",
+   [],
+   false,
+   [],
+   [
+    false
+   ],
+   false,
+   false,
+   null
+  ],
+  "unreliable|natural=False|volume|token_lead_claim": [
+   "fragment_chat",
+   "Дію ще не виконано. Для запуску потрібен погоджений план.",
+   [],
+   false,
+   [],
+   [
+    false
+   ],
+   false,
+   false,
+   null
+  ],
+  "unreliable|natural=False|volume|clarify": [
+   "fragment_clarify",
+   "Яку програму відкрити?",
+   [],
+   false,
+   [],
+   [
+    false
+   ],
+   false,
+   false,
+   null
+  ],
+  "unreliable|natural=False|volume|action_open": [
+   "fragment_clarify",
+   "Почув фразу частинами. Повторіть повне прохання про дію; ніч",
+   [],
+   false,
+   [],
+   [
+    false
+   ],
+   false,
+   false,
+   null
+  ],
+  "unreliable|natural=False|volume|action_find": [
+   "fragment_clarify",
+   "Почув фразу частинами. Повторіть повне прохання про дію; ніч",
+   [],
+   false,
+   [],
+   [
+    false
+   ],
+   false,
+   false,
+   null
+  ],
+  "unreliable|natural=False|volume|action_window": [
+   "fragment_clarify",
+   "Почув фразу частинами. Повторіть повне прохання про дію; ніч",
+   [],
+   false,
+   [],
+   [
+    false
+   ],
+   false,
+   false,
+   null
+  ],
+  "unreliable|natural=False|volume|action_media": [
+   "fragment_clarify",
+   "Почув фразу частинами. Повторіть повне прохання про дію; ніч",
+   [],
+   false,
+   [],
+   [
+    false
+   ],
+   false,
+   false,
+   null
+  ],
+  "unreliable|natural=False|volume|action_close": [
+   "fragment_clarify",
+   "Почув фразу частинами. Повторіть повне прохання про дію; ніч",
+   [],
+   false,
+   [],
+   [
+    false
+   ],
+   false,
+   false,
+   null
+  ],
+  "unreliable|natural=False|volume|action_desktop": [
+   "fragment_clarify",
+   "Почув фразу частинами. Повторіть повне прохання про дію; ніч",
+   [],
+   false,
+   [],
+   [
+    false
+   ],
+   false,
+   false,
+   null
+  ],
+  "unreliable|natural=False|volume|action_lock": [
+   "fragment_clarify",
+   "Почув фразу частинами. Повторіть повне прохання про дію; ніч",
+   [],
+   false,
+   [],
+   [
+    false
+   ],
+   false,
+   false,
+   null
+  ],
+  "unreliable|natural=False|volume|lookup": [
+   "fragment_clarify",
+   "Почув фразу частинами. Повторіть повне прохання про дію; ніч",
+   [],
+   false,
+   [],
+   [
+    false
+   ],
+   false,
+   false,
+   null
+  ],
+  "unreliable|natural=False|volume|proposal": [
+   "intent_clarification",
+   "Уточніть повне прохання, якщо хочете виконати дію. Нічого не",
+   [],
+   false,
+   [],
+   [
+    false
+   ],
+   false,
+   false,
+   null
+  ],
+  "unreliable|natural=False|volume|unavailable": [
+   "llm_unavailable",
+   "Мовна модель недоступна. Нічого не виконано.",
+   [],
+   false,
+   [],
+   [
+    false
+   ],
+   false,
+   false,
+   null
+  ],
+  "unreliable|natural=False|close|chat": [
+   "fragment_chat",
+   "Марс — четверта планета.",
+   [],
+   false,
+   [],
+   [
+    false
+   ],
+   false,
+   false,
+   null
+  ],
+  "unreliable|natural=False|close|claim_volume": [
+   "fragment_chat",
+   "Дію ще не виконано. Для запуску потрібен погоджений план.",
+   [],
+   false,
+   [],
+   [
+    false
+   ],
+   false,
+   false,
+   null
+  ],
+  "unreliable|natural=False|close|claim_open": [
+   "fragment_chat",
+   "Дію ще не виконано. Для запуску потрібен погоджений план.",
+   [],
+   false,
+   [],
+   [
+    false
+   ],
+   false,
+   false,
+   null
+  ],
+  "unreliable|natural=False|close|claim_memory": [
+   "fragment_chat",
+   "Дію ще не виконано. Для запуску потрібен погоджений план.",
+   [],
+   false,
+   [],
+   [
+    false
+   ],
+   false,
+   false,
+   null
+  ],
+  "unreliable|natural=False|close|token": [
+   "fragment_chat",
+   "Дію ще не виконано. Для запуску потрібен погоджений план.",
+   [],
+   false,
+   [],
+   [
+    false
+   ],
+   false,
+   false,
+   null
+  ],
+  "unreliable|natural=False|close|token_lead": [
+   "fragment_chat",
+   "Цю дію не підтримує поточний каталог команд.",
+   [],
+   false,
+   [],
+   [
+    false
+   ],
+   false,
+   false,
+   null
+  ],
+  "unreliable|natural=False|close|token_lead_claim": [
+   "fragment_chat",
+   "Дію ще не виконано. Для запуску потрібен погоджений план.",
+   [],
+   false,
+   [],
+   [
+    false
+   ],
+   false,
+   false,
+   null
+  ],
+  "unreliable|natural=False|close|clarify": [
+   "fragment_clarify",
+   "Яку програму відкрити?",
+   [],
+   false,
+   [],
+   [
+    false
+   ],
+   false,
+   false,
+   null
+  ],
+  "unreliable|natural=False|close|action_open": [
+   "fragment_clarify",
+   "Почув фразу частинами. Повторіть повне прохання про дію; ніч",
+   [],
+   false,
+   [],
+   [
+    false
+   ],
+   false,
+   false,
+   null
+  ],
+  "unreliable|natural=False|close|action_find": [
+   "fragment_clarify",
+   "Почув фразу частинами. Повторіть повне прохання про дію; ніч",
+   [],
+   false,
+   [],
+   [
+    false
+   ],
+   false,
+   false,
+   null
+  ],
+  "unreliable|natural=False|close|action_window": [
+   "fragment_clarify",
+   "Почув фразу частинами. Повторіть повне прохання про дію; ніч",
+   [],
+   false,
+   [],
+   [
+    false
+   ],
+   false,
+   false,
+   null
+  ],
+  "unreliable|natural=False|close|action_media": [
+   "fragment_clarify",
+   "Почув фразу частинами. Повторіть повне прохання про дію; ніч",
+   [],
+   false,
+   [],
+   [
+    false
+   ],
+   false,
+   false,
+   null
+  ],
+  "unreliable|natural=False|close|action_close": [
+   "fragment_clarify",
+   "Почув фразу частинами. Повторіть повне прохання про дію; ніч",
+   [],
+   false,
+   [],
+   [
+    false
+   ],
+   false,
+   false,
+   null
+  ],
+  "unreliable|natural=False|close|action_desktop": [
+   "fragment_clarify",
+   "Почув фразу частинами. Повторіть повне прохання про дію; ніч",
+   [],
+   false,
+   [],
+   [
+    false
+   ],
+   false,
+   false,
+   null
+  ],
+  "unreliable|natural=False|close|action_lock": [
+   "fragment_clarify",
+   "Почув фразу частинами. Повторіть повне прохання про дію; ніч",
+   [],
+   false,
+   [],
+   [
+    false
+   ],
+   false,
+   false,
+   null
+  ],
+  "unreliable|natural=False|close|lookup": [
+   "fragment_clarify",
+   "Почув фразу частинами. Повторіть повне прохання про дію; ніч",
+   [],
+   false,
+   [],
+   [
+    false
+   ],
+   false,
+   false,
+   null
+  ],
+  "unreliable|natural=False|close|proposal": [
+   "intent_clarification",
+   "Уточніть повне прохання, якщо хочете виконати дію. Нічого не",
+   [],
+   false,
+   [],
+   [
+    false
+   ],
+   false,
+   false,
+   null
+  ],
+  "unreliable|natural=False|close|unavailable": [
    "llm_unavailable",
    "Мовна модель недоступна. Нічого не виконано.",
    [],
@@ -2832,6 +5886,58 @@
    null
   ],
   "unreliable|natural=True|open|action_window": [
+   "fragment_clarify",
+   "Почув фразу частинами. Повторіть повне прохання про дію; ніч",
+   [],
+   false,
+   [],
+   [
+    false
+   ],
+   false,
+   false,
+   null
+  ],
+  "unreliable|natural=True|open|action_media": [
+   "fragment_clarify",
+   "Почув фразу частинами. Повторіть повне прохання про дію; ніч",
+   [],
+   false,
+   [],
+   [
+    false
+   ],
+   false,
+   false,
+   null
+  ],
+  "unreliable|natural=True|open|action_close": [
+   "fragment_clarify",
+   "Почув фразу частинами. Повторіть повне прохання про дію; ніч",
+   [],
+   false,
+   [],
+   [
+    false
+   ],
+   false,
+   false,
+   null
+  ],
+  "unreliable|natural=True|open|action_desktop": [
+   "fragment_clarify",
+   "Почув фразу частинами. Повторіть повне прохання про дію; ніч",
+   [],
+   false,
+   [],
+   [
+    false
+   ],
+   false,
+   false,
+   null
+  ],
+  "unreliable|natural=True|open|action_lock": [
    "fragment_clarify",
    "Почув фразу частинами. Повторіть повне прохання про дію; ніч",
    [],
@@ -3026,6 +6132,58 @@
    false,
    null
   ],
+  "unreliable|natural=True|find|action_media": [
+   "fragment_clarify",
+   "Почув фразу частинами. Повторіть повне прохання про дію; ніч",
+   [],
+   false,
+   [],
+   [
+    false
+   ],
+   false,
+   false,
+   null
+  ],
+  "unreliable|natural=True|find|action_close": [
+   "fragment_clarify",
+   "Почув фразу частинами. Повторіть повне прохання про дію; ніч",
+   [],
+   false,
+   [],
+   [
+    false
+   ],
+   false,
+   false,
+   null
+  ],
+  "unreliable|natural=True|find|action_desktop": [
+   "fragment_clarify",
+   "Почув фразу частинами. Повторіть повне прохання про дію; ніч",
+   [],
+   false,
+   [],
+   [
+    false
+   ],
+   false,
+   false,
+   null
+  ],
+  "unreliable|natural=True|find|action_lock": [
+   "fragment_clarify",
+   "Почув фразу частинами. Повторіть повне прохання про дію; ніч",
+   [],
+   false,
+   [],
+   [
+    false
+   ],
+   false,
+   false,
+   null
+  ],
   "unreliable|natural=True|find|lookup": [
    "fragment_clarify",
    "Почув фразу частинами. Повторіть повне прохання про дію; ніч",
@@ -3208,6 +6366,58 @@
    false,
    null
   ],
+  "unreliable|natural=True|chat|action_media": [
+   "fragment_clarify",
+   "Почув фразу частинами. Повторіть повне прохання про дію; ніч",
+   [],
+   false,
+   [],
+   [
+    false
+   ],
+   false,
+   false,
+   null
+  ],
+  "unreliable|natural=True|chat|action_close": [
+   "fragment_clarify",
+   "Почув фразу частинами. Повторіть повне прохання про дію; ніч",
+   [],
+   false,
+   [],
+   [
+    false
+   ],
+   false,
+   false,
+   null
+  ],
+  "unreliable|natural=True|chat|action_desktop": [
+   "fragment_clarify",
+   "Почув фразу частинами. Повторіть повне прохання про дію; ніч",
+   [],
+   false,
+   [],
+   [
+    false
+   ],
+   false,
+   false,
+   null
+  ],
+  "unreliable|natural=True|chat|action_lock": [
+   "fragment_clarify",
+   "Почув фразу частинами. Повторіть повне прохання про дію; ніч",
+   [],
+   false,
+   [],
+   [
+    false
+   ],
+   false,
+   false,
+   null
+  ],
   "unreliable|natural=True|chat|lookup": [
    "fragment_clarify",
    "Почув фразу частинами. Повторіть повне прохання про дію; ніч",
@@ -3235,6 +6445,474 @@
    null
   ],
   "unreliable|natural=True|chat|unavailable": [
+   "llm_unavailable",
+   "Мовна модель недоступна. Нічого не виконано.",
+   [],
+   false,
+   [],
+   [
+    false
+   ],
+   false,
+   false,
+   null
+  ],
+  "unreliable|natural=True|volume|chat": [
+   "fragment_chat",
+   "Марс — четверта планета.",
+   [],
+   false,
+   [],
+   [
+    false
+   ],
+   false,
+   false,
+   null
+  ],
+  "unreliable|natural=True|volume|claim_volume": [
+   "fragment_chat",
+   "Дію ще не виконано. Для запуску потрібен погоджений план.",
+   [],
+   false,
+   [],
+   [
+    false
+   ],
+   false,
+   false,
+   null
+  ],
+  "unreliable|natural=True|volume|claim_open": [
+   "fragment_chat",
+   "Дію ще не виконано. Для запуску потрібен погоджений план.",
+   [],
+   false,
+   [],
+   [
+    false
+   ],
+   false,
+   false,
+   null
+  ],
+  "unreliable|natural=True|volume|claim_memory": [
+   "fragment_chat",
+   "Дію ще не виконано. Для запуску потрібен погоджений план.",
+   [],
+   false,
+   [],
+   [
+    false
+   ],
+   false,
+   false,
+   null
+  ],
+  "unreliable|natural=True|volume|token": [
+   "fragment_chat",
+   "Дію ще не виконано. Для запуску потрібен погоджений план.",
+   [],
+   false,
+   [],
+   [
+    false
+   ],
+   false,
+   false,
+   null
+  ],
+  "unreliable|natural=True|volume|token_lead": [
+   "fragment_chat",
+   "Цю дію не підтримує поточний каталог команд.",
+   [],
+   false,
+   [],
+   [
+    false
+   ],
+   false,
+   false,
+   null
+  ],
+  "unreliable|natural=True|volume|token_lead_claim": [
+   "fragment_chat",
+   "Дію ще не виконано. Для запуску потрібен погоджений план.",
+   [],
+   false,
+   [],
+   [
+    false
+   ],
+   false,
+   false,
+   null
+  ],
+  "unreliable|natural=True|volume|clarify": [
+   "fragment_clarify",
+   "Яку програму відкрити?",
+   [],
+   false,
+   [],
+   [
+    false
+   ],
+   false,
+   false,
+   null
+  ],
+  "unreliable|natural=True|volume|action_open": [
+   "fragment_clarify",
+   "Почув фразу частинами. Повторіть повне прохання про дію; ніч",
+   [],
+   false,
+   [],
+   [
+    false
+   ],
+   false,
+   false,
+   null
+  ],
+  "unreliable|natural=True|volume|action_find": [
+   "fragment_clarify",
+   "Почув фразу частинами. Повторіть повне прохання про дію; ніч",
+   [],
+   false,
+   [],
+   [
+    false
+   ],
+   false,
+   false,
+   null
+  ],
+  "unreliable|natural=True|volume|action_window": [
+   "fragment_clarify",
+   "Почув фразу частинами. Повторіть повне прохання про дію; ніч",
+   [],
+   false,
+   [],
+   [
+    false
+   ],
+   false,
+   false,
+   null
+  ],
+  "unreliable|natural=True|volume|action_media": [
+   "fragment_clarify",
+   "Почув фразу частинами. Повторіть повне прохання про дію; ніч",
+   [],
+   false,
+   [],
+   [
+    false
+   ],
+   false,
+   false,
+   null
+  ],
+  "unreliable|natural=True|volume|action_close": [
+   "fragment_clarify",
+   "Почув фразу частинами. Повторіть повне прохання про дію; ніч",
+   [],
+   false,
+   [],
+   [
+    false
+   ],
+   false,
+   false,
+   null
+  ],
+  "unreliable|natural=True|volume|action_desktop": [
+   "fragment_clarify",
+   "Почув фразу частинами. Повторіть повне прохання про дію; ніч",
+   [],
+   false,
+   [],
+   [
+    false
+   ],
+   false,
+   false,
+   null
+  ],
+  "unreliable|natural=True|volume|action_lock": [
+   "fragment_clarify",
+   "Почув фразу частинами. Повторіть повне прохання про дію; ніч",
+   [],
+   false,
+   [],
+   [
+    false
+   ],
+   false,
+   false,
+   null
+  ],
+  "unreliable|natural=True|volume|lookup": [
+   "fragment_clarify",
+   "Почув фразу частинами. Повторіть повне прохання про дію; ніч",
+   [],
+   false,
+   [],
+   [
+    false
+   ],
+   false,
+   false,
+   null
+  ],
+  "unreliable|natural=True|volume|proposal": [
+   "intent_clarification",
+   "Уточніть повне прохання, якщо хочете виконати дію. Нічого не",
+   [],
+   false,
+   [],
+   [
+    false
+   ],
+   false,
+   false,
+   null
+  ],
+  "unreliable|natural=True|volume|unavailable": [
+   "llm_unavailable",
+   "Мовна модель недоступна. Нічого не виконано.",
+   [],
+   false,
+   [],
+   [
+    false
+   ],
+   false,
+   false,
+   null
+  ],
+  "unreliable|natural=True|close|chat": [
+   "fragment_chat",
+   "Марс — четверта планета.",
+   [],
+   false,
+   [],
+   [
+    false
+   ],
+   false,
+   false,
+   null
+  ],
+  "unreliable|natural=True|close|claim_volume": [
+   "fragment_chat",
+   "Дію ще не виконано. Для запуску потрібен погоджений план.",
+   [],
+   false,
+   [],
+   [
+    false
+   ],
+   false,
+   false,
+   null
+  ],
+  "unreliable|natural=True|close|claim_open": [
+   "fragment_chat",
+   "Дію ще не виконано. Для запуску потрібен погоджений план.",
+   [],
+   false,
+   [],
+   [
+    false
+   ],
+   false,
+   false,
+   null
+  ],
+  "unreliable|natural=True|close|claim_memory": [
+   "fragment_chat",
+   "Дію ще не виконано. Для запуску потрібен погоджений план.",
+   [],
+   false,
+   [],
+   [
+    false
+   ],
+   false,
+   false,
+   null
+  ],
+  "unreliable|natural=True|close|token": [
+   "fragment_chat",
+   "Дію ще не виконано. Для запуску потрібен погоджений план.",
+   [],
+   false,
+   [],
+   [
+    false
+   ],
+   false,
+   false,
+   null
+  ],
+  "unreliable|natural=True|close|token_lead": [
+   "fragment_chat",
+   "Цю дію не підтримує поточний каталог команд.",
+   [],
+   false,
+   [],
+   [
+    false
+   ],
+   false,
+   false,
+   null
+  ],
+  "unreliable|natural=True|close|token_lead_claim": [
+   "fragment_chat",
+   "Дію ще не виконано. Для запуску потрібен погоджений план.",
+   [],
+   false,
+   [],
+   [
+    false
+   ],
+   false,
+   false,
+   null
+  ],
+  "unreliable|natural=True|close|clarify": [
+   "fragment_clarify",
+   "Яку програму відкрити?",
+   [],
+   false,
+   [],
+   [
+    false
+   ],
+   false,
+   false,
+   null
+  ],
+  "unreliable|natural=True|close|action_open": [
+   "fragment_clarify",
+   "Почув фразу частинами. Повторіть повне прохання про дію; ніч",
+   [],
+   false,
+   [],
+   [
+    false
+   ],
+   false,
+   false,
+   null
+  ],
+  "unreliable|natural=True|close|action_find": [
+   "fragment_clarify",
+   "Почув фразу частинами. Повторіть повне прохання про дію; ніч",
+   [],
+   false,
+   [],
+   [
+    false
+   ],
+   false,
+   false,
+   null
+  ],
+  "unreliable|natural=True|close|action_window": [
+   "fragment_clarify",
+   "Почув фразу частинами. Повторіть повне прохання про дію; ніч",
+   [],
+   false,
+   [],
+   [
+    false
+   ],
+   false,
+   false,
+   null
+  ],
+  "unreliable|natural=True|close|action_media": [
+   "fragment_clarify",
+   "Почув фразу частинами. Повторіть повне прохання про дію; ніч",
+   [],
+   false,
+   [],
+   [
+    false
+   ],
+   false,
+   false,
+   null
+  ],
+  "unreliable|natural=True|close|action_close": [
+   "fragment_clarify",
+   "Почув фразу частинами. Повторіть повне прохання про дію; ніч",
+   [],
+   false,
+   [],
+   [
+    false
+   ],
+   false,
+   false,
+   null
+  ],
+  "unreliable|natural=True|close|action_desktop": [
+   "fragment_clarify",
+   "Почув фразу частинами. Повторіть повне прохання про дію; ніч",
+   [],
+   false,
+   [],
+   [
+    false
+   ],
+   false,
+   false,
+   null
+  ],
+  "unreliable|natural=True|close|action_lock": [
+   "fragment_clarify",
+   "Почув фразу частинами. Повторіть повне прохання про дію; ніч",
+   [],
+   false,
+   [],
+   [
+    false
+   ],
+   false,
+   false,
+   null
+  ],
+  "unreliable|natural=True|close|lookup": [
+   "fragment_clarify",
+   "Почув фразу частинами. Повторіть повне прохання про дію; ніч",
+   [],
+   false,
+   [],
+   [
+    false
+   ],
+   false,
+   false,
+   null
+  ],
+  "unreliable|natural=True|close|proposal": [
+   "intent_clarification",
+   "Уточніть повне прохання, якщо хочете виконати дію. Нічого не",
+   [],
+   false,
+   [],
+   [
+    false
+   ],
+   false,
+   false,
+   null
+  ],
+  "unreliable|natural=True|close|unavailable": [
    "llm_unavailable",
    "Мовна модель недоступна. Нічого не виконано.",
    [],
@@ -3378,6 +7056,58 @@
    null
   ],
   "truncated|natural=False|open|action_window": [
+   "fragment_clarify",
+   "Почув фразу частинами. Повторіть повне прохання про дію; ніч",
+   [],
+   false,
+   [],
+   [
+    false
+   ],
+   false,
+   false,
+   null
+  ],
+  "truncated|natural=False|open|action_media": [
+   "fragment_clarify",
+   "Почув фразу частинами. Повторіть повне прохання про дію; ніч",
+   [],
+   false,
+   [],
+   [
+    false
+   ],
+   false,
+   false,
+   null
+  ],
+  "truncated|natural=False|open|action_close": [
+   "fragment_clarify",
+   "Почув фразу частинами. Повторіть повне прохання про дію; ніч",
+   [],
+   false,
+   [],
+   [
+    false
+   ],
+   false,
+   false,
+   null
+  ],
+  "truncated|natural=False|open|action_desktop": [
+   "fragment_clarify",
+   "Почув фразу частинами. Повторіть повне прохання про дію; ніч",
+   [],
+   false,
+   [],
+   [
+    false
+   ],
+   false,
+   false,
+   null
+  ],
+  "truncated|natural=False|open|action_lock": [
    "fragment_clarify",
    "Почув фразу частинами. Повторіть повне прохання про дію; ніч",
    [],
@@ -3572,6 +7302,58 @@
    false,
    null
   ],
+  "truncated|natural=False|find|action_media": [
+   "fragment_clarify",
+   "Почув фразу частинами. Повторіть повне прохання про дію; ніч",
+   [],
+   false,
+   [],
+   [
+    false
+   ],
+   false,
+   false,
+   null
+  ],
+  "truncated|natural=False|find|action_close": [
+   "fragment_clarify",
+   "Почув фразу частинами. Повторіть повне прохання про дію; ніч",
+   [],
+   false,
+   [],
+   [
+    false
+   ],
+   false,
+   false,
+   null
+  ],
+  "truncated|natural=False|find|action_desktop": [
+   "fragment_clarify",
+   "Почув фразу частинами. Повторіть повне прохання про дію; ніч",
+   [],
+   false,
+   [],
+   [
+    false
+   ],
+   false,
+   false,
+   null
+  ],
+  "truncated|natural=False|find|action_lock": [
+   "fragment_clarify",
+   "Почув фразу частинами. Повторіть повне прохання про дію; ніч",
+   [],
+   false,
+   [],
+   [
+    false
+   ],
+   false,
+   false,
+   null
+  ],
   "truncated|natural=False|find|lookup": [
    "fragment_clarify",
    "Почув фразу частинами. Повторіть повне прохання про дію; ніч",
@@ -3754,6 +7536,58 @@
    false,
    null
   ],
+  "truncated|natural=False|chat|action_media": [
+   "fragment_clarify",
+   "Почув фразу частинами. Повторіть повне прохання про дію; ніч",
+   [],
+   false,
+   [],
+   [
+    false
+   ],
+   false,
+   false,
+   null
+  ],
+  "truncated|natural=False|chat|action_close": [
+   "fragment_clarify",
+   "Почув фразу частинами. Повторіть повне прохання про дію; ніч",
+   [],
+   false,
+   [],
+   [
+    false
+   ],
+   false,
+   false,
+   null
+  ],
+  "truncated|natural=False|chat|action_desktop": [
+   "fragment_clarify",
+   "Почув фразу частинами. Повторіть повне прохання про дію; ніч",
+   [],
+   false,
+   [],
+   [
+    false
+   ],
+   false,
+   false,
+   null
+  ],
+  "truncated|natural=False|chat|action_lock": [
+   "fragment_clarify",
+   "Почув фразу частинами. Повторіть повне прохання про дію; ніч",
+   [],
+   false,
+   [],
+   [
+    false
+   ],
+   false,
+   false,
+   null
+  ],
   "truncated|natural=False|chat|lookup": [
    "fragment_clarify",
    "Почув фразу частинами. Повторіть повне прохання про дію; ніч",
@@ -3781,6 +7615,474 @@
    null
   ],
   "truncated|natural=False|chat|unavailable": [
+   "llm_unavailable",
+   "Мовна модель недоступна. Нічого не виконано.",
+   [],
+   false,
+   [],
+   [
+    false
+   ],
+   false,
+   false,
+   null
+  ],
+  "truncated|natural=False|volume|chat": [
+   "fragment_chat",
+   "Марс — четверта планета.",
+   [],
+   false,
+   [],
+   [
+    false
+   ],
+   false,
+   false,
+   null
+  ],
+  "truncated|natural=False|volume|claim_volume": [
+   "fragment_chat",
+   "Дію ще не виконано. Для запуску потрібен погоджений план.",
+   [],
+   false,
+   [],
+   [
+    false
+   ],
+   false,
+   false,
+   null
+  ],
+  "truncated|natural=False|volume|claim_open": [
+   "fragment_chat",
+   "Дію ще не виконано. Для запуску потрібен погоджений план.",
+   [],
+   false,
+   [],
+   [
+    false
+   ],
+   false,
+   false,
+   null
+  ],
+  "truncated|natural=False|volume|claim_memory": [
+   "fragment_chat",
+   "Дію ще не виконано. Для запуску потрібен погоджений план.",
+   [],
+   false,
+   [],
+   [
+    false
+   ],
+   false,
+   false,
+   null
+  ],
+  "truncated|natural=False|volume|token": [
+   "fragment_chat",
+   "Дію ще не виконано. Для запуску потрібен погоджений план.",
+   [],
+   false,
+   [],
+   [
+    false
+   ],
+   false,
+   false,
+   null
+  ],
+  "truncated|natural=False|volume|token_lead": [
+   "fragment_chat",
+   "Цю дію не підтримує поточний каталог команд.",
+   [],
+   false,
+   [],
+   [
+    false
+   ],
+   false,
+   false,
+   null
+  ],
+  "truncated|natural=False|volume|token_lead_claim": [
+   "fragment_chat",
+   "Дію ще не виконано. Для запуску потрібен погоджений план.",
+   [],
+   false,
+   [],
+   [
+    false
+   ],
+   false,
+   false,
+   null
+  ],
+  "truncated|natural=False|volume|clarify": [
+   "fragment_clarify",
+   "Яку програму відкрити?",
+   [],
+   false,
+   [],
+   [
+    false
+   ],
+   false,
+   false,
+   null
+  ],
+  "truncated|natural=False|volume|action_open": [
+   "fragment_clarify",
+   "Почув фразу частинами. Повторіть повне прохання про дію; ніч",
+   [],
+   false,
+   [],
+   [
+    false
+   ],
+   false,
+   false,
+   null
+  ],
+  "truncated|natural=False|volume|action_find": [
+   "fragment_clarify",
+   "Почув фразу частинами. Повторіть повне прохання про дію; ніч",
+   [],
+   false,
+   [],
+   [
+    false
+   ],
+   false,
+   false,
+   null
+  ],
+  "truncated|natural=False|volume|action_window": [
+   "fragment_clarify",
+   "Почув фразу частинами. Повторіть повне прохання про дію; ніч",
+   [],
+   false,
+   [],
+   [
+    false
+   ],
+   false,
+   false,
+   null
+  ],
+  "truncated|natural=False|volume|action_media": [
+   "fragment_clarify",
+   "Почув фразу частинами. Повторіть повне прохання про дію; ніч",
+   [],
+   false,
+   [],
+   [
+    false
+   ],
+   false,
+   false,
+   null
+  ],
+  "truncated|natural=False|volume|action_close": [
+   "fragment_clarify",
+   "Почув фразу частинами. Повторіть повне прохання про дію; ніч",
+   [],
+   false,
+   [],
+   [
+    false
+   ],
+   false,
+   false,
+   null
+  ],
+  "truncated|natural=False|volume|action_desktop": [
+   "fragment_clarify",
+   "Почув фразу частинами. Повторіть повне прохання про дію; ніч",
+   [],
+   false,
+   [],
+   [
+    false
+   ],
+   false,
+   false,
+   null
+  ],
+  "truncated|natural=False|volume|action_lock": [
+   "fragment_clarify",
+   "Почув фразу частинами. Повторіть повне прохання про дію; ніч",
+   [],
+   false,
+   [],
+   [
+    false
+   ],
+   false,
+   false,
+   null
+  ],
+  "truncated|natural=False|volume|lookup": [
+   "fragment_clarify",
+   "Почув фразу частинами. Повторіть повне прохання про дію; ніч",
+   [],
+   false,
+   [],
+   [
+    false
+   ],
+   false,
+   false,
+   null
+  ],
+  "truncated|natural=False|volume|proposal": [
+   "intent_clarification",
+   "Уточніть повне прохання, якщо хочете виконати дію. Нічого не",
+   [],
+   false,
+   [],
+   [
+    false
+   ],
+   false,
+   false,
+   null
+  ],
+  "truncated|natural=False|volume|unavailable": [
+   "llm_unavailable",
+   "Мовна модель недоступна. Нічого не виконано.",
+   [],
+   false,
+   [],
+   [
+    false
+   ],
+   false,
+   false,
+   null
+  ],
+  "truncated|natural=False|close|chat": [
+   "fragment_chat",
+   "Марс — четверта планета.",
+   [],
+   false,
+   [],
+   [
+    false
+   ],
+   false,
+   false,
+   null
+  ],
+  "truncated|natural=False|close|claim_volume": [
+   "fragment_chat",
+   "Дію ще не виконано. Для запуску потрібен погоджений план.",
+   [],
+   false,
+   [],
+   [
+    false
+   ],
+   false,
+   false,
+   null
+  ],
+  "truncated|natural=False|close|claim_open": [
+   "fragment_chat",
+   "Дію ще не виконано. Для запуску потрібен погоджений план.",
+   [],
+   false,
+   [],
+   [
+    false
+   ],
+   false,
+   false,
+   null
+  ],
+  "truncated|natural=False|close|claim_memory": [
+   "fragment_chat",
+   "Дію ще не виконано. Для запуску потрібен погоджений план.",
+   [],
+   false,
+   [],
+   [
+    false
+   ],
+   false,
+   false,
+   null
+  ],
+  "truncated|natural=False|close|token": [
+   "fragment_chat",
+   "Дію ще не виконано. Для запуску потрібен погоджений план.",
+   [],
+   false,
+   [],
+   [
+    false
+   ],
+   false,
+   false,
+   null
+  ],
+  "truncated|natural=False|close|token_lead": [
+   "fragment_chat",
+   "Цю дію не підтримує поточний каталог команд.",
+   [],
+   false,
+   [],
+   [
+    false
+   ],
+   false,
+   false,
+   null
+  ],
+  "truncated|natural=False|close|token_lead_claim": [
+   "fragment_chat",
+   "Дію ще не виконано. Для запуску потрібен погоджений план.",
+   [],
+   false,
+   [],
+   [
+    false
+   ],
+   false,
+   false,
+   null
+  ],
+  "truncated|natural=False|close|clarify": [
+   "fragment_clarify",
+   "Яку програму відкрити?",
+   [],
+   false,
+   [],
+   [
+    false
+   ],
+   false,
+   false,
+   null
+  ],
+  "truncated|natural=False|close|action_open": [
+   "fragment_clarify",
+   "Почув фразу частинами. Повторіть повне прохання про дію; ніч",
+   [],
+   false,
+   [],
+   [
+    false
+   ],
+   false,
+   false,
+   null
+  ],
+  "truncated|natural=False|close|action_find": [
+   "fragment_clarify",
+   "Почув фразу частинами. Повторіть повне прохання про дію; ніч",
+   [],
+   false,
+   [],
+   [
+    false
+   ],
+   false,
+   false,
+   null
+  ],
+  "truncated|natural=False|close|action_window": [
+   "fragment_clarify",
+   "Почув фразу частинами. Повторіть повне прохання про дію; ніч",
+   [],
+   false,
+   [],
+   [
+    false
+   ],
+   false,
+   false,
+   null
+  ],
+  "truncated|natural=False|close|action_media": [
+   "fragment_clarify",
+   "Почув фразу частинами. Повторіть повне прохання про дію; ніч",
+   [],
+   false,
+   [],
+   [
+    false
+   ],
+   false,
+   false,
+   null
+  ],
+  "truncated|natural=False|close|action_close": [
+   "fragment_clarify",
+   "Почув фразу частинами. Повторіть повне прохання про дію; ніч",
+   [],
+   false,
+   [],
+   [
+    false
+   ],
+   false,
+   false,
+   null
+  ],
+  "truncated|natural=False|close|action_desktop": [
+   "fragment_clarify",
+   "Почув фразу частинами. Повторіть повне прохання про дію; ніч",
+   [],
+   false,
+   [],
+   [
+    false
+   ],
+   false,
+   false,
+   null
+  ],
+  "truncated|natural=False|close|action_lock": [
+   "fragment_clarify",
+   "Почув фразу частинами. Повторіть повне прохання про дію; ніч",
+   [],
+   false,
+   [],
+   [
+    false
+   ],
+   false,
+   false,
+   null
+  ],
+  "truncated|natural=False|close|lookup": [
+   "fragment_clarify",
+   "Почув фразу частинами. Повторіть повне прохання про дію; ніч",
+   [],
+   false,
+   [],
+   [
+    false
+   ],
+   false,
+   false,
+   null
+  ],
+  "truncated|natural=False|close|proposal": [
+   "intent_clarification",
+   "Уточніть повне прохання, якщо хочете виконати дію. Нічого не",
+   [],
+   false,
+   [],
+   [
+    false
+   ],
+   false,
+   false,
+   null
+  ],
+  "truncated|natural=False|close|unavailable": [
    "llm_unavailable",
    "Мовна модель недоступна. Нічого не виконано.",
    [],
@@ -3924,6 +8226,58 @@
    null
   ],
   "truncated|natural=True|open|action_window": [
+   "fragment_clarify",
+   "Почув фразу частинами. Повторіть повне прохання про дію; ніч",
+   [],
+   false,
+   [],
+   [
+    false
+   ],
+   false,
+   false,
+   null
+  ],
+  "truncated|natural=True|open|action_media": [
+   "fragment_clarify",
+   "Почув фразу частинами. Повторіть повне прохання про дію; ніч",
+   [],
+   false,
+   [],
+   [
+    false
+   ],
+   false,
+   false,
+   null
+  ],
+  "truncated|natural=True|open|action_close": [
+   "fragment_clarify",
+   "Почув фразу частинами. Повторіть повне прохання про дію; ніч",
+   [],
+   false,
+   [],
+   [
+    false
+   ],
+   false,
+   false,
+   null
+  ],
+  "truncated|natural=True|open|action_desktop": [
+   "fragment_clarify",
+   "Почув фразу частинами. Повторіть повне прохання про дію; ніч",
+   [],
+   false,
+   [],
+   [
+    false
+   ],
+   false,
+   false,
+   null
+  ],
+  "truncated|natural=True|open|action_lock": [
    "fragment_clarify",
    "Почув фразу частинами. Повторіть повне прохання про дію; ніч",
    [],
@@ -4118,6 +8472,58 @@
    false,
    null
   ],
+  "truncated|natural=True|find|action_media": [
+   "fragment_clarify",
+   "Почув фразу частинами. Повторіть повне прохання про дію; ніч",
+   [],
+   false,
+   [],
+   [
+    false
+   ],
+   false,
+   false,
+   null
+  ],
+  "truncated|natural=True|find|action_close": [
+   "fragment_clarify",
+   "Почув фразу частинами. Повторіть повне прохання про дію; ніч",
+   [],
+   false,
+   [],
+   [
+    false
+   ],
+   false,
+   false,
+   null
+  ],
+  "truncated|natural=True|find|action_desktop": [
+   "fragment_clarify",
+   "Почув фразу частинами. Повторіть повне прохання про дію; ніч",
+   [],
+   false,
+   [],
+   [
+    false
+   ],
+   false,
+   false,
+   null
+  ],
+  "truncated|natural=True|find|action_lock": [
+   "fragment_clarify",
+   "Почув фразу частинами. Повторіть повне прохання про дію; ніч",
+   [],
+   false,
+   [],
+   [
+    false
+   ],
+   false,
+   false,
+   null
+  ],
   "truncated|natural=True|find|lookup": [
    "fragment_clarify",
    "Почув фразу частинами. Повторіть повне прохання про дію; ніч",
@@ -4300,6 +8706,58 @@
    false,
    null
   ],
+  "truncated|natural=True|chat|action_media": [
+   "fragment_clarify",
+   "Почув фразу частинами. Повторіть повне прохання про дію; ніч",
+   [],
+   false,
+   [],
+   [
+    false
+   ],
+   false,
+   false,
+   null
+  ],
+  "truncated|natural=True|chat|action_close": [
+   "fragment_clarify",
+   "Почув фразу частинами. Повторіть повне прохання про дію; ніч",
+   [],
+   false,
+   [],
+   [
+    false
+   ],
+   false,
+   false,
+   null
+  ],
+  "truncated|natural=True|chat|action_desktop": [
+   "fragment_clarify",
+   "Почув фразу частинами. Повторіть повне прохання про дію; ніч",
+   [],
+   false,
+   [],
+   [
+    false
+   ],
+   false,
+   false,
+   null
+  ],
+  "truncated|natural=True|chat|action_lock": [
+   "fragment_clarify",
+   "Почув фразу частинами. Повторіть повне прохання про дію; ніч",
+   [],
+   false,
+   [],
+   [
+    false
+   ],
+   false,
+   false,
+   null
+  ],
   "truncated|natural=True|chat|lookup": [
    "fragment_clarify",
    "Почув фразу частинами. Повторіть повне прохання про дію; ніч",
@@ -4327,6 +8785,474 @@
    null
   ],
   "truncated|natural=True|chat|unavailable": [
+   "llm_unavailable",
+   "Мовна модель недоступна. Нічого не виконано.",
+   [],
+   false,
+   [],
+   [
+    false
+   ],
+   false,
+   false,
+   null
+  ],
+  "truncated|natural=True|volume|chat": [
+   "fragment_chat",
+   "Марс — четверта планета.",
+   [],
+   false,
+   [],
+   [
+    false
+   ],
+   false,
+   false,
+   null
+  ],
+  "truncated|natural=True|volume|claim_volume": [
+   "fragment_chat",
+   "Дію ще не виконано. Для запуску потрібен погоджений план.",
+   [],
+   false,
+   [],
+   [
+    false
+   ],
+   false,
+   false,
+   null
+  ],
+  "truncated|natural=True|volume|claim_open": [
+   "fragment_chat",
+   "Дію ще не виконано. Для запуску потрібен погоджений план.",
+   [],
+   false,
+   [],
+   [
+    false
+   ],
+   false,
+   false,
+   null
+  ],
+  "truncated|natural=True|volume|claim_memory": [
+   "fragment_chat",
+   "Дію ще не виконано. Для запуску потрібен погоджений план.",
+   [],
+   false,
+   [],
+   [
+    false
+   ],
+   false,
+   false,
+   null
+  ],
+  "truncated|natural=True|volume|token": [
+   "fragment_chat",
+   "Дію ще не виконано. Для запуску потрібен погоджений план.",
+   [],
+   false,
+   [],
+   [
+    false
+   ],
+   false,
+   false,
+   null
+  ],
+  "truncated|natural=True|volume|token_lead": [
+   "fragment_chat",
+   "Цю дію не підтримує поточний каталог команд.",
+   [],
+   false,
+   [],
+   [
+    false
+   ],
+   false,
+   false,
+   null
+  ],
+  "truncated|natural=True|volume|token_lead_claim": [
+   "fragment_chat",
+   "Дію ще не виконано. Для запуску потрібен погоджений план.",
+   [],
+   false,
+   [],
+   [
+    false
+   ],
+   false,
+   false,
+   null
+  ],
+  "truncated|natural=True|volume|clarify": [
+   "fragment_clarify",
+   "Яку програму відкрити?",
+   [],
+   false,
+   [],
+   [
+    false
+   ],
+   false,
+   false,
+   null
+  ],
+  "truncated|natural=True|volume|action_open": [
+   "fragment_clarify",
+   "Почув фразу частинами. Повторіть повне прохання про дію; ніч",
+   [],
+   false,
+   [],
+   [
+    false
+   ],
+   false,
+   false,
+   null
+  ],
+  "truncated|natural=True|volume|action_find": [
+   "fragment_clarify",
+   "Почув фразу частинами. Повторіть повне прохання про дію; ніч",
+   [],
+   false,
+   [],
+   [
+    false
+   ],
+   false,
+   false,
+   null
+  ],
+  "truncated|natural=True|volume|action_window": [
+   "fragment_clarify",
+   "Почув фразу частинами. Повторіть повне прохання про дію; ніч",
+   [],
+   false,
+   [],
+   [
+    false
+   ],
+   false,
+   false,
+   null
+  ],
+  "truncated|natural=True|volume|action_media": [
+   "fragment_clarify",
+   "Почув фразу частинами. Повторіть повне прохання про дію; ніч",
+   [],
+   false,
+   [],
+   [
+    false
+   ],
+   false,
+   false,
+   null
+  ],
+  "truncated|natural=True|volume|action_close": [
+   "fragment_clarify",
+   "Почув фразу частинами. Повторіть повне прохання про дію; ніч",
+   [],
+   false,
+   [],
+   [
+    false
+   ],
+   false,
+   false,
+   null
+  ],
+  "truncated|natural=True|volume|action_desktop": [
+   "fragment_clarify",
+   "Почув фразу частинами. Повторіть повне прохання про дію; ніч",
+   [],
+   false,
+   [],
+   [
+    false
+   ],
+   false,
+   false,
+   null
+  ],
+  "truncated|natural=True|volume|action_lock": [
+   "fragment_clarify",
+   "Почув фразу частинами. Повторіть повне прохання про дію; ніч",
+   [],
+   false,
+   [],
+   [
+    false
+   ],
+   false,
+   false,
+   null
+  ],
+  "truncated|natural=True|volume|lookup": [
+   "fragment_clarify",
+   "Почув фразу частинами. Повторіть повне прохання про дію; ніч",
+   [],
+   false,
+   [],
+   [
+    false
+   ],
+   false,
+   false,
+   null
+  ],
+  "truncated|natural=True|volume|proposal": [
+   "intent_clarification",
+   "Уточніть повне прохання, якщо хочете виконати дію. Нічого не",
+   [],
+   false,
+   [],
+   [
+    false
+   ],
+   false,
+   false,
+   null
+  ],
+  "truncated|natural=True|volume|unavailable": [
+   "llm_unavailable",
+   "Мовна модель недоступна. Нічого не виконано.",
+   [],
+   false,
+   [],
+   [
+    false
+   ],
+   false,
+   false,
+   null
+  ],
+  "truncated|natural=True|close|chat": [
+   "fragment_chat",
+   "Марс — четверта планета.",
+   [],
+   false,
+   [],
+   [
+    false
+   ],
+   false,
+   false,
+   null
+  ],
+  "truncated|natural=True|close|claim_volume": [
+   "fragment_chat",
+   "Дію ще не виконано. Для запуску потрібен погоджений план.",
+   [],
+   false,
+   [],
+   [
+    false
+   ],
+   false,
+   false,
+   null
+  ],
+  "truncated|natural=True|close|claim_open": [
+   "fragment_chat",
+   "Дію ще не виконано. Для запуску потрібен погоджений план.",
+   [],
+   false,
+   [],
+   [
+    false
+   ],
+   false,
+   false,
+   null
+  ],
+  "truncated|natural=True|close|claim_memory": [
+   "fragment_chat",
+   "Дію ще не виконано. Для запуску потрібен погоджений план.",
+   [],
+   false,
+   [],
+   [
+    false
+   ],
+   false,
+   false,
+   null
+  ],
+  "truncated|natural=True|close|token": [
+   "fragment_chat",
+   "Дію ще не виконано. Для запуску потрібен погоджений план.",
+   [],
+   false,
+   [],
+   [
+    false
+   ],
+   false,
+   false,
+   null
+  ],
+  "truncated|natural=True|close|token_lead": [
+   "fragment_chat",
+   "Цю дію не підтримує поточний каталог команд.",
+   [],
+   false,
+   [],
+   [
+    false
+   ],
+   false,
+   false,
+   null
+  ],
+  "truncated|natural=True|close|token_lead_claim": [
+   "fragment_chat",
+   "Дію ще не виконано. Для запуску потрібен погоджений план.",
+   [],
+   false,
+   [],
+   [
+    false
+   ],
+   false,
+   false,
+   null
+  ],
+  "truncated|natural=True|close|clarify": [
+   "fragment_clarify",
+   "Яку програму відкрити?",
+   [],
+   false,
+   [],
+   [
+    false
+   ],
+   false,
+   false,
+   null
+  ],
+  "truncated|natural=True|close|action_open": [
+   "fragment_clarify",
+   "Почув фразу частинами. Повторіть повне прохання про дію; ніч",
+   [],
+   false,
+   [],
+   [
+    false
+   ],
+   false,
+   false,
+   null
+  ],
+  "truncated|natural=True|close|action_find": [
+   "fragment_clarify",
+   "Почув фразу частинами. Повторіть повне прохання про дію; ніч",
+   [],
+   false,
+   [],
+   [
+    false
+   ],
+   false,
+   false,
+   null
+  ],
+  "truncated|natural=True|close|action_window": [
+   "fragment_clarify",
+   "Почув фразу частинами. Повторіть повне прохання про дію; ніч",
+   [],
+   false,
+   [],
+   [
+    false
+   ],
+   false,
+   false,
+   null
+  ],
+  "truncated|natural=True|close|action_media": [
+   "fragment_clarify",
+   "Почув фразу частинами. Повторіть повне прохання про дію; ніч",
+   [],
+   false,
+   [],
+   [
+    false
+   ],
+   false,
+   false,
+   null
+  ],
+  "truncated|natural=True|close|action_close": [
+   "fragment_clarify",
+   "Почув фразу частинами. Повторіть повне прохання про дію; ніч",
+   [],
+   false,
+   [],
+   [
+    false
+   ],
+   false,
+   false,
+   null
+  ],
+  "truncated|natural=True|close|action_desktop": [
+   "fragment_clarify",
+   "Почув фразу частинами. Повторіть повне прохання про дію; ніч",
+   [],
+   false,
+   [],
+   [
+    false
+   ],
+   false,
+   false,
+   null
+  ],
+  "truncated|natural=True|close|action_lock": [
+   "fragment_clarify",
+   "Почув фразу частинами. Повторіть повне прохання про дію; ніч",
+   [],
+   false,
+   [],
+   [
+    false
+   ],
+   false,
+   false,
+   null
+  ],
+  "truncated|natural=True|close|lookup": [
+   "fragment_clarify",
+   "Почув фразу частинами. Повторіть повне прохання про дію; ніч",
+   [],
+   false,
+   [],
+   [
+    false
+   ],
+   false,
+   false,
+   null
+  ],
+  "truncated|natural=True|close|proposal": [
+   "intent_clarification",
+   "Уточніть повне прохання, якщо хочете виконати дію. Нічого не",
+   [],
+   false,
+   [],
+   [
+    false
+   ],
+   false,
+   false,
+   null
+  ],
+  "truncated|natural=True|close|unavailable": [
    "llm_unavailable",
    "Мовна модель недоступна. Нічого не виконано.",
    [],
@@ -4450,6 +9376,50 @@
    null
   ],
   "incomplete|natural=False|open|action_window": [
+   "fragment_clarify",
+   "Схоже, фраза обірвалася. Повторіть її повністю, будь ласка.",
+   [],
+   false,
+   [],
+   [],
+   false,
+   false,
+   null
+  ],
+  "incomplete|natural=False|open|action_media": [
+   "fragment_clarify",
+   "Схоже, фраза обірвалася. Повторіть її повністю, будь ласка.",
+   [],
+   false,
+   [],
+   [],
+   false,
+   false,
+   null
+  ],
+  "incomplete|natural=False|open|action_close": [
+   "fragment_clarify",
+   "Схоже, фраза обірвалася. Повторіть її повністю, будь ласка.",
+   [],
+   false,
+   [],
+   [],
+   false,
+   false,
+   null
+  ],
+  "incomplete|natural=False|open|action_desktop": [
+   "fragment_clarify",
+   "Схоже, фраза обірвалася. Повторіть її повністю, будь ласка.",
+   [],
+   false,
+   [],
+   [],
+   false,
+   false,
+   null
+  ],
+  "incomplete|natural=False|open|action_lock": [
    "fragment_clarify",
    "Схоже, фраза обірвалася. Повторіть її повністю, будь ласка.",
    [],
@@ -4614,6 +9584,50 @@
    false,
    null
   ],
+  "incomplete|natural=False|find|action_media": [
+   "fragment_clarify",
+   "Схоже, фраза обірвалася. Повторіть її повністю, будь ласка.",
+   [],
+   false,
+   [],
+   [],
+   false,
+   false,
+   null
+  ],
+  "incomplete|natural=False|find|action_close": [
+   "fragment_clarify",
+   "Схоже, фраза обірвалася. Повторіть її повністю, будь ласка.",
+   [],
+   false,
+   [],
+   [],
+   false,
+   false,
+   null
+  ],
+  "incomplete|natural=False|find|action_desktop": [
+   "fragment_clarify",
+   "Схоже, фраза обірвалася. Повторіть її повністю, будь ласка.",
+   [],
+   false,
+   [],
+   [],
+   false,
+   false,
+   null
+  ],
+  "incomplete|natural=False|find|action_lock": [
+   "fragment_clarify",
+   "Схоже, фраза обірвалася. Повторіть її повністю, будь ласка.",
+   [],
+   false,
+   [],
+   [],
+   false,
+   false,
+   null
+  ],
   "incomplete|natural=False|find|lookup": [
    "fragment_clarify",
    "Схоже, фраза обірвалася. Повторіть її повністю, будь ласка.",
@@ -4768,6 +9782,50 @@
    false,
    null
   ],
+  "incomplete|natural=False|chat|action_media": [
+   "fragment_clarify",
+   "Схоже, фраза обірвалася. Повторіть її повністю, будь ласка.",
+   [],
+   false,
+   [],
+   [],
+   false,
+   false,
+   null
+  ],
+  "incomplete|natural=False|chat|action_close": [
+   "fragment_clarify",
+   "Схоже, фраза обірвалася. Повторіть її повністю, будь ласка.",
+   [],
+   false,
+   [],
+   [],
+   false,
+   false,
+   null
+  ],
+  "incomplete|natural=False|chat|action_desktop": [
+   "fragment_clarify",
+   "Схоже, фраза обірвалася. Повторіть її повністю, будь ласка.",
+   [],
+   false,
+   [],
+   [],
+   false,
+   false,
+   null
+  ],
+  "incomplete|natural=False|chat|action_lock": [
+   "fragment_clarify",
+   "Схоже, фраза обірвалася. Повторіть її повністю, будь ласка.",
+   [],
+   false,
+   [],
+   [],
+   false,
+   false,
+   null
+  ],
   "incomplete|natural=False|chat|lookup": [
    "fragment_clarify",
    "Схоже, фраза обірвалася. Повторіть її повністю, будь ласка.",
@@ -4791,6 +9849,402 @@
    null
   ],
   "incomplete|natural=False|chat|unavailable": [
+   "fragment_clarify",
+   "Схоже, фраза обірвалася. Повторіть її повністю, будь ласка.",
+   [],
+   false,
+   [],
+   [],
+   false,
+   false,
+   null
+  ],
+  "incomplete|natural=False|volume|chat": [
+   "fragment_clarify",
+   "Схоже, фраза обірвалася. Повторіть її повністю, будь ласка.",
+   [],
+   false,
+   [],
+   [],
+   false,
+   false,
+   null
+  ],
+  "incomplete|natural=False|volume|claim_volume": [
+   "fragment_clarify",
+   "Схоже, фраза обірвалася. Повторіть її повністю, будь ласка.",
+   [],
+   false,
+   [],
+   [],
+   false,
+   false,
+   null
+  ],
+  "incomplete|natural=False|volume|claim_open": [
+   "fragment_clarify",
+   "Схоже, фраза обірвалася. Повторіть її повністю, будь ласка.",
+   [],
+   false,
+   [],
+   [],
+   false,
+   false,
+   null
+  ],
+  "incomplete|natural=False|volume|claim_memory": [
+   "fragment_clarify",
+   "Схоже, фраза обірвалася. Повторіть її повністю, будь ласка.",
+   [],
+   false,
+   [],
+   [],
+   false,
+   false,
+   null
+  ],
+  "incomplete|natural=False|volume|token": [
+   "fragment_clarify",
+   "Схоже, фраза обірвалася. Повторіть її повністю, будь ласка.",
+   [],
+   false,
+   [],
+   [],
+   false,
+   false,
+   null
+  ],
+  "incomplete|natural=False|volume|token_lead": [
+   "fragment_clarify",
+   "Схоже, фраза обірвалася. Повторіть її повністю, будь ласка.",
+   [],
+   false,
+   [],
+   [],
+   false,
+   false,
+   null
+  ],
+  "incomplete|natural=False|volume|token_lead_claim": [
+   "fragment_clarify",
+   "Схоже, фраза обірвалася. Повторіть її повністю, будь ласка.",
+   [],
+   false,
+   [],
+   [],
+   false,
+   false,
+   null
+  ],
+  "incomplete|natural=False|volume|clarify": [
+   "fragment_clarify",
+   "Схоже, фраза обірвалася. Повторіть її повністю, будь ласка.",
+   [],
+   false,
+   [],
+   [],
+   false,
+   false,
+   null
+  ],
+  "incomplete|natural=False|volume|action_open": [
+   "fragment_clarify",
+   "Схоже, фраза обірвалася. Повторіть її повністю, будь ласка.",
+   [],
+   false,
+   [],
+   [],
+   false,
+   false,
+   null
+  ],
+  "incomplete|natural=False|volume|action_find": [
+   "fragment_clarify",
+   "Схоже, фраза обірвалася. Повторіть її повністю, будь ласка.",
+   [],
+   false,
+   [],
+   [],
+   false,
+   false,
+   null
+  ],
+  "incomplete|natural=False|volume|action_window": [
+   "fragment_clarify",
+   "Схоже, фраза обірвалася. Повторіть її повністю, будь ласка.",
+   [],
+   false,
+   [],
+   [],
+   false,
+   false,
+   null
+  ],
+  "incomplete|natural=False|volume|action_media": [
+   "fragment_clarify",
+   "Схоже, фраза обірвалася. Повторіть її повністю, будь ласка.",
+   [],
+   false,
+   [],
+   [],
+   false,
+   false,
+   null
+  ],
+  "incomplete|natural=False|volume|action_close": [
+   "fragment_clarify",
+   "Схоже, фраза обірвалася. Повторіть її повністю, будь ласка.",
+   [],
+   false,
+   [],
+   [],
+   false,
+   false,
+   null
+  ],
+  "incomplete|natural=False|volume|action_desktop": [
+   "fragment_clarify",
+   "Схоже, фраза обірвалася. Повторіть її повністю, будь ласка.",
+   [],
+   false,
+   [],
+   [],
+   false,
+   false,
+   null
+  ],
+  "incomplete|natural=False|volume|action_lock": [
+   "fragment_clarify",
+   "Схоже, фраза обірвалася. Повторіть її повністю, будь ласка.",
+   [],
+   false,
+   [],
+   [],
+   false,
+   false,
+   null
+  ],
+  "incomplete|natural=False|volume|lookup": [
+   "fragment_clarify",
+   "Схоже, фраза обірвалася. Повторіть її повністю, будь ласка.",
+   [],
+   false,
+   [],
+   [],
+   false,
+   false,
+   null
+  ],
+  "incomplete|natural=False|volume|proposal": [
+   "fragment_clarify",
+   "Схоже, фраза обірвалася. Повторіть її повністю, будь ласка.",
+   [],
+   false,
+   [],
+   [],
+   false,
+   false,
+   null
+  ],
+  "incomplete|natural=False|volume|unavailable": [
+   "fragment_clarify",
+   "Схоже, фраза обірвалася. Повторіть її повністю, будь ласка.",
+   [],
+   false,
+   [],
+   [],
+   false,
+   false,
+   null
+  ],
+  "incomplete|natural=False|close|chat": [
+   "fragment_clarify",
+   "Схоже, фраза обірвалася. Повторіть її повністю, будь ласка.",
+   [],
+   false,
+   [],
+   [],
+   false,
+   false,
+   null
+  ],
+  "incomplete|natural=False|close|claim_volume": [
+   "fragment_clarify",
+   "Схоже, фраза обірвалася. Повторіть її повністю, будь ласка.",
+   [],
+   false,
+   [],
+   [],
+   false,
+   false,
+   null
+  ],
+  "incomplete|natural=False|close|claim_open": [
+   "fragment_clarify",
+   "Схоже, фраза обірвалася. Повторіть її повністю, будь ласка.",
+   [],
+   false,
+   [],
+   [],
+   false,
+   false,
+   null
+  ],
+  "incomplete|natural=False|close|claim_memory": [
+   "fragment_clarify",
+   "Схоже, фраза обірвалася. Повторіть її повністю, будь ласка.",
+   [],
+   false,
+   [],
+   [],
+   false,
+   false,
+   null
+  ],
+  "incomplete|natural=False|close|token": [
+   "fragment_clarify",
+   "Схоже, фраза обірвалася. Повторіть її повністю, будь ласка.",
+   [],
+   false,
+   [],
+   [],
+   false,
+   false,
+   null
+  ],
+  "incomplete|natural=False|close|token_lead": [
+   "fragment_clarify",
+   "Схоже, фраза обірвалася. Повторіть її повністю, будь ласка.",
+   [],
+   false,
+   [],
+   [],
+   false,
+   false,
+   null
+  ],
+  "incomplete|natural=False|close|token_lead_claim": [
+   "fragment_clarify",
+   "Схоже, фраза обірвалася. Повторіть її повністю, будь ласка.",
+   [],
+   false,
+   [],
+   [],
+   false,
+   false,
+   null
+  ],
+  "incomplete|natural=False|close|clarify": [
+   "fragment_clarify",
+   "Схоже, фраза обірвалася. Повторіть її повністю, будь ласка.",
+   [],
+   false,
+   [],
+   [],
+   false,
+   false,
+   null
+  ],
+  "incomplete|natural=False|close|action_open": [
+   "fragment_clarify",
+   "Схоже, фраза обірвалася. Повторіть її повністю, будь ласка.",
+   [],
+   false,
+   [],
+   [],
+   false,
+   false,
+   null
+  ],
+  "incomplete|natural=False|close|action_find": [
+   "fragment_clarify",
+   "Схоже, фраза обірвалася. Повторіть її повністю, будь ласка.",
+   [],
+   false,
+   [],
+   [],
+   false,
+   false,
+   null
+  ],
+  "incomplete|natural=False|close|action_window": [
+   "fragment_clarify",
+   "Схоже, фраза обірвалася. Повторіть її повністю, будь ласка.",
+   [],
+   false,
+   [],
+   [],
+   false,
+   false,
+   null
+  ],
+  "incomplete|natural=False|close|action_media": [
+   "fragment_clarify",
+   "Схоже, фраза обірвалася. Повторіть її повністю, будь ласка.",
+   [],
+   false,
+   [],
+   [],
+   false,
+   false,
+   null
+  ],
+  "incomplete|natural=False|close|action_close": [
+   "fragment_clarify",
+   "Схоже, фраза обірвалася. Повторіть її повністю, будь ласка.",
+   [],
+   false,
+   [],
+   [],
+   false,
+   false,
+   null
+  ],
+  "incomplete|natural=False|close|action_desktop": [
+   "fragment_clarify",
+   "Схоже, фраза обірвалася. Повторіть її повністю, будь ласка.",
+   [],
+   false,
+   [],
+   [],
+   false,
+   false,
+   null
+  ],
+  "incomplete|natural=False|close|action_lock": [
+   "fragment_clarify",
+   "Схоже, фраза обірвалася. Повторіть її повністю, будь ласка.",
+   [],
+   false,
+   [],
+   [],
+   false,
+   false,
+   null
+  ],
+  "incomplete|natural=False|close|lookup": [
+   "fragment_clarify",
+   "Схоже, фраза обірвалася. Повторіть її повністю, будь ласка.",
+   [],
+   false,
+   [],
+   [],
+   false,
+   false,
+   null
+  ],
+  "incomplete|natural=False|close|proposal": [
+   "fragment_clarify",
+   "Схоже, фраза обірвалася. Повторіть її повністю, будь ласка.",
+   [],
+   false,
+   [],
+   [],
+   false,
+   false,
+   null
+  ],
+  "incomplete|natural=False|close|unavailable": [
    "fragment_clarify",
    "Схоже, фраза обірвалася. Повторіть її повністю, будь ласка.",
    [],
@@ -4912,6 +10366,50 @@
    null
   ],
   "incomplete|natural=True|open|action_window": [
+   "fragment_clarify",
+   "Схоже, фраза обірвалася. Повторіть її повністю, будь ласка.",
+   [],
+   false,
+   [],
+   [],
+   false,
+   false,
+   null
+  ],
+  "incomplete|natural=True|open|action_media": [
+   "fragment_clarify",
+   "Схоже, фраза обірвалася. Повторіть її повністю, будь ласка.",
+   [],
+   false,
+   [],
+   [],
+   false,
+   false,
+   null
+  ],
+  "incomplete|natural=True|open|action_close": [
+   "fragment_clarify",
+   "Схоже, фраза обірвалася. Повторіть її повністю, будь ласка.",
+   [],
+   false,
+   [],
+   [],
+   false,
+   false,
+   null
+  ],
+  "incomplete|natural=True|open|action_desktop": [
+   "fragment_clarify",
+   "Схоже, фраза обірвалася. Повторіть її повністю, будь ласка.",
+   [],
+   false,
+   [],
+   [],
+   false,
+   false,
+   null
+  ],
+  "incomplete|natural=True|open|action_lock": [
    "fragment_clarify",
    "Схоже, фраза обірвалася. Повторіть її повністю, будь ласка.",
    [],
@@ -5076,6 +10574,50 @@
    false,
    null
   ],
+  "incomplete|natural=True|find|action_media": [
+   "fragment_clarify",
+   "Схоже, фраза обірвалася. Повторіть її повністю, будь ласка.",
+   [],
+   false,
+   [],
+   [],
+   false,
+   false,
+   null
+  ],
+  "incomplete|natural=True|find|action_close": [
+   "fragment_clarify",
+   "Схоже, фраза обірвалася. Повторіть її повністю, будь ласка.",
+   [],
+   false,
+   [],
+   [],
+   false,
+   false,
+   null
+  ],
+  "incomplete|natural=True|find|action_desktop": [
+   "fragment_clarify",
+   "Схоже, фраза обірвалася. Повторіть її повністю, будь ласка.",
+   [],
+   false,
+   [],
+   [],
+   false,
+   false,
+   null
+  ],
+  "incomplete|natural=True|find|action_lock": [
+   "fragment_clarify",
+   "Схоже, фраза обірвалася. Повторіть її повністю, будь ласка.",
+   [],
+   false,
+   [],
+   [],
+   false,
+   false,
+   null
+  ],
   "incomplete|natural=True|find|lookup": [
    "fragment_clarify",
    "Схоже, фраза обірвалася. Повторіть її повністю, будь ласка.",
@@ -5230,6 +10772,50 @@
    false,
    null
   ],
+  "incomplete|natural=True|chat|action_media": [
+   "fragment_clarify",
+   "Схоже, фраза обірвалася. Повторіть її повністю, будь ласка.",
+   [],
+   false,
+   [],
+   [],
+   false,
+   false,
+   null
+  ],
+  "incomplete|natural=True|chat|action_close": [
+   "fragment_clarify",
+   "Схоже, фраза обірвалася. Повторіть її повністю, будь ласка.",
+   [],
+   false,
+   [],
+   [],
+   false,
+   false,
+   null
+  ],
+  "incomplete|natural=True|chat|action_desktop": [
+   "fragment_clarify",
+   "Схоже, фраза обірвалася. Повторіть її повністю, будь ласка.",
+   [],
+   false,
+   [],
+   [],
+   false,
+   false,
+   null
+  ],
+  "incomplete|natural=True|chat|action_lock": [
+   "fragment_clarify",
+   "Схоже, фраза обірвалася. Повторіть її повністю, будь ласка.",
+   [],
+   false,
+   [],
+   [],
+   false,
+   false,
+   null
+  ],
   "incomplete|natural=True|chat|lookup": [
    "fragment_clarify",
    "Схоже, фраза обірвалася. Повторіть її повністю, будь ласка.",
@@ -5253,6 +10839,402 @@
    null
   ],
   "incomplete|natural=True|chat|unavailable": [
+   "fragment_clarify",
+   "Схоже, фраза обірвалася. Повторіть її повністю, будь ласка.",
+   [],
+   false,
+   [],
+   [],
+   false,
+   false,
+   null
+  ],
+  "incomplete|natural=True|volume|chat": [
+   "fragment_clarify",
+   "Схоже, фраза обірвалася. Повторіть її повністю, будь ласка.",
+   [],
+   false,
+   [],
+   [],
+   false,
+   false,
+   null
+  ],
+  "incomplete|natural=True|volume|claim_volume": [
+   "fragment_clarify",
+   "Схоже, фраза обірвалася. Повторіть її повністю, будь ласка.",
+   [],
+   false,
+   [],
+   [],
+   false,
+   false,
+   null
+  ],
+  "incomplete|natural=True|volume|claim_open": [
+   "fragment_clarify",
+   "Схоже, фраза обірвалася. Повторіть її повністю, будь ласка.",
+   [],
+   false,
+   [],
+   [],
+   false,
+   false,
+   null
+  ],
+  "incomplete|natural=True|volume|claim_memory": [
+   "fragment_clarify",
+   "Схоже, фраза обірвалася. Повторіть її повністю, будь ласка.",
+   [],
+   false,
+   [],
+   [],
+   false,
+   false,
+   null
+  ],
+  "incomplete|natural=True|volume|token": [
+   "fragment_clarify",
+   "Схоже, фраза обірвалася. Повторіть її повністю, будь ласка.",
+   [],
+   false,
+   [],
+   [],
+   false,
+   false,
+   null
+  ],
+  "incomplete|natural=True|volume|token_lead": [
+   "fragment_clarify",
+   "Схоже, фраза обірвалася. Повторіть її повністю, будь ласка.",
+   [],
+   false,
+   [],
+   [],
+   false,
+   false,
+   null
+  ],
+  "incomplete|natural=True|volume|token_lead_claim": [
+   "fragment_clarify",
+   "Схоже, фраза обірвалася. Повторіть її повністю, будь ласка.",
+   [],
+   false,
+   [],
+   [],
+   false,
+   false,
+   null
+  ],
+  "incomplete|natural=True|volume|clarify": [
+   "fragment_clarify",
+   "Схоже, фраза обірвалася. Повторіть її повністю, будь ласка.",
+   [],
+   false,
+   [],
+   [],
+   false,
+   false,
+   null
+  ],
+  "incomplete|natural=True|volume|action_open": [
+   "fragment_clarify",
+   "Схоже, фраза обірвалася. Повторіть її повністю, будь ласка.",
+   [],
+   false,
+   [],
+   [],
+   false,
+   false,
+   null
+  ],
+  "incomplete|natural=True|volume|action_find": [
+   "fragment_clarify",
+   "Схоже, фраза обірвалася. Повторіть її повністю, будь ласка.",
+   [],
+   false,
+   [],
+   [],
+   false,
+   false,
+   null
+  ],
+  "incomplete|natural=True|volume|action_window": [
+   "fragment_clarify",
+   "Схоже, фраза обірвалася. Повторіть її повністю, будь ласка.",
+   [],
+   false,
+   [],
+   [],
+   false,
+   false,
+   null
+  ],
+  "incomplete|natural=True|volume|action_media": [
+   "fragment_clarify",
+   "Схоже, фраза обірвалася. Повторіть її повністю, будь ласка.",
+   [],
+   false,
+   [],
+   [],
+   false,
+   false,
+   null
+  ],
+  "incomplete|natural=True|volume|action_close": [
+   "fragment_clarify",
+   "Схоже, фраза обірвалася. Повторіть її повністю, будь ласка.",
+   [],
+   false,
+   [],
+   [],
+   false,
+   false,
+   null
+  ],
+  "incomplete|natural=True|volume|action_desktop": [
+   "fragment_clarify",
+   "Схоже, фраза обірвалася. Повторіть її повністю, будь ласка.",
+   [],
+   false,
+   [],
+   [],
+   false,
+   false,
+   null
+  ],
+  "incomplete|natural=True|volume|action_lock": [
+   "fragment_clarify",
+   "Схоже, фраза обірвалася. Повторіть її повністю, будь ласка.",
+   [],
+   false,
+   [],
+   [],
+   false,
+   false,
+   null
+  ],
+  "incomplete|natural=True|volume|lookup": [
+   "fragment_clarify",
+   "Схоже, фраза обірвалася. Повторіть її повністю, будь ласка.",
+   [],
+   false,
+   [],
+   [],
+   false,
+   false,
+   null
+  ],
+  "incomplete|natural=True|volume|proposal": [
+   "fragment_clarify",
+   "Схоже, фраза обірвалася. Повторіть її повністю, будь ласка.",
+   [],
+   false,
+   [],
+   [],
+   false,
+   false,
+   null
+  ],
+  "incomplete|natural=True|volume|unavailable": [
+   "fragment_clarify",
+   "Схоже, фраза обірвалася. Повторіть її повністю, будь ласка.",
+   [],
+   false,
+   [],
+   [],
+   false,
+   false,
+   null
+  ],
+  "incomplete|natural=True|close|chat": [
+   "fragment_clarify",
+   "Схоже, фраза обірвалася. Повторіть її повністю, будь ласка.",
+   [],
+   false,
+   [],
+   [],
+   false,
+   false,
+   null
+  ],
+  "incomplete|natural=True|close|claim_volume": [
+   "fragment_clarify",
+   "Схоже, фраза обірвалася. Повторіть її повністю, будь ласка.",
+   [],
+   false,
+   [],
+   [],
+   false,
+   false,
+   null
+  ],
+  "incomplete|natural=True|close|claim_open": [
+   "fragment_clarify",
+   "Схоже, фраза обірвалася. Повторіть її повністю, будь ласка.",
+   [],
+   false,
+   [],
+   [],
+   false,
+   false,
+   null
+  ],
+  "incomplete|natural=True|close|claim_memory": [
+   "fragment_clarify",
+   "Схоже, фраза обірвалася. Повторіть її повністю, будь ласка.",
+   [],
+   false,
+   [],
+   [],
+   false,
+   false,
+   null
+  ],
+  "incomplete|natural=True|close|token": [
+   "fragment_clarify",
+   "Схоже, фраза обірвалася. Повторіть її повністю, будь ласка.",
+   [],
+   false,
+   [],
+   [],
+   false,
+   false,
+   null
+  ],
+  "incomplete|natural=True|close|token_lead": [
+   "fragment_clarify",
+   "Схоже, фраза обірвалася. Повторіть її повністю, будь ласка.",
+   [],
+   false,
+   [],
+   [],
+   false,
+   false,
+   null
+  ],
+  "incomplete|natural=True|close|token_lead_claim": [
+   "fragment_clarify",
+   "Схоже, фраза обірвалася. Повторіть її повністю, будь ласка.",
+   [],
+   false,
+   [],
+   [],
+   false,
+   false,
+   null
+  ],
+  "incomplete|natural=True|close|clarify": [
+   "fragment_clarify",
+   "Схоже, фраза обірвалася. Повторіть її повністю, будь ласка.",
+   [],
+   false,
+   [],
+   [],
+   false,
+   false,
+   null
+  ],
+  "incomplete|natural=True|close|action_open": [
+   "fragment_clarify",
+   "Схоже, фраза обірвалася. Повторіть її повністю, будь ласка.",
+   [],
+   false,
+   [],
+   [],
+   false,
+   false,
+   null
+  ],
+  "incomplete|natural=True|close|action_find": [
+   "fragment_clarify",
+   "Схоже, фраза обірвалася. Повторіть її повністю, будь ласка.",
+   [],
+   false,
+   [],
+   [],
+   false,
+   false,
+   null
+  ],
+  "incomplete|natural=True|close|action_window": [
+   "fragment_clarify",
+   "Схоже, фраза обірвалася. Повторіть її повністю, будь ласка.",
+   [],
+   false,
+   [],
+   [],
+   false,
+   false,
+   null
+  ],
+  "incomplete|natural=True|close|action_media": [
+   "fragment_clarify",
+   "Схоже, фраза обірвалася. Повторіть її повністю, будь ласка.",
+   [],
+   false,
+   [],
+   [],
+   false,
+   false,
+   null
+  ],
+  "incomplete|natural=True|close|action_close": [
+   "fragment_clarify",
+   "Схоже, фраза обірвалася. Повторіть її повністю, будь ласка.",
+   [],
+   false,
+   [],
+   [],
+   false,
+   false,
+   null
+  ],
+  "incomplete|natural=True|close|action_desktop": [
+   "fragment_clarify",
+   "Схоже, фраза обірвалася. Повторіть її повністю, будь ласка.",
+   [],
+   false,
+   [],
+   [],
+   false,
+   false,
+   null
+  ],
+  "incomplete|natural=True|close|action_lock": [
+   "fragment_clarify",
+   "Схоже, фраза обірвалася. Повторіть її повністю, будь ласка.",
+   [],
+   false,
+   [],
+   [],
+   false,
+   false,
+   null
+  ],
+  "incomplete|natural=True|close|lookup": [
+   "fragment_clarify",
+   "Схоже, фраза обірвалася. Повторіть її повністю, будь ласка.",
+   [],
+   false,
+   [],
+   [],
+   false,
+   false,
+   null
+  ],
+  "incomplete|natural=True|close|proposal": [
+   "fragment_clarify",
+   "Схоже, фраза обірвалася. Повторіть її повністю, будь ласка.",
+   [],
+   false,
+   [],
+   [],
+   false,
+   false,
+   null
+  ],
+  "incomplete|natural=True|close|unavailable": [
    "fragment_clarify",
    "Схоже, фраза обірвалася. Повторіть її повністю, будь ласка.",
    [],
@@ -5394,6 +11376,58 @@
    null
   ],
   "unscored_groq|natural=False|open|action_window": [
+   "fragment_clarify",
+   "Для цієї голосової репліки немає оцінки впевненості. Дію не ",
+   [],
+   false,
+   [],
+   [
+    false
+   ],
+   false,
+   false,
+   null
+  ],
+  "unscored_groq|natural=False|open|action_media": [
+   "fragment_clarify",
+   "Для цієї голосової репліки немає оцінки впевненості. Дію не ",
+   [],
+   false,
+   [],
+   [
+    false
+   ],
+   false,
+   false,
+   null
+  ],
+  "unscored_groq|natural=False|open|action_close": [
+   "fragment_clarify",
+   "Для цієї голосової репліки немає оцінки впевненості. Дію не ",
+   [],
+   false,
+   [],
+   [
+    false
+   ],
+   false,
+   false,
+   null
+  ],
+  "unscored_groq|natural=False|open|action_desktop": [
+   "fragment_clarify",
+   "Для цієї голосової репліки немає оцінки впевненості. Дію не ",
+   [],
+   false,
+   [],
+   [
+    false
+   ],
+   false,
+   false,
+   null
+  ],
+  "unscored_groq|natural=False|open|action_lock": [
    "fragment_clarify",
    "Для цієї голосової репліки немає оцінки впевненості. Дію не ",
    [],
@@ -5588,6 +11622,58 @@
    false,
    null
   ],
+  "unscored_groq|natural=False|find|action_media": [
+   "fragment_clarify",
+   "Для цієї голосової репліки немає оцінки впевненості. Дію не ",
+   [],
+   false,
+   [],
+   [
+    false
+   ],
+   false,
+   false,
+   null
+  ],
+  "unscored_groq|natural=False|find|action_close": [
+   "fragment_clarify",
+   "Для цієї голосової репліки немає оцінки впевненості. Дію не ",
+   [],
+   false,
+   [],
+   [
+    false
+   ],
+   false,
+   false,
+   null
+  ],
+  "unscored_groq|natural=False|find|action_desktop": [
+   "fragment_clarify",
+   "Для цієї голосової репліки немає оцінки впевненості. Дію не ",
+   [],
+   false,
+   [],
+   [
+    false
+   ],
+   false,
+   false,
+   null
+  ],
+  "unscored_groq|natural=False|find|action_lock": [
+   "fragment_clarify",
+   "Для цієї голосової репліки немає оцінки впевненості. Дію не ",
+   [],
+   false,
+   [],
+   [
+    false
+   ],
+   false,
+   false,
+   null
+  ],
   "unscored_groq|natural=False|find|lookup": [
    "fragment_clarify",
    "Для цієї голосової репліки немає оцінки впевненості. Дію не ",
@@ -5770,6 +11856,58 @@
    false,
    null
   ],
+  "unscored_groq|natural=False|chat|action_media": [
+   "fragment_clarify",
+   "Для цієї голосової репліки немає оцінки впевненості. Дію не ",
+   [],
+   false,
+   [],
+   [
+    false
+   ],
+   false,
+   false,
+   null
+  ],
+  "unscored_groq|natural=False|chat|action_close": [
+   "fragment_clarify",
+   "Для цієї голосової репліки немає оцінки впевненості. Дію не ",
+   [],
+   false,
+   [],
+   [
+    false
+   ],
+   false,
+   false,
+   null
+  ],
+  "unscored_groq|natural=False|chat|action_desktop": [
+   "fragment_clarify",
+   "Для цієї голосової репліки немає оцінки впевненості. Дію не ",
+   [],
+   false,
+   [],
+   [
+    false
+   ],
+   false,
+   false,
+   null
+  ],
+  "unscored_groq|natural=False|chat|action_lock": [
+   "fragment_clarify",
+   "Для цієї голосової репліки немає оцінки впевненості. Дію не ",
+   [],
+   false,
+   [],
+   [
+    false
+   ],
+   false,
+   false,
+   null
+  ],
   "unscored_groq|natural=False|chat|lookup": [
    "fragment_clarify",
    "Для цієї голосової репліки немає оцінки впевненості. Дію не ",
@@ -5797,6 +11935,474 @@
    null
   ],
   "unscored_groq|natural=False|chat|unavailable": [
+   "llm_unavailable",
+   "Мовна модель недоступна. Нічого не виконано.",
+   [],
+   false,
+   [],
+   [
+    false
+   ],
+   false,
+   false,
+   null
+  ],
+  "unscored_groq|natural=False|volume|chat": [
+   "fragment_chat",
+   "Марс — четверта планета.",
+   [],
+   false,
+   [],
+   [
+    false
+   ],
+   false,
+   false,
+   null
+  ],
+  "unscored_groq|natural=False|volume|claim_volume": [
+   "fragment_chat",
+   "Дію ще не виконано. Для запуску потрібен погоджений план.",
+   [],
+   false,
+   [],
+   [
+    false
+   ],
+   false,
+   false,
+   null
+  ],
+  "unscored_groq|natural=False|volume|claim_open": [
+   "fragment_chat",
+   "Дію ще не виконано. Для запуску потрібен погоджений план.",
+   [],
+   false,
+   [],
+   [
+    false
+   ],
+   false,
+   false,
+   null
+  ],
+  "unscored_groq|natural=False|volume|claim_memory": [
+   "fragment_chat",
+   "Дію ще не виконано. Для запуску потрібен погоджений план.",
+   [],
+   false,
+   [],
+   [
+    false
+   ],
+   false,
+   false,
+   null
+  ],
+  "unscored_groq|natural=False|volume|token": [
+   "fragment_chat",
+   "Дію ще не виконано. Для запуску потрібен погоджений план.",
+   [],
+   false,
+   [],
+   [
+    false
+   ],
+   false,
+   false,
+   null
+  ],
+  "unscored_groq|natural=False|volume|token_lead": [
+   "fragment_chat",
+   "Цю дію не підтримує поточний каталог команд.",
+   [],
+   false,
+   [],
+   [
+    false
+   ],
+   false,
+   false,
+   null
+  ],
+  "unscored_groq|natural=False|volume|token_lead_claim": [
+   "fragment_chat",
+   "Дію ще не виконано. Для запуску потрібен погоджений план.",
+   [],
+   false,
+   [],
+   [
+    false
+   ],
+   false,
+   false,
+   null
+  ],
+  "unscored_groq|natural=False|volume|clarify": [
+   "fragment_clarify",
+   "Яку програму відкрити?",
+   [],
+   false,
+   [],
+   [
+    false
+   ],
+   false,
+   false,
+   null
+  ],
+  "unscored_groq|natural=False|volume|action_open": [
+   "fragment_clarify",
+   "Для цієї голосової репліки немає оцінки впевненості. Дію не ",
+   [],
+   false,
+   [],
+   [
+    false
+   ],
+   false,
+   false,
+   null
+  ],
+  "unscored_groq|natural=False|volume|action_find": [
+   "fragment_clarify",
+   "Для цієї голосової репліки немає оцінки впевненості. Дію не ",
+   [],
+   false,
+   [],
+   [
+    false
+   ],
+   false,
+   false,
+   null
+  ],
+  "unscored_groq|natural=False|volume|action_window": [
+   "fragment_clarify",
+   "Для цієї голосової репліки немає оцінки впевненості. Дію не ",
+   [],
+   false,
+   [],
+   [
+    false
+   ],
+   false,
+   false,
+   null
+  ],
+  "unscored_groq|natural=False|volume|action_media": [
+   "fragment_clarify",
+   "Для цієї голосової репліки немає оцінки впевненості. Дію не ",
+   [],
+   false,
+   [],
+   [
+    false
+   ],
+   false,
+   false,
+   null
+  ],
+  "unscored_groq|natural=False|volume|action_close": [
+   "fragment_clarify",
+   "Для цієї голосової репліки немає оцінки впевненості. Дію не ",
+   [],
+   false,
+   [],
+   [
+    false
+   ],
+   false,
+   false,
+   null
+  ],
+  "unscored_groq|natural=False|volume|action_desktop": [
+   "fragment_clarify",
+   "Для цієї голосової репліки немає оцінки впевненості. Дію не ",
+   [],
+   false,
+   [],
+   [
+    false
+   ],
+   false,
+   false,
+   null
+  ],
+  "unscored_groq|natural=False|volume|action_lock": [
+   "fragment_clarify",
+   "Для цієї голосової репліки немає оцінки впевненості. Дію не ",
+   [],
+   false,
+   [],
+   [
+    false
+   ],
+   false,
+   false,
+   null
+  ],
+  "unscored_groq|natural=False|volume|lookup": [
+   "fragment_clarify",
+   "Для цієї голосової репліки немає оцінки впевненості. Дію не ",
+   [],
+   false,
+   [],
+   [
+    false
+   ],
+   false,
+   false,
+   null
+  ],
+  "unscored_groq|natural=False|volume|proposal": [
+   "intent_clarification",
+   "Уточніть повне прохання, якщо хочете виконати дію. Нічого не",
+   [],
+   false,
+   [],
+   [
+    false
+   ],
+   false,
+   false,
+   null
+  ],
+  "unscored_groq|natural=False|volume|unavailable": [
+   "llm_unavailable",
+   "Мовна модель недоступна. Нічого не виконано.",
+   [],
+   false,
+   [],
+   [
+    false
+   ],
+   false,
+   false,
+   null
+  ],
+  "unscored_groq|natural=False|close|chat": [
+   "fragment_chat",
+   "Марс — четверта планета.",
+   [],
+   false,
+   [],
+   [
+    false
+   ],
+   false,
+   false,
+   null
+  ],
+  "unscored_groq|natural=False|close|claim_volume": [
+   "fragment_chat",
+   "Дію ще не виконано. Для запуску потрібен погоджений план.",
+   [],
+   false,
+   [],
+   [
+    false
+   ],
+   false,
+   false,
+   null
+  ],
+  "unscored_groq|natural=False|close|claim_open": [
+   "fragment_chat",
+   "Дію ще не виконано. Для запуску потрібен погоджений план.",
+   [],
+   false,
+   [],
+   [
+    false
+   ],
+   false,
+   false,
+   null
+  ],
+  "unscored_groq|natural=False|close|claim_memory": [
+   "fragment_chat",
+   "Дію ще не виконано. Для запуску потрібен погоджений план.",
+   [],
+   false,
+   [],
+   [
+    false
+   ],
+   false,
+   false,
+   null
+  ],
+  "unscored_groq|natural=False|close|token": [
+   "fragment_chat",
+   "Дію ще не виконано. Для запуску потрібен погоджений план.",
+   [],
+   false,
+   [],
+   [
+    false
+   ],
+   false,
+   false,
+   null
+  ],
+  "unscored_groq|natural=False|close|token_lead": [
+   "fragment_chat",
+   "Цю дію не підтримує поточний каталог команд.",
+   [],
+   false,
+   [],
+   [
+    false
+   ],
+   false,
+   false,
+   null
+  ],
+  "unscored_groq|natural=False|close|token_lead_claim": [
+   "fragment_chat",
+   "Дію ще не виконано. Для запуску потрібен погоджений план.",
+   [],
+   false,
+   [],
+   [
+    false
+   ],
+   false,
+   false,
+   null
+  ],
+  "unscored_groq|natural=False|close|clarify": [
+   "fragment_clarify",
+   "Яку програму відкрити?",
+   [],
+   false,
+   [],
+   [
+    false
+   ],
+   false,
+   false,
+   null
+  ],
+  "unscored_groq|natural=False|close|action_open": [
+   "fragment_clarify",
+   "Для цієї голосової репліки немає оцінки впевненості. Дію не ",
+   [],
+   false,
+   [],
+   [
+    false
+   ],
+   false,
+   false,
+   null
+  ],
+  "unscored_groq|natural=False|close|action_find": [
+   "fragment_clarify",
+   "Для цієї голосової репліки немає оцінки впевненості. Дію не ",
+   [],
+   false,
+   [],
+   [
+    false
+   ],
+   false,
+   false,
+   null
+  ],
+  "unscored_groq|natural=False|close|action_window": [
+   "fragment_clarify",
+   "Для цієї голосової репліки немає оцінки впевненості. Дію не ",
+   [],
+   false,
+   [],
+   [
+    false
+   ],
+   false,
+   false,
+   null
+  ],
+  "unscored_groq|natural=False|close|action_media": [
+   "fragment_clarify",
+   "Для цієї голосової репліки немає оцінки впевненості. Дію не ",
+   [],
+   false,
+   [],
+   [
+    false
+   ],
+   false,
+   false,
+   null
+  ],
+  "unscored_groq|natural=False|close|action_close": [
+   "fragment_clarify",
+   "Для цієї голосової репліки немає оцінки впевненості. Дію не ",
+   [],
+   false,
+   [],
+   [
+    false
+   ],
+   false,
+   false,
+   null
+  ],
+  "unscored_groq|natural=False|close|action_desktop": [
+   "fragment_clarify",
+   "Для цієї голосової репліки немає оцінки впевненості. Дію не ",
+   [],
+   false,
+   [],
+   [
+    false
+   ],
+   false,
+   false,
+   null
+  ],
+  "unscored_groq|natural=False|close|action_lock": [
+   "fragment_clarify",
+   "Для цієї голосової репліки немає оцінки впевненості. Дію не ",
+   [],
+   false,
+   [],
+   [
+    false
+   ],
+   false,
+   false,
+   null
+  ],
+  "unscored_groq|natural=False|close|lookup": [
+   "fragment_clarify",
+   "Для цієї голосової репліки немає оцінки впевненості. Дію не ",
+   [],
+   false,
+   [],
+   [
+    false
+   ],
+   false,
+   false,
+   null
+  ],
+  "unscored_groq|natural=False|close|proposal": [
+   "intent_clarification",
+   "Уточніть повне прохання, якщо хочете виконати дію. Нічого не",
+   [],
+   false,
+   [],
+   [
+    false
+   ],
+   false,
+   false,
+   null
+  ],
+  "unscored_groq|natural=False|close|unavailable": [
    "llm_unavailable",
    "Мовна модель недоступна. Нічого не виконано.",
    [],
@@ -5955,7 +12561,59 @@
   ],
   "unscored_groq|natural=True|open|action_window": [
    "intent_clarification",
-   "Для цієї дії введіть прохання текстом. Нічого не виконано.",
+   "Запропонована дія не відповідає типу вашого запиту. Уточніть",
+   [],
+   false,
+   [],
+   [
+    true
+   ],
+   false,
+   false,
+   null
+  ],
+  "unscored_groq|natural=True|open|action_media": [
+   "intent_clarification",
+   "Запропонована дія не відповідає типу вашого запиту. Уточніть",
+   [],
+   false,
+   [],
+   [
+    true
+   ],
+   false,
+   false,
+   null
+  ],
+  "unscored_groq|natural=True|open|action_close": [
+   "intent_clarification",
+   "Запропонована дія не відповідає типу вашого запиту. Уточніть",
+   [],
+   false,
+   [],
+   [
+    true
+   ],
+   false,
+   false,
+   null
+  ],
+  "unscored_groq|natural=True|open|action_desktop": [
+   "intent_clarification",
+   "Запропонована дія не відповідає типу вашого запиту. Уточніть",
+   [],
+   false,
+   [],
+   [
+    true
+   ],
+   false,
+   false,
+   null
+  ],
+  "unscored_groq|natural=True|open|action_lock": [
+   "intent_clarification",
+   "Запропонована дія не відповідає типу вашого запиту. Уточніть",
    [],
    false,
    [],
@@ -6151,7 +12809,59 @@
   ],
   "unscored_groq|natural=True|find|action_window": [
    "intent_clarification",
-   "Для цієї дії введіть прохання текстом. Нічого не виконано.",
+   "Запропонована дія не відповідає типу вашого запиту. Уточніть",
+   [],
+   false,
+   [],
+   [
+    true
+   ],
+   false,
+   false,
+   null
+  ],
+  "unscored_groq|natural=True|find|action_media": [
+   "intent_clarification",
+   "Запропонована дія не відповідає типу вашого запиту. Уточніть",
+   [],
+   false,
+   [],
+   [
+    true
+   ],
+   false,
+   false,
+   null
+  ],
+  "unscored_groq|natural=True|find|action_close": [
+   "intent_clarification",
+   "Запропонована дія не відповідає типу вашого запиту. Уточніть",
+   [],
+   false,
+   [],
+   [
+    true
+   ],
+   false,
+   false,
+   null
+  ],
+  "unscored_groq|natural=True|find|action_desktop": [
+   "intent_clarification",
+   "Запропонована дія не відповідає типу вашого запиту. Уточніть",
+   [],
+   false,
+   [],
+   [
+    true
+   ],
+   false,
+   false,
+   null
+  ],
+  "unscored_groq|natural=True|find|action_lock": [
+   "intent_clarification",
+   "Запропонована дія не відповідає типу вашого запиту. Уточніть",
    [],
    false,
    [],
@@ -6349,7 +13059,59 @@
   ],
   "unscored_groq|natural=True|chat|action_window": [
    "intent_clarification",
-   "Для цієї дії введіть прохання текстом. Нічого не виконано.",
+   "Не впевнений, що це пряме прохання виконати дію. Уточніть, б",
+   [],
+   false,
+   [],
+   [
+    true
+   ],
+   false,
+   false,
+   null
+  ],
+  "unscored_groq|natural=True|chat|action_media": [
+   "intent_clarification",
+   "Не впевнений, що це пряме прохання виконати дію. Уточніть, б",
+   [],
+   false,
+   [],
+   [
+    true
+   ],
+   false,
+   false,
+   null
+  ],
+  "unscored_groq|natural=True|chat|action_close": [
+   "intent_clarification",
+   "Не впевнений, що це пряме прохання виконати дію. Уточніть, б",
+   [],
+   false,
+   [],
+   [
+    true
+   ],
+   false,
+   false,
+   null
+  ],
+  "unscored_groq|natural=True|chat|action_desktop": [
+   "intent_clarification",
+   "Не впевнений, що це пряме прохання виконати дію. Уточніть, б",
+   [],
+   false,
+   [],
+   [
+    true
+   ],
+   false,
+   false,
+   null
+  ],
+  "unscored_groq|natural=True|chat|action_lock": [
+   "intent_clarification",
+   "Не впевнений, що це пряме прохання виконати дію. Уточніть, б",
    [],
    false,
    [],
@@ -6387,6 +13149,504 @@
    null
   ],
   "unscored_groq|natural=True|chat|unavailable": [
+   "llm_unavailable",
+   "Мовна модель недоступна. Нічого не виконано.",
+   [],
+   false,
+   [],
+   [
+    true
+   ],
+   false,
+   false,
+   null
+  ],
+  "unscored_groq|natural=True|volume|chat": [
+   "fragment_chat",
+   "Марс — четверта планета.",
+   [],
+   false,
+   [
+    "Марс — четверта планета."
+   ],
+   [
+    true
+   ],
+   false,
+   false,
+   null
+  ],
+  "unscored_groq|natural=True|volume|claim_volume": [
+   "fragment_chat",
+   "Дію ще не виконано. Для запуску потрібен погоджений план.",
+   [],
+   false,
+   [
+    "Дію ще не виконано. Для запуску потрібен погоджений план."
+   ],
+   [
+    true
+   ],
+   false,
+   false,
+   null
+  ],
+  "unscored_groq|natural=True|volume|claim_open": [
+   "fragment_chat",
+   "Дію ще не виконано. Для запуску потрібен погоджений план.",
+   [],
+   false,
+   [
+    "Дію ще не виконано. Для запуску потрібен погоджений план."
+   ],
+   [
+    true
+   ],
+   false,
+   false,
+   null
+  ],
+  "unscored_groq|natural=True|volume|claim_memory": [
+   "fragment_chat",
+   "Дію ще не виконано. Для запуску потрібен погоджений план.",
+   [],
+   false,
+   [
+    "Дію ще не виконано. Для запуску потрібен погоджений план."
+   ],
+   [
+    true
+   ],
+   false,
+   false,
+   null
+  ],
+  "unscored_groq|natural=True|volume|token": [
+   "fragment_chat",
+   "Дію ще не виконано. Для запуску потрібен погоджений план.",
+   [],
+   false,
+   [],
+   [
+    true
+   ],
+   false,
+   false,
+   null
+  ],
+  "unscored_groq|natural=True|volume|token_lead": [
+   "fragment_chat",
+   "Цю дію не підтримує поточний каталог команд.",
+   [],
+   false,
+   [
+    "Цю дію не підтримує поточний каталог команд."
+   ],
+   [
+    true
+   ],
+   false,
+   false,
+   null
+  ],
+  "unscored_groq|natural=True|volume|token_lead_claim": [
+   "fragment_chat",
+   "Дію ще не виконано. Для запуску потрібен погоджений план.",
+   [],
+   false,
+   [
+    "Дію ще не виконано. Для запуску потрібен погоджений план."
+   ],
+   [
+    true
+   ],
+   false,
+   false,
+   null
+  ],
+  "unscored_groq|natural=True|volume|clarify": [
+   "fragment_clarify",
+   "Яку програму відкрити?",
+   [],
+   false,
+   [],
+   [
+    true
+   ],
+   false,
+   false,
+   null
+  ],
+  "unscored_groq|natural=True|volume|action_open": [
+   "intent_clarification",
+   "Запропонована дія не відповідає типу вашого запиту. Уточніть",
+   [],
+   false,
+   [],
+   [
+    true
+   ],
+   false,
+   false,
+   null
+  ],
+  "unscored_groq|natural=True|volume|action_find": [
+   "intent_clarification",
+   "Запропонована дія не відповідає типу вашого запиту. Уточніть",
+   [],
+   false,
+   [],
+   [
+    true
+   ],
+   false,
+   false,
+   null
+  ],
+  "unscored_groq|natural=True|volume|action_window": [
+   "intent_clarification",
+   "Запропонована дія не відповідає типу вашого запиту. Уточніть",
+   [],
+   false,
+   [],
+   [
+    true
+   ],
+   false,
+   false,
+   null
+  ],
+  "unscored_groq|natural=True|volume|action_media": [
+   "executed_media_control",
+   "executed media_control",
+   [
+    "media_control"
+   ],
+   false,
+   [],
+   [
+    true
+   ],
+   false,
+   false,
+   null
+  ],
+  "unscored_groq|natural=True|volume|action_close": [
+   "intent_clarification",
+   "Запропонована дія не відповідає типу вашого запиту. Уточніть",
+   [],
+   false,
+   [],
+   [
+    true
+   ],
+   false,
+   false,
+   null
+  ],
+  "unscored_groq|natural=True|volume|action_desktop": [
+   "intent_clarification",
+   "Запропонована дія не відповідає типу вашого запиту. Уточніть",
+   [],
+   false,
+   [],
+   [
+    true
+   ],
+   false,
+   false,
+   null
+  ],
+  "unscored_groq|natural=True|volume|action_lock": [
+   "intent_clarification",
+   "Запропонована дія не відповідає типу вашого запиту. Уточніть",
+   [],
+   false,
+   [],
+   [
+    true
+   ],
+   false,
+   false,
+   null
+  ],
+  "unscored_groq|natural=True|volume|lookup": [
+   "intent_clarification",
+   "Не знаю цього напевно.",
+   [],
+   false,
+   [],
+   [
+    true
+   ],
+   false,
+   false,
+   null
+  ],
+  "unscored_groq|natural=True|volume|proposal": [
+   "intent_clarification",
+   "Уточніть повне прохання, якщо хочете виконати дію. Нічого не",
+   [],
+   false,
+   [],
+   [
+    true
+   ],
+   false,
+   false,
+   null
+  ],
+  "unscored_groq|natural=True|volume|unavailable": [
+   "llm_unavailable",
+   "Мовна модель недоступна. Нічого не виконано.",
+   [],
+   false,
+   [],
+   [
+    true
+   ],
+   false,
+   false,
+   null
+  ],
+  "unscored_groq|natural=True|close|chat": [
+   "fragment_chat",
+   "Марс — четверта планета.",
+   [],
+   false,
+   [
+    "Марс — четверта планета."
+   ],
+   [
+    true
+   ],
+   false,
+   false,
+   null
+  ],
+  "unscored_groq|natural=True|close|claim_volume": [
+   "fragment_chat",
+   "Дію ще не виконано. Для запуску потрібен погоджений план.",
+   [],
+   false,
+   [
+    "Дію ще не виконано. Для запуску потрібен погоджений план."
+   ],
+   [
+    true
+   ],
+   false,
+   false,
+   null
+  ],
+  "unscored_groq|natural=True|close|claim_open": [
+   "fragment_chat",
+   "Дію ще не виконано. Для запуску потрібен погоджений план.",
+   [],
+   false,
+   [
+    "Дію ще не виконано. Для запуску потрібен погоджений план."
+   ],
+   [
+    true
+   ],
+   false,
+   false,
+   null
+  ],
+  "unscored_groq|natural=True|close|claim_memory": [
+   "fragment_chat",
+   "Дію ще не виконано. Для запуску потрібен погоджений план.",
+   [],
+   false,
+   [
+    "Дію ще не виконано. Для запуску потрібен погоджений план."
+   ],
+   [
+    true
+   ],
+   false,
+   false,
+   null
+  ],
+  "unscored_groq|natural=True|close|token": [
+   "fragment_chat",
+   "Дію ще не виконано. Для запуску потрібен погоджений план.",
+   [],
+   false,
+   [],
+   [
+    true
+   ],
+   false,
+   false,
+   null
+  ],
+  "unscored_groq|natural=True|close|token_lead": [
+   "fragment_chat",
+   "Цю дію не підтримує поточний каталог команд.",
+   [],
+   false,
+   [
+    "Цю дію не підтримує поточний каталог команд."
+   ],
+   [
+    true
+   ],
+   false,
+   false,
+   null
+  ],
+  "unscored_groq|natural=True|close|token_lead_claim": [
+   "fragment_chat",
+   "Дію ще не виконано. Для запуску потрібен погоджений план.",
+   [],
+   false,
+   [
+    "Дію ще не виконано. Для запуску потрібен погоджений план."
+   ],
+   [
+    true
+   ],
+   false,
+   false,
+   null
+  ],
+  "unscored_groq|natural=True|close|clarify": [
+   "fragment_clarify",
+   "Яку програму відкрити?",
+   [],
+   false,
+   [],
+   [
+    true
+   ],
+   false,
+   false,
+   null
+  ],
+  "unscored_groq|natural=True|close|action_open": [
+   "intent_clarification",
+   "Запропонована дія не відповідає типу вашого запиту. Уточніть",
+   [],
+   false,
+   [],
+   [
+    true
+   ],
+   false,
+   false,
+   null
+  ],
+  "unscored_groq|natural=True|close|action_find": [
+   "intent_clarification",
+   "Запропонована дія не відповідає типу вашого запиту. Уточніть",
+   [],
+   false,
+   [],
+   [
+    true
+   ],
+   false,
+   false,
+   null
+  ],
+  "unscored_groq|natural=True|close|action_window": [
+   "executed_window_control",
+   "executed window_control",
+   [
+    "window_control"
+   ],
+   false,
+   [],
+   [
+    true
+   ],
+   false,
+   false,
+   null
+  ],
+  "unscored_groq|natural=True|close|action_media": [
+   "intent_clarification",
+   "Запропонована дія не відповідає типу вашого запиту. Уточніть",
+   [],
+   false,
+   [],
+   [
+    true
+   ],
+   false,
+   false,
+   null
+  ],
+  "unscored_groq|natural=True|close|action_close": [
+   "executed_window_control",
+   "executed window_control",
+   [
+    "window_control"
+   ],
+   false,
+   [],
+   [
+    true
+   ],
+   false,
+   false,
+   null
+  ],
+  "unscored_groq|natural=True|close|action_desktop": [
+   "intent_clarification",
+   "Запропонована дія не відповідає типу вашого запиту. Уточніть",
+   [],
+   false,
+   [],
+   [
+    true
+   ],
+   false,
+   false,
+   null
+  ],
+  "unscored_groq|natural=True|close|action_lock": [
+   "intent_clarification",
+   "Запропонована дія не відповідає типу вашого запиту. Уточніть",
+   [],
+   false,
+   [],
+   [
+    true
+   ],
+   false,
+   false,
+   null
+  ],
+  "unscored_groq|natural=True|close|lookup": [
+   "intent_clarification",
+   "Не знаю цього напевно.",
+   [],
+   false,
+   [],
+   [
+    true
+   ],
+   false,
+   false,
+   null
+  ],
+  "unscored_groq|natural=True|close|proposal": [
+   "intent_clarification",
+   "Уточніть повне прохання, якщо хочете виконати дію. Нічого не",
+   [],
+   false,
+   [],
+   [
+    true
+   ],
+   false,
+   false,
+   null
+  ],
+  "unscored_groq|natural=True|close|unavailable": [
    "llm_unavailable",
    "Мовна модель недоступна. Нічого не виконано.",
    [],
@@ -6510,6 +13770,50 @@
    null
   ],
   "text|natural=False|open|action_window": [
+   "chat",
+   "chat-response",
+   [],
+   false,
+   [],
+   [],
+   false,
+   true,
+   null
+  ],
+  "text|natural=False|open|action_media": [
+   "chat",
+   "chat-response",
+   [],
+   false,
+   [],
+   [],
+   false,
+   true,
+   null
+  ],
+  "text|natural=False|open|action_close": [
+   "chat",
+   "chat-response",
+   [],
+   false,
+   [],
+   [],
+   false,
+   true,
+   null
+  ],
+  "text|natural=False|open|action_desktop": [
+   "chat",
+   "chat-response",
+   [],
+   false,
+   [],
+   [],
+   false,
+   true,
+   null
+  ],
+  "text|natural=False|open|action_lock": [
    "chat",
    "chat-response",
    [],
@@ -6674,6 +13978,50 @@
    true,
    null
   ],
+  "text|natural=False|find|action_media": [
+   "chat",
+   "chat-response",
+   [],
+   false,
+   [],
+   [],
+   false,
+   true,
+   null
+  ],
+  "text|natural=False|find|action_close": [
+   "chat",
+   "chat-response",
+   [],
+   false,
+   [],
+   [],
+   false,
+   true,
+   null
+  ],
+  "text|natural=False|find|action_desktop": [
+   "chat",
+   "chat-response",
+   [],
+   false,
+   [],
+   [],
+   false,
+   true,
+   null
+  ],
+  "text|natural=False|find|action_lock": [
+   "chat",
+   "chat-response",
+   [],
+   false,
+   [],
+   [],
+   false,
+   true,
+   null
+  ],
   "text|natural=False|find|lookup": [
    "chat",
    "chat-response",
@@ -6828,6 +14176,50 @@
    true,
    null
   ],
+  "text|natural=False|chat|action_media": [
+   "chat",
+   "chat-response",
+   [],
+   false,
+   [],
+   [],
+   false,
+   true,
+   null
+  ],
+  "text|natural=False|chat|action_close": [
+   "chat",
+   "chat-response",
+   [],
+   false,
+   [],
+   [],
+   false,
+   true,
+   null
+  ],
+  "text|natural=False|chat|action_desktop": [
+   "chat",
+   "chat-response",
+   [],
+   false,
+   [],
+   [],
+   false,
+   true,
+   null
+  ],
+  "text|natural=False|chat|action_lock": [
+   "chat",
+   "chat-response",
+   [],
+   false,
+   [],
+   [],
+   false,
+   true,
+   null
+  ],
   "text|natural=False|chat|lookup": [
    "chat",
    "chat-response",
@@ -6851,6 +14243,402 @@
    null
   ],
   "text|natural=False|chat|unavailable": [
+   "chat",
+   "chat-response",
+   [],
+   false,
+   [],
+   [],
+   false,
+   true,
+   null
+  ],
+  "text|natural=False|volume|chat": [
+   "chat",
+   "chat-response",
+   [],
+   false,
+   [],
+   [],
+   false,
+   true,
+   null
+  ],
+  "text|natural=False|volume|claim_volume": [
+   "chat",
+   "chat-response",
+   [],
+   false,
+   [],
+   [],
+   false,
+   true,
+   null
+  ],
+  "text|natural=False|volume|claim_open": [
+   "chat",
+   "chat-response",
+   [],
+   false,
+   [],
+   [],
+   false,
+   true,
+   null
+  ],
+  "text|natural=False|volume|claim_memory": [
+   "chat",
+   "chat-response",
+   [],
+   false,
+   [],
+   [],
+   false,
+   true,
+   null
+  ],
+  "text|natural=False|volume|token": [
+   "chat",
+   "chat-response",
+   [],
+   false,
+   [],
+   [],
+   false,
+   true,
+   null
+  ],
+  "text|natural=False|volume|token_lead": [
+   "chat",
+   "chat-response",
+   [],
+   false,
+   [],
+   [],
+   false,
+   true,
+   null
+  ],
+  "text|natural=False|volume|token_lead_claim": [
+   "chat",
+   "chat-response",
+   [],
+   false,
+   [],
+   [],
+   false,
+   true,
+   null
+  ],
+  "text|natural=False|volume|clarify": [
+   "chat",
+   "chat-response",
+   [],
+   false,
+   [],
+   [],
+   false,
+   true,
+   null
+  ],
+  "text|natural=False|volume|action_open": [
+   "chat",
+   "chat-response",
+   [],
+   false,
+   [],
+   [],
+   false,
+   true,
+   null
+  ],
+  "text|natural=False|volume|action_find": [
+   "chat",
+   "chat-response",
+   [],
+   false,
+   [],
+   [],
+   false,
+   true,
+   null
+  ],
+  "text|natural=False|volume|action_window": [
+   "chat",
+   "chat-response",
+   [],
+   false,
+   [],
+   [],
+   false,
+   true,
+   null
+  ],
+  "text|natural=False|volume|action_media": [
+   "chat",
+   "chat-response",
+   [],
+   false,
+   [],
+   [],
+   false,
+   true,
+   null
+  ],
+  "text|natural=False|volume|action_close": [
+   "chat",
+   "chat-response",
+   [],
+   false,
+   [],
+   [],
+   false,
+   true,
+   null
+  ],
+  "text|natural=False|volume|action_desktop": [
+   "chat",
+   "chat-response",
+   [],
+   false,
+   [],
+   [],
+   false,
+   true,
+   null
+  ],
+  "text|natural=False|volume|action_lock": [
+   "chat",
+   "chat-response",
+   [],
+   false,
+   [],
+   [],
+   false,
+   true,
+   null
+  ],
+  "text|natural=False|volume|lookup": [
+   "chat",
+   "chat-response",
+   [],
+   false,
+   [],
+   [],
+   false,
+   true,
+   null
+  ],
+  "text|natural=False|volume|proposal": [
+   "chat",
+   "chat-response",
+   [],
+   false,
+   [],
+   [],
+   false,
+   true,
+   null
+  ],
+  "text|natural=False|volume|unavailable": [
+   "chat",
+   "chat-response",
+   [],
+   false,
+   [],
+   [],
+   false,
+   true,
+   null
+  ],
+  "text|natural=False|close|chat": [
+   "chat",
+   "chat-response",
+   [],
+   false,
+   [],
+   [],
+   false,
+   true,
+   null
+  ],
+  "text|natural=False|close|claim_volume": [
+   "chat",
+   "chat-response",
+   [],
+   false,
+   [],
+   [],
+   false,
+   true,
+   null
+  ],
+  "text|natural=False|close|claim_open": [
+   "chat",
+   "chat-response",
+   [],
+   false,
+   [],
+   [],
+   false,
+   true,
+   null
+  ],
+  "text|natural=False|close|claim_memory": [
+   "chat",
+   "chat-response",
+   [],
+   false,
+   [],
+   [],
+   false,
+   true,
+   null
+  ],
+  "text|natural=False|close|token": [
+   "chat",
+   "chat-response",
+   [],
+   false,
+   [],
+   [],
+   false,
+   true,
+   null
+  ],
+  "text|natural=False|close|token_lead": [
+   "chat",
+   "chat-response",
+   [],
+   false,
+   [],
+   [],
+   false,
+   true,
+   null
+  ],
+  "text|natural=False|close|token_lead_claim": [
+   "chat",
+   "chat-response",
+   [],
+   false,
+   [],
+   [],
+   false,
+   true,
+   null
+  ],
+  "text|natural=False|close|clarify": [
+   "chat",
+   "chat-response",
+   [],
+   false,
+   [],
+   [],
+   false,
+   true,
+   null
+  ],
+  "text|natural=False|close|action_open": [
+   "chat",
+   "chat-response",
+   [],
+   false,
+   [],
+   [],
+   false,
+   true,
+   null
+  ],
+  "text|natural=False|close|action_find": [
+   "chat",
+   "chat-response",
+   [],
+   false,
+   [],
+   [],
+   false,
+   true,
+   null
+  ],
+  "text|natural=False|close|action_window": [
+   "chat",
+   "chat-response",
+   [],
+   false,
+   [],
+   [],
+   false,
+   true,
+   null
+  ],
+  "text|natural=False|close|action_media": [
+   "chat",
+   "chat-response",
+   [],
+   false,
+   [],
+   [],
+   false,
+   true,
+   null
+  ],
+  "text|natural=False|close|action_close": [
+   "chat",
+   "chat-response",
+   [],
+   false,
+   [],
+   [],
+   false,
+   true,
+   null
+  ],
+  "text|natural=False|close|action_desktop": [
+   "chat",
+   "chat-response",
+   [],
+   false,
+   [],
+   [],
+   false,
+   true,
+   null
+  ],
+  "text|natural=False|close|action_lock": [
+   "chat",
+   "chat-response",
+   [],
+   false,
+   [],
+   [],
+   false,
+   true,
+   null
+  ],
+  "text|natural=False|close|lookup": [
+   "chat",
+   "chat-response",
+   [],
+   false,
+   [],
+   [],
+   false,
+   true,
+   null
+  ],
+  "text|natural=False|close|proposal": [
+   "chat",
+   "chat-response",
+   [],
+   false,
+   [],
+   [],
+   false,
+   true,
+   null
+  ],
+  "text|natural=False|close|unavailable": [
    "chat",
    "chat-response",
    [],
@@ -7006,6 +14794,58 @@
    null
   ],
   "text|natural=True|open|action_window": [
+   "intent_clarification",
+   "Запропонована дія не відповідає типу вашого запиту. Уточніть",
+   [],
+   false,
+   [],
+   [
+    true
+   ],
+   false,
+   false,
+   null
+  ],
+  "text|natural=True|open|action_media": [
+   "intent_clarification",
+   "Запропонована дія не відповідає типу вашого запиту. Уточніть",
+   [],
+   false,
+   [],
+   [
+    true
+   ],
+   false,
+   false,
+   null
+  ],
+  "text|natural=True|open|action_close": [
+   "intent_clarification",
+   "Запропонована дія не відповідає типу вашого запиту. Уточніть",
+   [],
+   false,
+   [],
+   [
+    true
+   ],
+   false,
+   false,
+   null
+  ],
+  "text|natural=True|open|action_desktop": [
+   "intent_clarification",
+   "Запропонована дія не відповідає типу вашого запиту. Уточніть",
+   [],
+   false,
+   [],
+   [
+    true
+   ],
+   false,
+   false,
+   null
+  ],
+  "text|natural=True|open|action_lock": [
    "intent_clarification",
    "Запропонована дія не відповідає типу вашого запиту. Уточніть",
    [],
@@ -7202,6 +15042,58 @@
    null
   ],
   "text|natural=True|find|action_window": [
+   "intent_clarification",
+   "Запропонована дія не відповідає типу вашого запиту. Уточніть",
+   [],
+   false,
+   [],
+   [
+    true
+   ],
+   false,
+   false,
+   null
+  ],
+  "text|natural=True|find|action_media": [
+   "intent_clarification",
+   "Запропонована дія не відповідає типу вашого запиту. Уточніть",
+   [],
+   false,
+   [],
+   [
+    true
+   ],
+   false,
+   false,
+   null
+  ],
+  "text|natural=True|find|action_close": [
+   "intent_clarification",
+   "Запропонована дія не відповідає типу вашого запиту. Уточніть",
+   [],
+   false,
+   [],
+   [
+    true
+   ],
+   false,
+   false,
+   null
+  ],
+  "text|natural=True|find|action_desktop": [
+   "intent_clarification",
+   "Запропонована дія не відповідає типу вашого запиту. Уточніть",
+   [],
+   false,
+   [],
+   [
+    true
+   ],
+   false,
+   false,
+   null
+  ],
+  "text|natural=True|find|action_lock": [
    "intent_clarification",
    "Запропонована дія не відповідає типу вашого запиту. Уточніть",
    [],
@@ -7412,6 +15304,58 @@
    false,
    null
   ],
+  "text|natural=True|chat|action_media": [
+   "intent_clarification",
+   "Не впевнений, що це пряме прохання виконати дію. Уточніть, б",
+   [],
+   false,
+   [],
+   [
+    true
+   ],
+   false,
+   false,
+   null
+  ],
+  "text|natural=True|chat|action_close": [
+   "intent_clarification",
+   "Не впевнений, що це пряме прохання виконати дію. Уточніть, б",
+   [],
+   false,
+   [],
+   [
+    true
+   ],
+   false,
+   false,
+   null
+  ],
+  "text|natural=True|chat|action_desktop": [
+   "intent_clarification",
+   "Не впевнений, що це пряме прохання виконати дію. Уточніть, б",
+   [],
+   false,
+   [],
+   [
+    true
+   ],
+   false,
+   false,
+   null
+  ],
+  "text|natural=True|chat|action_lock": [
+   "intent_clarification",
+   "Не впевнений, що це пряме прохання виконати дію. Уточніть, б",
+   [],
+   false,
+   [],
+   [
+    true
+   ],
+   false,
+   false,
+   null
+  ],
   "text|natural=True|chat|lookup": [
    "intent_clarification",
    "Не знаю цього напевно.",
@@ -7439,6 +15383,504 @@
    null
   ],
   "text|natural=True|chat|unavailable": [
+   "chat",
+   "Мовна модель недоступна. Нічого не виконано.",
+   [],
+   false,
+   [],
+   [
+    true
+   ],
+   false,
+   false,
+   null
+  ],
+  "text|natural=True|volume|chat": [
+   "chat",
+   "Марс — четверта планета.",
+   [],
+   false,
+   [
+    "Марс — четверта планета."
+   ],
+   [
+    true
+   ],
+   false,
+   false,
+   null
+  ],
+  "text|natural=True|volume|claim_volume": [
+   "chat",
+   "Дію ще не виконано. Для запуску потрібен погоджений план.",
+   [],
+   false,
+   [
+    "Дію ще не виконано. Для запуску потрібен погоджений план."
+   ],
+   [
+    true
+   ],
+   false,
+   false,
+   null
+  ],
+  "text|natural=True|volume|claim_open": [
+   "chat",
+   "Дію ще не виконано. Для запуску потрібен погоджений план.",
+   [],
+   false,
+   [
+    "Дію ще не виконано. Для запуску потрібен погоджений план."
+   ],
+   [
+    true
+   ],
+   false,
+   false,
+   null
+  ],
+  "text|natural=True|volume|claim_memory": [
+   "chat",
+   "Дію ще не виконано. Для запуску потрібен погоджений план.",
+   [],
+   false,
+   [
+    "Дію ще не виконано. Для запуску потрібен погоджений план."
+   ],
+   [
+    true
+   ],
+   false,
+   false,
+   null
+  ],
+  "text|natural=True|volume|token": [
+   "chat",
+   "Дію ще не виконано. Для запуску потрібен погоджений план.",
+   [],
+   false,
+   [],
+   [
+    true
+   ],
+   false,
+   false,
+   null
+  ],
+  "text|natural=True|volume|token_lead": [
+   "chat",
+   "Цю дію не підтримує поточний каталог команд.",
+   [],
+   false,
+   [
+    "Цю дію не підтримує поточний каталог команд."
+   ],
+   [
+    true
+   ],
+   false,
+   false,
+   null
+  ],
+  "text|natural=True|volume|token_lead_claim": [
+   "chat",
+   "Дію ще не виконано. Для запуску потрібен погоджений план.",
+   [],
+   false,
+   [
+    "Дію ще не виконано. Для запуску потрібен погоджений план."
+   ],
+   [
+    true
+   ],
+   false,
+   false,
+   null
+  ],
+  "text|natural=True|volume|clarify": [
+   "chat",
+   "Яку програму відкрити?",
+   [],
+   false,
+   [],
+   [
+    true
+   ],
+   false,
+   false,
+   "media_control"
+  ],
+  "text|natural=True|volume|action_open": [
+   "intent_clarification",
+   "Запропонована дія не відповідає типу вашого запиту. Уточніть",
+   [],
+   false,
+   [],
+   [
+    true
+   ],
+   false,
+   false,
+   null
+  ],
+  "text|natural=True|volume|action_find": [
+   "intent_clarification",
+   "Запропонована дія не відповідає типу вашого запиту. Уточніть",
+   [],
+   false,
+   [],
+   [
+    true
+   ],
+   false,
+   false,
+   null
+  ],
+  "text|natural=True|volume|action_window": [
+   "intent_clarification",
+   "Запропонована дія не відповідає типу вашого запиту. Уточніть",
+   [],
+   false,
+   [],
+   [
+    true
+   ],
+   false,
+   false,
+   null
+  ],
+  "text|natural=True|volume|action_media": [
+   "executed_media_control",
+   "executed media_control",
+   [
+    "media_control"
+   ],
+   false,
+   [],
+   [
+    true
+   ],
+   false,
+   false,
+   null
+  ],
+  "text|natural=True|volume|action_close": [
+   "intent_clarification",
+   "Запропонована дія не відповідає типу вашого запиту. Уточніть",
+   [],
+   false,
+   [],
+   [
+    true
+   ],
+   false,
+   false,
+   null
+  ],
+  "text|natural=True|volume|action_desktop": [
+   "intent_clarification",
+   "Запропонована дія не відповідає типу вашого запиту. Уточніть",
+   [],
+   false,
+   [],
+   [
+    true
+   ],
+   false,
+   false,
+   null
+  ],
+  "text|natural=True|volume|action_lock": [
+   "intent_clarification",
+   "Запропонована дія не відповідає типу вашого запиту. Уточніть",
+   [],
+   false,
+   [],
+   [
+    true
+   ],
+   false,
+   false,
+   null
+  ],
+  "text|natural=True|volume|lookup": [
+   "intent_clarification",
+   "Не знаю цього напевно.",
+   [],
+   false,
+   [],
+   [
+    true
+   ],
+   false,
+   false,
+   null
+  ],
+  "text|natural=True|volume|proposal": [
+   "action_proposal",
+   "Відкрити програму «Notepad»?",
+   [],
+   false,
+   [],
+   [
+    true
+   ],
+   false,
+   false,
+   null
+  ],
+  "text|natural=True|volume|unavailable": [
+   "chat",
+   "Мовна модель недоступна. Нічого не виконано.",
+   [],
+   false,
+   [],
+   [
+    true
+   ],
+   false,
+   false,
+   null
+  ],
+  "text|natural=True|close|chat": [
+   "chat",
+   "Марс — четверта планета.",
+   [],
+   false,
+   [
+    "Марс — четверта планета."
+   ],
+   [
+    true
+   ],
+   false,
+   false,
+   null
+  ],
+  "text|natural=True|close|claim_volume": [
+   "chat",
+   "Дію ще не виконано. Для запуску потрібен погоджений план.",
+   [],
+   false,
+   [
+    "Дію ще не виконано. Для запуску потрібен погоджений план."
+   ],
+   [
+    true
+   ],
+   false,
+   false,
+   null
+  ],
+  "text|natural=True|close|claim_open": [
+   "chat",
+   "Дію ще не виконано. Для запуску потрібен погоджений план.",
+   [],
+   false,
+   [
+    "Дію ще не виконано. Для запуску потрібен погоджений план."
+   ],
+   [
+    true
+   ],
+   false,
+   false,
+   null
+  ],
+  "text|natural=True|close|claim_memory": [
+   "chat",
+   "Дію ще не виконано. Для запуску потрібен погоджений план.",
+   [],
+   false,
+   [
+    "Дію ще не виконано. Для запуску потрібен погоджений план."
+   ],
+   [
+    true
+   ],
+   false,
+   false,
+   null
+  ],
+  "text|natural=True|close|token": [
+   "chat",
+   "Дію ще не виконано. Для запуску потрібен погоджений план.",
+   [],
+   false,
+   [],
+   [
+    true
+   ],
+   false,
+   false,
+   null
+  ],
+  "text|natural=True|close|token_lead": [
+   "chat",
+   "Цю дію не підтримує поточний каталог команд.",
+   [],
+   false,
+   [
+    "Цю дію не підтримує поточний каталог команд."
+   ],
+   [
+    true
+   ],
+   false,
+   false,
+   null
+  ],
+  "text|natural=True|close|token_lead_claim": [
+   "chat",
+   "Дію ще не виконано. Для запуску потрібен погоджений план.",
+   [],
+   false,
+   [
+    "Дію ще не виконано. Для запуску потрібен погоджений план."
+   ],
+   [
+    true
+   ],
+   false,
+   false,
+   null
+  ],
+  "text|natural=True|close|clarify": [
+   "chat",
+   "Яку програму відкрити?",
+   [],
+   false,
+   [],
+   [
+    true
+   ],
+   false,
+   false,
+   "window_control"
+  ],
+  "text|natural=True|close|action_open": [
+   "intent_clarification",
+   "Запропонована дія не відповідає типу вашого запиту. Уточніть",
+   [],
+   false,
+   [],
+   [
+    true
+   ],
+   false,
+   false,
+   null
+  ],
+  "text|natural=True|close|action_find": [
+   "intent_clarification",
+   "Запропонована дія не відповідає типу вашого запиту. Уточніть",
+   [],
+   false,
+   [],
+   [
+    true
+   ],
+   false,
+   false,
+   null
+  ],
+  "text|natural=True|close|action_window": [
+   "executed_window_control",
+   "executed window_control",
+   [
+    "window_control"
+   ],
+   false,
+   [],
+   [
+    true
+   ],
+   false,
+   false,
+   null
+  ],
+  "text|natural=True|close|action_media": [
+   "intent_clarification",
+   "Запропонована дія не відповідає типу вашого запиту. Уточніть",
+   [],
+   false,
+   [],
+   [
+    true
+   ],
+   false,
+   false,
+   null
+  ],
+  "text|natural=True|close|action_close": [
+   "executed_window_control",
+   "executed window_control",
+   [
+    "window_control"
+   ],
+   false,
+   [],
+   [
+    true
+   ],
+   false,
+   false,
+   null
+  ],
+  "text|natural=True|close|action_desktop": [
+   "intent_clarification",
+   "Запропонована дія не відповідає типу вашого запиту. Уточніть",
+   [],
+   false,
+   [],
+   [
+    true
+   ],
+   false,
+   false,
+   null
+  ],
+  "text|natural=True|close|action_lock": [
+   "intent_clarification",
+   "Запропонована дія не відповідає типу вашого запиту. Уточніть",
+   [],
+   false,
+   [],
+   [
+    true
+   ],
+   false,
+   false,
+   null
+  ],
+  "text|natural=True|close|lookup": [
+   "intent_clarification",
+   "Не знаю цього напевно.",
+   [],
+   false,
+   [],
+   [
+    true
+   ],
+   false,
+   false,
+   null
+  ],
+  "text|natural=True|close|proposal": [
+   "action_proposal",
+   "Відкрити програму «Notepad»?",
+   [],
+   false,
+   [],
+   [
+    true
+   ],
+   false,
+   false,
+   null
+  ],
+  "text|natural=True|close|unavailable": [
    "chat",
    "Мовна модель недоступна. Нічого не виконано.",
    [],

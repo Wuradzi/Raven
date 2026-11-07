@@ -238,9 +238,24 @@ def request_scope(text):
         return "find_files"
     if asks_to_open(text):
         return "open_app"
+    for scope, pattern in _ACTION_SCOPES:
+        if pattern.search(text):
+            return scope
     if re.search(r"\bпогод\w*\b", text, re.I):
         return "weather"
     return None
+
+
+# Computer control (user decision 07.11.2026). The scope only rejects a model tool of
+# another kind; it never allows anything by itself.
+_ACTION_SCOPES = (
+    ("media_control", re.compile(r"\b(?:гучн\w*|звук\w*|тихіш\w*|тише|голосніш\w*|трек\w*|музик\w*|пісн\w*|"
+                                 r"відтворенн\w*)", re.I)),
+    ("show_desktop", re.compile(r"\bробоч\w*\s+стіл\w*", re.I)),
+    ("screenshot", re.compile(r"\b(?:знімок|знімку|скріншот\w*|скриншот\w*)", re.I)),
+    ("lock_screen", re.compile(r"\b(?:заблоку\w*|блокуванн\w*)", re.I)),
+    ("window_control", re.compile(r"\b(?:закрий|закрити|перейди|перейти|перемкни\w*|переключи\w*)\b", re.I)),
+)
 
 
 def short_clarification(text):
@@ -316,7 +331,13 @@ def direct_request(text, tool):
     # Mentions and past-tense narrative do not authorize action, even if the model errs.
     return bool(re.match(r"^(?:розгорни|розгорнути|згорни|згорнути|віднови|відновити|відкрий|відкрій|відкрити|відкрей|запусти|запустити|знайди|знайти|пошукай|пошукати|покажи|"
                          r"підготуй|підготувати|підготує|підготують|увімкни|увімкнути|ввімкни|ввімкнути|включи|активуй|режим робота|повтори|продовж робоче|"
-                         r"статус завдання|що вдалося|що з робочим місцем|погода|яка погода|прогноз погоди)\b", value))
+                         r"статус завдання|що вдалося|що з робочим місцем|погода|яка погода|прогноз погоди|"
+                         # Computer control (07.11.2026); each still needs the matching tool and policy.
+                         r"зменш|зменшити|збільш|збільшити|зроби (?:тихіше|гучніше|голосніше|звук|знімок|скріншот|скриншот)|"
+                         r"вимкни|вимкнути|виключи|виключити|тихіше|тише|гучніше|голосніше|"
+                         r"продовжуй відтворення|продовж відтворення|продовжити відтворення|"
+                         r"постав (?:\w+ )?на паузу|наступн\w* (?:трек|пісн\w*)|попередн\w* (?:трек|пісн\w*)|"
+                         r"перемкни\w*|переключи\w*|перейди|перейти|закрий|закрити|заблокуй|заблокувати|сфотографуй екран)\b", value))
 
 
 _SENTENCE_BREAK = re.compile(r"(?<=[.!?…])\s+")

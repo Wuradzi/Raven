@@ -115,6 +115,37 @@ def _unique_object(pairs):
     return result
 
 
+WINDOW_PHRASES = {"maximize": "Розгорнути вікно", "minimize": "Згорнути вікно", "restore": "Відновити вікно",
+                  "focus": "Перейти до вікна", "close": "Закрити вікно"}
+WINDOW_ACTIONS = frozenset(WINDOW_PHRASES)
+MEDIA_ACTIONS = frozenset({"volume_up", "volume_down", "mute_toggle", "play_pause", "next_track", "previous_track"})
+VOLUME_ACTIONS = frozenset({"volume_up", "volume_down"})
+
+
+def _validate_media(cleaned):
+    """Fixed media keys only; volume steps 1–10, every other key exactly once."""
+    if cleaned["action"] not in MEDIA_ACTIONS:
+        raise InvalidIntent("unsupported media operation")
+    if not re.fullmatch(r"[1-9]|10", cleaned["steps"]):
+        raise InvalidIntent("unsupported media steps")
+    if cleaned["action"] not in VOLUME_ACTIONS:
+        cleaned["steps"] = "1"
+
+
+def _media_defaults(tool, arguments):
+    """Live test 07.11.2026: a pause needs no `steps`, and a model may send a number, not text.
+
+    Only for media_control: a missing `steps` becomes "1", a plain integer becomes its text.
+    Everything else is validated exactly as before.
+    """
+    if tool != "media_control" or not isinstance(arguments, dict) or set(arguments) - {"action", "steps"}:
+        return arguments
+    steps = arguments.get("steps", "1")
+    if isinstance(steps, int) and not isinstance(steps, bool):
+        steps = str(steps)
+    return {**arguments, "steps": steps}
+
+
 def validate_intent(value) -> CommandIntent:
     if not isinstance(value, dict) or set(value) != {"tool", "arguments"}:
         raise InvalidIntent("invalid envelope")
@@ -122,6 +153,7 @@ def validate_intent(value) -> CommandIntent:
     fields = INTENT_FIELDS
     if not isinstance(tool, str) or tool not in fields:
         raise InvalidIntent("unknown tool")
+    arguments = _media_defaults(tool, arguments)
     if not isinstance(arguments, dict) or set(arguments) != fields[tool]:
         raise InvalidIntent("invalid arguments")
     cleaned = {}
@@ -134,22 +166,44 @@ def validate_intent(value) -> CommandIntent:
         if SENSITIVE_REQUEST.search(text) or redact_user_text(text) != text:
             raise InvalidIntent("sensitive argument")
         cleaned[name] = text
-    if tool == "find_files":
-        if cleaned["extension"] not in {"", ".pdf", ".docx", ".txt", ".md", ".xlsx", ".pptx", ".odt", ".png", ".jpg", ".jpeg", ".webp", ".bmp"}:
-            raise InvalidIntent("unsupported file type")
-        if any(char in cleaned["query"] for char in '/\\:*?"<>|'):
-            raise InvalidIntent("not a filename query")
-    if tool in {"open_app", "window_control"}:
-        if len(cleaned["name"]) > 80 or any(char in cleaned["name"] for char in '/\\:;|&<>`$"'):
-            raise InvalidIntent("not an application name")
-    if tool == "window_control" and cleaned["action"] not in {"maximize", "minimize", "restore"}:
-        raise InvalidIntent("unsupported window operation")
-    if tool == "weather":
-        if cleaned["period"] not in {"now", "today", "tomorrow"}:
-            raise InvalidIntent("unsupported period")
-        if len(cleaned["city"]) > 100 or any(char in cleaned["city"] for char in '/\\:;|&<>`$"'):
-            raise InvalidIntent("not a city")
+    _validate_fields(tool, cleaned)
     return CommandIntent(tool, cleaned)
+
+
+def _validate_fields(tool, cleaned):
+    """Per-tool closed values: file types, names, window and media operations, periods."""
+    check = _FIELD_CHECKS.get(tool)
+    if check is not None:
+        check(cleaned)
+
+
+def _validate_find(cleaned):
+    if cleaned["extension"] not in {"", ".pdf", ".docx", ".txt", ".md", ".xlsx", ".pptx", ".odt", ".png", ".jpg", ".jpeg", ".webp", ".bmp"}:
+        raise InvalidIntent("unsupported file type")
+    if any(char in cleaned["query"] for char in '/\\:*?"<>|'):
+        raise InvalidIntent("not a filename query")
+
+
+def _validate_app_name(cleaned):
+    if len(cleaned["name"]) > 80 or any(char in cleaned["name"] for char in '/\\:;|&<>`$"'):
+        raise InvalidIntent("not an application name")
+
+
+def _validate_window(cleaned):
+    _validate_app_name(cleaned)
+    if cleaned["action"] not in WINDOW_ACTIONS:
+        raise InvalidIntent("unsupported window operation")
+
+
+def _validate_weather(cleaned):
+    if cleaned["period"] not in {"now", "today", "tomorrow"}:
+        raise InvalidIntent("unsupported period")
+    if len(cleaned["city"]) > 100 or any(char in cleaned["city"] for char in '/\\:;|&<>`$"'):
+        raise InvalidIntent("not a city")
+
+
+_FIELD_CHECKS = {"find_files": _validate_find, "open_app": _validate_app_name, "window_control": _validate_window,
+                 "media_control": _validate_media, "weather": _validate_weather}
 
 
 def parse_intent(text: str) -> CommandIntent:

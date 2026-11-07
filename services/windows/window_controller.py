@@ -32,9 +32,15 @@ class WindowController:
                 break
         return found
 
+    ACTIONS = frozenset({"maximize", "minimize", "restore", "focus", "close"})
+
     def change_target(self, target, action):
-        """Operate once on the approved snapshot, then observe actual window state."""
-        if os.name != "nt" or action not in {"maximize", "minimize", "restore"}:
+        """Operate once on the approved snapshot, then observe actual window state.
+
+        close only asks the window to close (WM_CLOSE): the program may still ask to
+        save, and then the window stays open and the result is reported as unverified.
+        """
+        if os.name != "nt" or action not in self.ACTIONS:
             return {"accepted": False, "verified": False, "status": "unsupported"}
         import pygetwindow as gw
         try:
@@ -45,28 +51,67 @@ class WindowController:
         except Exception:
             return {"accepted": False, "verified": False, "status": "stale"}
         try:
-            getattr(window, action)()
-            if action != "minimize":
-                try:
-                    window.activate()
-                except Exception:
-                    pass  # Windows can refuse foreground activation; report separately.
+            self._apply(window, action)
             deadline = time.monotonic() + 2
             while True:
-                if action == "maximize":
-                    verified = window.isMaximized and not window.isMinimized
-                elif action == "minimize":
-                    verified = window.isMinimized
-                else:
-                    verified = window.visible and not window.isMinimized and not window.isMaximized
+                verified = self._observed(window, action, target["hwnd"])
                 if verified or time.monotonic() >= deadline:
                     return {"accepted": True, "verified": bool(verified),
                             "status": "verified" if verified else "unverified",
-                            "foreground": bool(window.isActive) if action != "minimize" else False}
+                            "foreground": self._foreground(window, action),
+                            **self._tray_hint(action, verified, target["hwnd"])}
                 time.sleep(.1)
         except Exception:
             # The request may have reached Windows before observation failed.
             return {"accepted": True, "verified": False, "status": "unverified"}
+
+    @staticmethod
+    def _apply(window, action):
+        if action == "close":
+            window.close()
+            return
+        if action == "focus":
+            if window.isMinimized:
+                window.restore()
+        else:
+            getattr(window, action)()
+        if action != "minimize":
+            try:
+                window.activate()
+            except Exception:
+                pass  # Windows can refuse foreground activation; report separately.
+
+    @staticmethod
+    def _observed(window, action, hwnd):
+        if action == "close":
+            # Gone, or hidden: tray programs (Spotify, messengers) hide their window instead of
+            # closing; live test 07.11.2026. A window that is still visible stays unverified.
+            import win32gui
+            return not win32gui.IsWindow(hwnd) or not win32gui.IsWindowVisible(hwnd)
+        if action == "maximize":
+            return window.isMaximized and not window.isMinimized
+        if action == "minimize":
+            return window.isMinimized
+        if action == "focus":
+            return window.isActive and not window.isMinimized
+        return window.visible and not window.isMinimized and not window.isMaximized
+
+    @staticmethod
+    def _tray_hint(action, verified, hwnd):
+        """{'hidden': True} when a closed window still exists but is no longer visible."""
+        if action != "close" or not verified:
+            return {}
+        import win32gui
+        return {"hidden": bool(win32gui.IsWindow(hwnd))}
+
+    @staticmethod
+    def _foreground(window, action):
+        if action in {"minimize", "close"}:
+            return False
+        try:
+            return bool(window.isActive)
+        except Exception:
+            return False
 
     @staticmethod
     def _find(query: str):

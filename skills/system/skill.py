@@ -83,3 +83,49 @@ async def handle(command, context, services):
             {"command_type": "lock"},
         )
     return SkillResult(False)
+
+
+# Model ACTIONs lock_screen and screenshot (user decision 07.11.2026): both keep the
+# correlated confirmation. A screenshot stays on this computer; it is never sent to a model.
+async def lock_screen(context):
+    from core.confirmation import confirm_action
+    cancelled = await confirm_action(context, "блокування сеансу Windows", "Заблокувати екран")
+    if cancelled is not None:
+        return cancelled
+    locked = bool(await asyncio.to_thread(resolve_platform().system_action, 'lock'))
+    return SkillResult(True, "Екран заблоковано." if locked else "Windows не підтвердила блокування екрана.",
+                       {"command_type": "lock", "accepted": True, "verified": locked,
+                        "status": "verified" if locked else "unverified"})
+
+
+def screenshot_folder():
+    from pathlib import Path
+    pictures = Path.home() / "Pictures"
+    return (pictures if pictures.is_dir() else Path.home()) / "Raven"
+
+
+def _save_screenshot(path):
+    import pyautogui
+    path.parent.mkdir(parents=True, exist_ok=True)
+    pyautogui.screenshot(str(path))
+    return path.is_file() and path.stat().st_size > 0
+
+
+async def save_screenshot(context):
+    from core.confirmation import confirm_action
+    folder = screenshot_folder()
+    cancelled = await confirm_action(context, f"знімок усього екрана у файл PNG у теці {folder}; нікуди не надсилається",
+                                     "Зробити знімок екрана")
+    if cancelled is not None:
+        return cancelled
+    path = folder / f"screenshot-{datetime.now():%Y%m%d-%H%M%S}.png"
+    try:
+        saved = await asyncio.to_thread(_save_screenshot, path)
+    except Exception:
+        saved = False
+    if not saved:
+        return SkillResult(True, "Не вдалося зберегти знімок екрана.",
+                           {"command_type": "screenshot", "accepted": True, "verified": False,
+                            "success": False, "status": "unverified"})
+    return SkillResult(True, f"Знімок екрана збережено: {path.name}, тека {folder}.",
+                       {"command_type": "screenshot", "accepted": True, "verified": True, "status": "verified"})

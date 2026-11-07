@@ -63,8 +63,8 @@ def proposal_question(intent):
         period = {'now': 'зараз', 'today': 'сьогодні', 'tomorrow': 'завтра'}[args['period']]
         return f"Перевірити погоду: «{args['city']}», {period}?"
     if intent.tool == 'window_control':
-        verb = {'maximize': 'Розгорнути', 'minimize': 'Згорнути', 'restore': 'Відновити'}[args['action']]
-        return f"{verb} вікно «{args['name']}»?"
+        from core.command_intent import WINDOW_PHRASES
+        return f"{WINDOW_PHRASES[args['action']]} «{args['name']}»?"
     return 'Підготувати збережене робоче місце?'
 
 
