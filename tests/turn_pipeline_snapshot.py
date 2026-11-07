@@ -37,6 +37,9 @@ REPLIES = {
     "claim_open": NaturalTurn("chat", "Відкриваю блокнот."),
     "claim_memory": NaturalTurn("chat", "Запам'ятав ваше ім'я."),
     "token": NaturalTurn("chat", "UNSUPPORTED"),
+    # Live test 07.11.2026 (E279): a headerless reply led by a protocol line was spoken whole.
+    "token_lead": NaturalTurn("chat", "UNSUPPORTED\nЦю дію не підтримує поточний каталог команд."),
+    "token_lead_claim": NaturalTurn("chat", "CHAT\nЗменшую гучність."),
     "clarify": NaturalTurn("clarify", "Яку програму відкрити?"),
     "action_open": NaturalTurn("action", intent=CommandIntent("open_app", {"name": "Notepad"})),
     "action_find": NaturalTurn("action", intent=CommandIntent("find_files", {"query": "звіт", "extension": ""})),

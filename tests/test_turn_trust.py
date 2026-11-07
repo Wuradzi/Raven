@@ -56,6 +56,19 @@ class ReplyScreenTests(unittest.TestCase):
                 self.assertEqual(screen(text), NATURAL_NOTICE)
                 self.assertEqual(screen(text, CHAT_MODE_NOTICE), CHAT_MODE_NOTICE)
 
+    def test_leading_protocol_lines_are_never_spoken(self):
+        # Live test 07.11.2026 (E279): «UNSUPPORTED\n<пояснення>» was spoken whole, twice.
+        explanation = "Цю дію не підтримує поточний каталог команд."
+        for text in ("UNSUPPORTED\n" + explanation, "UNSUPPORTED.\r\n" + explanation,
+                     "CHAT\nUNSUPPORTED\n" + explanation, "  lookup:\n" + explanation):
+            with self.subTest(text=text):
+                self.assertEqual(screen(text), explanation)
+        self.assertEqual(screen("CHAT\nЗменшую гучність."), NATURAL_NOTICE)
+        self.assertEqual(screen("UNSUPPORTED\n\n"), NATURAL_NOTICE)
+        # A token word inside ordinary prose is not a protocol line.
+        self.assertEqual(screen("Chat-боти бувають різні."), "Chat-боти бувають різні.")
+        self.assertEqual(screen("Action — англійське слово."), "Action — англійське слово.")
+
     def test_ordinary_prose_is_kept_without_markdown(self):
         self.assertEqual(screen("**Марс — четверта планета.**"), "Марс — четверта планета.")
         self.assertEqual(screen("Гучність можна зменшити в налаштуваннях."),

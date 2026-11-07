@@ -66,6 +66,28 @@
    true,
    null
   ],
+  "reliable|natural=False|open|token_lead": [
+   "chat",
+   "chat-response",
+   [],
+   false,
+   [],
+   [],
+   false,
+   true,
+   null
+  ],
+  "reliable|natural=False|open|token_lead_claim": [
+   "chat",
+   "chat-response",
+   [],
+   false,
+   [],
+   [],
+   false,
+   true,
+   null
+  ],
   "reliable|natural=False|open|clarify": [
    "chat",
    "chat-response",
@@ -198,6 +220,28 @@
    true,
    null
   ],
+  "reliable|natural=False|find|token_lead": [
+   "chat",
+   "chat-response",
+   [],
+   false,
+   [],
+   [],
+   false,
+   true,
+   null
+  ],
+  "reliable|natural=False|find|token_lead_claim": [
+   "chat",
+   "chat-response",
+   [],
+   false,
+   [],
+   [],
+   false,
+   true,
+   null
+  ],
   "reliable|natural=False|find|clarify": [
    "chat",
    "chat-response",
@@ -320,6 +364,28 @@
    null
   ],
   "reliable|natural=False|chat|token": [
+   "chat",
+   "chat-response",
+   [],
+   false,
+   [],
+   [],
+   false,
+   true,
+   null
+  ],
+  "reliable|natural=False|chat|token_lead": [
+   "chat",
+   "chat-response",
+   [],
+   false,
+   [],
+   [],
+   false,
+   true,
+   null
+  ],
+  "reliable|natural=False|chat|token_lead_claim": [
    "chat",
    "chat-response",
    [],
@@ -468,6 +534,34 @@
    null
   ],
   "reliable|natural=True|open|token": [
+   "chat",
+   "Дію ще не виконано. Для запуску потрібен погоджений план.",
+   [],
+   false,
+   [],
+   [
+    true
+   ],
+   false,
+   false,
+   null
+  ],
+  "reliable|natural=True|open|token_lead": [
+   "chat",
+   "Цю дію не підтримує поточний каталог команд.",
+   [],
+   false,
+   [
+    "Цю дію не підтримує поточний каталог команд."
+   ],
+   [
+    true
+   ],
+   false,
+   false,
+   null
+  ],
+  "reliable|natural=True|open|token_lead_claim": [
    "chat",
    "Дію ще не виконано. Для запуску потрібен погоджений план.",
    [],
@@ -636,6 +730,34 @@
    null
   ],
   "reliable|natural=True|find|token": [
+   "chat",
+   "Дію ще не виконано. Для запуску потрібен погоджений план.",
+   [],
+   false,
+   [],
+   [
+    true
+   ],
+   false,
+   false,
+   null
+  ],
+  "reliable|natural=True|find|token_lead": [
+   "chat",
+   "Цю дію не підтримує поточний каталог команд.",
+   [],
+   false,
+   [
+    "Цю дію не підтримує поточний каталог команд."
+   ],
+   [
+    true
+   ],
+   false,
+   false,
+   null
+  ],
+  "reliable|natural=True|find|token_lead_claim": [
    "chat",
    "Дію ще не виконано. Для запуску потрібен погоджений план.",
    [],
@@ -812,6 +934,34 @@
    "Дію ще не виконано. Для запуску потрібен погоджений план.",
    [],
    false,
+   [],
+   [
+    true
+   ],
+   false,
+   false,
+   null
+  ],
+  "reliable|natural=True|chat|token_lead": [
+   "chat",
+   "Цю дію не підтримує поточний каталог команд.",
+   [],
+   false,
+   [
+    "Цю дію не підтримує поточний каталог команд."
+   ],
+   [
+    true
+   ],
+   false,
+   false,
+   null
+  ],
+  "reliable|natural=True|chat|token_lead_claim": [
+   "chat",
+   "Дію ще не виконано. Для запуску потрібен погоджений план.",
+   [],
+   false,
    [
     "Дію ще не виконано. Для запуску потрібен погоджений план."
    ],
@@ -966,6 +1116,32 @@
    null
   ],
   "not_eligible|natural=False|open|token": [
+   "fragment_chat",
+   "Дію ще не виконано. Для запуску потрібен погоджений план.",
+   [],
+   false,
+   [],
+   [
+    false
+   ],
+   false,
+   false,
+   null
+  ],
+  "not_eligible|natural=False|open|token_lead": [
+   "fragment_chat",
+   "Цю дію не підтримує поточний каталог команд.",
+   [],
+   false,
+   [],
+   [
+    false
+   ],
+   false,
+   false,
+   null
+  ],
+  "not_eligible|natural=False|open|token_lead_claim": [
    "fragment_chat",
    "Дію ще не виконано. Для запуску потрібен погоджений план.",
    [],
@@ -1134,6 +1310,32 @@
    false,
    null
   ],
+  "not_eligible|natural=False|find|token_lead": [
+   "fragment_chat",
+   "Цю дію не підтримує поточний каталог команд.",
+   [],
+   false,
+   [],
+   [
+    false
+   ],
+   false,
+   false,
+   null
+  ],
+  "not_eligible|natural=False|find|token_lead_claim": [
+   "fragment_chat",
+   "Дію ще не виконано. Для запуску потрібен погоджений план.",
+   [],
+   false,
+   [],
+   [
+    false
+   ],
+   false,
+   false,
+   null
+  ],
   "not_eligible|natural=False|find|clarify": [
    "fragment_clarify",
    "Яку програму відкрити?",
@@ -1278,6 +1480,32 @@
    null
   ],
   "not_eligible|natural=False|chat|token": [
+   "fragment_chat",
+   "Дію ще не виконано. Для запуску потрібен погоджений план.",
+   [],
+   false,
+   [],
+   [
+    false
+   ],
+   false,
+   false,
+   null
+  ],
+  "not_eligible|natural=False|chat|token_lead": [
+   "fragment_chat",
+   "Цю дію не підтримує поточний каталог команд.",
+   [],
+   false,
+   [],
+   [
+    false
+   ],
+   false,
+   false,
+   null
+  ],
+  "not_eligible|natural=False|chat|token_lead_claim": [
    "fragment_chat",
    "Дію ще не виконано. Для запуску потрібен погоджений план.",
    [],
@@ -1446,6 +1674,32 @@
    false,
    null
   ],
+  "not_eligible|natural=True|open|token_lead": [
+   "fragment_chat",
+   "Цю дію не підтримує поточний каталог команд.",
+   [],
+   false,
+   [],
+   [
+    false
+   ],
+   false,
+   false,
+   null
+  ],
+  "not_eligible|natural=True|open|token_lead_claim": [
+   "fragment_chat",
+   "Дію ще не виконано. Для запуску потрібен погоджений план.",
+   [],
+   false,
+   [],
+   [
+    false
+   ],
+   false,
+   false,
+   null
+  ],
   "not_eligible|natural=True|open|clarify": [
    "fragment_clarify",
    "Яку програму відкрити?",
@@ -1590,6 +1844,32 @@
    null
   ],
   "not_eligible|natural=True|find|token": [
+   "fragment_chat",
+   "Дію ще не виконано. Для запуску потрібен погоджений план.",
+   [],
+   false,
+   [],
+   [
+    false
+   ],
+   false,
+   false,
+   null
+  ],
+  "not_eligible|natural=True|find|token_lead": [
+   "fragment_chat",
+   "Цю дію не підтримує поточний каталог команд.",
+   [],
+   false,
+   [],
+   [
+    false
+   ],
+   false,
+   false,
+   null
+  ],
+  "not_eligible|natural=True|find|token_lead_claim": [
    "fragment_chat",
    "Дію ще не виконано. Для запуску потрібен погоджений план.",
    [],
@@ -1758,6 +2038,32 @@
    false,
    null
   ],
+  "not_eligible|natural=True|chat|token_lead": [
+   "fragment_chat",
+   "Цю дію не підтримує поточний каталог команд.",
+   [],
+   false,
+   [],
+   [
+    false
+   ],
+   false,
+   false,
+   null
+  ],
+  "not_eligible|natural=True|chat|token_lead_claim": [
+   "fragment_chat",
+   "Дію ще не виконано. Для запуску потрібен погоджений план.",
+   [],
+   false,
+   [],
+   [
+    false
+   ],
+   false,
+   false,
+   null
+  ],
   "not_eligible|natural=True|chat|clarify": [
    "fragment_clarify",
    "Яку програму відкрити?",
@@ -1902,6 +2208,32 @@
    null
   ],
   "unreliable|natural=False|open|token": [
+   "fragment_chat",
+   "Дію ще не виконано. Для запуску потрібен погоджений план.",
+   [],
+   false,
+   [],
+   [
+    false
+   ],
+   false,
+   false,
+   null
+  ],
+  "unreliable|natural=False|open|token_lead": [
+   "fragment_chat",
+   "Цю дію не підтримує поточний каталог команд.",
+   [],
+   false,
+   [],
+   [
+    false
+   ],
+   false,
+   false,
+   null
+  ],
+  "unreliable|natural=False|open|token_lead_claim": [
    "fragment_chat",
    "Дію ще не виконано. Для запуску потрібен погоджений план.",
    [],
@@ -2070,6 +2402,32 @@
    false,
    null
   ],
+  "unreliable|natural=False|find|token_lead": [
+   "fragment_chat",
+   "Цю дію не підтримує поточний каталог команд.",
+   [],
+   false,
+   [],
+   [
+    false
+   ],
+   false,
+   false,
+   null
+  ],
+  "unreliable|natural=False|find|token_lead_claim": [
+   "fragment_chat",
+   "Дію ще не виконано. Для запуску потрібен погоджений план.",
+   [],
+   false,
+   [],
+   [
+    false
+   ],
+   false,
+   false,
+   null
+  ],
   "unreliable|natural=False|find|clarify": [
    "fragment_clarify",
    "Яку програму відкрити?",
@@ -2214,6 +2572,32 @@
    null
   ],
   "unreliable|natural=False|chat|token": [
+   "fragment_chat",
+   "Дію ще не виконано. Для запуску потрібен погоджений план.",
+   [],
+   false,
+   [],
+   [
+    false
+   ],
+   false,
+   false,
+   null
+  ],
+  "unreliable|natural=False|chat|token_lead": [
+   "fragment_chat",
+   "Цю дію не підтримує поточний каталог команд.",
+   [],
+   false,
+   [],
+   [
+    false
+   ],
+   false,
+   false,
+   null
+  ],
+  "unreliable|natural=False|chat|token_lead_claim": [
    "fragment_chat",
    "Дію ще не виконано. Для запуску потрібен погоджений план.",
    [],
@@ -2382,6 +2766,32 @@
    false,
    null
   ],
+  "unreliable|natural=True|open|token_lead": [
+   "fragment_chat",
+   "Цю дію не підтримує поточний каталог команд.",
+   [],
+   false,
+   [],
+   [
+    false
+   ],
+   false,
+   false,
+   null
+  ],
+  "unreliable|natural=True|open|token_lead_claim": [
+   "fragment_chat",
+   "Дію ще не виконано. Для запуску потрібен погоджений план.",
+   [],
+   false,
+   [],
+   [
+    false
+   ],
+   false,
+   false,
+   null
+  ],
   "unreliable|natural=True|open|clarify": [
    "fragment_clarify",
    "Яку програму відкрити?",
@@ -2526,6 +2936,32 @@
    null
   ],
   "unreliable|natural=True|find|token": [
+   "fragment_chat",
+   "Дію ще не виконано. Для запуску потрібен погоджений план.",
+   [],
+   false,
+   [],
+   [
+    false
+   ],
+   false,
+   false,
+   null
+  ],
+  "unreliable|natural=True|find|token_lead": [
+   "fragment_chat",
+   "Цю дію не підтримує поточний каталог команд.",
+   [],
+   false,
+   [],
+   [
+    false
+   ],
+   false,
+   false,
+   null
+  ],
+  "unreliable|natural=True|find|token_lead_claim": [
    "fragment_chat",
    "Дію ще не виконано. Для запуску потрібен погоджений план.",
    [],
@@ -2694,6 +3130,32 @@
    false,
    null
   ],
+  "unreliable|natural=True|chat|token_lead": [
+   "fragment_chat",
+   "Цю дію не підтримує поточний каталог команд.",
+   [],
+   false,
+   [],
+   [
+    false
+   ],
+   false,
+   false,
+   null
+  ],
+  "unreliable|natural=True|chat|token_lead_claim": [
+   "fragment_chat",
+   "Дію ще не виконано. Для запуску потрібен погоджений план.",
+   [],
+   false,
+   [],
+   [
+    false
+   ],
+   false,
+   false,
+   null
+  ],
   "unreliable|natural=True|chat|clarify": [
    "fragment_clarify",
    "Яку програму відкрити?",
@@ -2838,6 +3300,32 @@
    null
   ],
   "truncated|natural=False|open|token": [
+   "fragment_chat",
+   "Дію ще не виконано. Для запуску потрібен погоджений план.",
+   [],
+   false,
+   [],
+   [
+    false
+   ],
+   false,
+   false,
+   null
+  ],
+  "truncated|natural=False|open|token_lead": [
+   "fragment_chat",
+   "Цю дію не підтримує поточний каталог команд.",
+   [],
+   false,
+   [],
+   [
+    false
+   ],
+   false,
+   false,
+   null
+  ],
+  "truncated|natural=False|open|token_lead_claim": [
    "fragment_chat",
    "Дію ще не виконано. Для запуску потрібен погоджений план.",
    [],
@@ -3006,6 +3494,32 @@
    false,
    null
   ],
+  "truncated|natural=False|find|token_lead": [
+   "fragment_chat",
+   "Цю дію не підтримує поточний каталог команд.",
+   [],
+   false,
+   [],
+   [
+    false
+   ],
+   false,
+   false,
+   null
+  ],
+  "truncated|natural=False|find|token_lead_claim": [
+   "fragment_chat",
+   "Дію ще не виконано. Для запуску потрібен погоджений план.",
+   [],
+   false,
+   [],
+   [
+    false
+   ],
+   false,
+   false,
+   null
+  ],
   "truncated|natural=False|find|clarify": [
    "fragment_clarify",
    "Яку програму відкрити?",
@@ -3150,6 +3664,32 @@
    null
   ],
   "truncated|natural=False|chat|token": [
+   "fragment_chat",
+   "Дію ще не виконано. Для запуску потрібен погоджений план.",
+   [],
+   false,
+   [],
+   [
+    false
+   ],
+   false,
+   false,
+   null
+  ],
+  "truncated|natural=False|chat|token_lead": [
+   "fragment_chat",
+   "Цю дію не підтримує поточний каталог команд.",
+   [],
+   false,
+   [],
+   [
+    false
+   ],
+   false,
+   false,
+   null
+  ],
+  "truncated|natural=False|chat|token_lead_claim": [
    "fragment_chat",
    "Дію ще не виконано. Для запуску потрібен погоджений план.",
    [],
@@ -3318,6 +3858,32 @@
    false,
    null
   ],
+  "truncated|natural=True|open|token_lead": [
+   "fragment_chat",
+   "Цю дію не підтримує поточний каталог команд.",
+   [],
+   false,
+   [],
+   [
+    false
+   ],
+   false,
+   false,
+   null
+  ],
+  "truncated|natural=True|open|token_lead_claim": [
+   "fragment_chat",
+   "Дію ще не виконано. Для запуску потрібен погоджений план.",
+   [],
+   false,
+   [],
+   [
+    false
+   ],
+   false,
+   false,
+   null
+  ],
   "truncated|natural=True|open|clarify": [
    "fragment_clarify",
    "Яку програму відкрити?",
@@ -3462,6 +4028,32 @@
    null
   ],
   "truncated|natural=True|find|token": [
+   "fragment_chat",
+   "Дію ще не виконано. Для запуску потрібен погоджений план.",
+   [],
+   false,
+   [],
+   [
+    false
+   ],
+   false,
+   false,
+   null
+  ],
+  "truncated|natural=True|find|token_lead": [
+   "fragment_chat",
+   "Цю дію не підтримує поточний каталог команд.",
+   [],
+   false,
+   [],
+   [
+    false
+   ],
+   false,
+   false,
+   null
+  ],
+  "truncated|natural=True|find|token_lead_claim": [
    "fragment_chat",
    "Дію ще не виконано. Для запуску потрібен погоджений план.",
    [],
@@ -3630,6 +4222,32 @@
    false,
    null
   ],
+  "truncated|natural=True|chat|token_lead": [
+   "fragment_chat",
+   "Цю дію не підтримує поточний каталог команд.",
+   [],
+   false,
+   [],
+   [
+    false
+   ],
+   false,
+   false,
+   null
+  ],
+  "truncated|natural=True|chat|token_lead_claim": [
+   "fragment_chat",
+   "Дію ще не виконано. Для запуску потрібен погоджений план.",
+   [],
+   false,
+   [],
+   [
+    false
+   ],
+   false,
+   false,
+   null
+  ],
   "truncated|natural=True|chat|clarify": [
    "fragment_clarify",
    "Яку програму відкрити?",
@@ -3776,6 +4394,28 @@
    false,
    null
   ],
+  "incomplete|natural=False|open|token_lead": [
+   "fragment_clarify",
+   "Схоже, фраза обірвалася. Повторіть її повністю, будь ласка.",
+   [],
+   false,
+   [],
+   [],
+   false,
+   false,
+   null
+  ],
+  "incomplete|natural=False|open|token_lead_claim": [
+   "fragment_clarify",
+   "Схоже, фраза обірвалася. Повторіть її повністю, будь ласка.",
+   [],
+   false,
+   [],
+   [],
+   false,
+   false,
+   null
+  ],
   "incomplete|natural=False|open|clarify": [
    "fragment_clarify",
    "Схоже, фраза обірвалася. Повторіть її повністю, будь ласка.",
@@ -3898,6 +4538,28 @@
    null
   ],
   "incomplete|natural=False|find|token": [
+   "fragment_clarify",
+   "Схоже, фраза обірвалася. Повторіть її повністю, будь ласка.",
+   [],
+   false,
+   [],
+   [],
+   false,
+   false,
+   null
+  ],
+  "incomplete|natural=False|find|token_lead": [
+   "fragment_clarify",
+   "Схоже, фраза обірвалася. Повторіть її повністю, будь ласка.",
+   [],
+   false,
+   [],
+   [],
+   false,
+   false,
+   null
+  ],
+  "incomplete|natural=False|find|token_lead_claim": [
    "fragment_clarify",
    "Схоже, фраза обірвалася. Повторіть її повністю, будь ласка.",
    [],
@@ -4040,6 +4702,28 @@
    false,
    null
   ],
+  "incomplete|natural=False|chat|token_lead": [
+   "fragment_clarify",
+   "Схоже, фраза обірвалася. Повторіть її повністю, будь ласка.",
+   [],
+   false,
+   [],
+   [],
+   false,
+   false,
+   null
+  ],
+  "incomplete|natural=False|chat|token_lead_claim": [
+   "fragment_clarify",
+   "Схоже, фраза обірвалася. Повторіть її повністю, будь ласка.",
+   [],
+   false,
+   [],
+   [],
+   false,
+   false,
+   null
+  ],
   "incomplete|natural=False|chat|clarify": [
    "fragment_clarify",
    "Схоже, фраза обірвалася. Повторіть її повністю, будь ласка.",
@@ -4162,6 +4846,28 @@
    null
   ],
   "incomplete|natural=True|open|token": [
+   "fragment_clarify",
+   "Схоже, фраза обірвалася. Повторіть її повністю, будь ласка.",
+   [],
+   false,
+   [],
+   [],
+   false,
+   false,
+   null
+  ],
+  "incomplete|natural=True|open|token_lead": [
+   "fragment_clarify",
+   "Схоже, фраза обірвалася. Повторіть її повністю, будь ласка.",
+   [],
+   false,
+   [],
+   [],
+   false,
+   false,
+   null
+  ],
+  "incomplete|natural=True|open|token_lead_claim": [
    "fragment_clarify",
    "Схоже, фраза обірвалася. Повторіть її повністю, будь ласка.",
    [],
@@ -4304,6 +5010,28 @@
    false,
    null
   ],
+  "incomplete|natural=True|find|token_lead": [
+   "fragment_clarify",
+   "Схоже, фраза обірвалася. Повторіть її повністю, будь ласка.",
+   [],
+   false,
+   [],
+   [],
+   false,
+   false,
+   null
+  ],
+  "incomplete|natural=True|find|token_lead_claim": [
+   "fragment_clarify",
+   "Схоже, фраза обірвалася. Повторіть її повністю, будь ласка.",
+   [],
+   false,
+   [],
+   [],
+   false,
+   false,
+   null
+  ],
   "incomplete|natural=True|find|clarify": [
    "fragment_clarify",
    "Схоже, фраза обірвалася. Повторіть її повністю, будь ласка.",
@@ -4426,6 +5154,28 @@
    null
   ],
   "incomplete|natural=True|chat|token": [
+   "fragment_clarify",
+   "Схоже, фраза обірвалася. Повторіть її повністю, будь ласка.",
+   [],
+   false,
+   [],
+   [],
+   false,
+   false,
+   null
+  ],
+  "incomplete|natural=True|chat|token_lead": [
+   "fragment_clarify",
+   "Схоже, фраза обірвалася. Повторіть її повністю, будь ласка.",
+   [],
+   false,
+   [],
+   [],
+   false,
+   false,
+   null
+  ],
+  "incomplete|natural=True|chat|token_lead_claim": [
    "fragment_clarify",
    "Схоже, фраза обірвалася. Повторіть її повністю, будь ласка.",
    [],
@@ -4566,6 +5316,32 @@
    null
   ],
   "unscored_groq|natural=False|open|token": [
+   "fragment_chat",
+   "Дію ще не виконано. Для запуску потрібен погоджений план.",
+   [],
+   false,
+   [],
+   [
+    false
+   ],
+   false,
+   false,
+   null
+  ],
+  "unscored_groq|natural=False|open|token_lead": [
+   "fragment_chat",
+   "Цю дію не підтримує поточний каталог команд.",
+   [],
+   false,
+   [],
+   [
+    false
+   ],
+   false,
+   false,
+   null
+  ],
+  "unscored_groq|natural=False|open|token_lead_claim": [
    "fragment_chat",
    "Дію ще не виконано. Для запуску потрібен погоджений план.",
    [],
@@ -4734,6 +5510,32 @@
    false,
    null
   ],
+  "unscored_groq|natural=False|find|token_lead": [
+   "fragment_chat",
+   "Цю дію не підтримує поточний каталог команд.",
+   [],
+   false,
+   [],
+   [
+    false
+   ],
+   false,
+   false,
+   null
+  ],
+  "unscored_groq|natural=False|find|token_lead_claim": [
+   "fragment_chat",
+   "Дію ще не виконано. Для запуску потрібен погоджений план.",
+   [],
+   false,
+   [],
+   [
+    false
+   ],
+   false,
+   false,
+   null
+  ],
   "unscored_groq|natural=False|find|clarify": [
    "fragment_clarify",
    "Яку програму відкрити?",
@@ -4878,6 +5680,32 @@
    null
   ],
   "unscored_groq|natural=False|chat|token": [
+   "fragment_chat",
+   "Дію ще не виконано. Для запуску потрібен погоджений план.",
+   [],
+   false,
+   [],
+   [
+    false
+   ],
+   false,
+   false,
+   null
+  ],
+  "unscored_groq|natural=False|chat|token_lead": [
+   "fragment_chat",
+   "Цю дію не підтримує поточний каталог команд.",
+   [],
+   false,
+   [],
+   [
+    false
+   ],
+   false,
+   false,
+   null
+  ],
+  "unscored_groq|natural=False|chat|token_lead_claim": [
    "fragment_chat",
    "Дію ще не виконано. Для запуску потрібен погоджений план.",
    [],
@@ -5046,6 +5874,34 @@
    "Дію ще не виконано. Для запуску потрібен погоджений план.",
    [],
    false,
+   [],
+   [
+    true
+   ],
+   false,
+   false,
+   null
+  ],
+  "unscored_groq|natural=True|open|token_lead": [
+   "fragment_chat",
+   "Цю дію не підтримує поточний каталог команд.",
+   [],
+   false,
+   [
+    "Цю дію не підтримує поточний каталог команд."
+   ],
+   [
+    true
+   ],
+   false,
+   false,
+   null
+  ],
+  "unscored_groq|natural=True|open|token_lead_claim": [
+   "fragment_chat",
+   "Дію ще не виконано. Для запуску потрібен погоджений план.",
+   [],
+   false,
    [
     "Дію ще не виконано. Для запуску потрібен погоджений план."
    ],
@@ -5210,6 +6066,34 @@
    null
   ],
   "unscored_groq|natural=True|find|token": [
+   "fragment_chat",
+   "Дію ще не виконано. Для запуску потрібен погоджений план.",
+   [],
+   false,
+   [],
+   [
+    true
+   ],
+   false,
+   false,
+   null
+  ],
+  "unscored_groq|natural=True|find|token_lead": [
+   "fragment_chat",
+   "Цю дію не підтримує поточний каталог команд.",
+   [],
+   false,
+   [
+    "Цю дію не підтримує поточний каталог команд."
+   ],
+   [
+    true
+   ],
+   false,
+   false,
+   null
+  ],
+  "unscored_groq|natural=True|find|token_lead_claim": [
    "fragment_chat",
    "Дію ще не виконано. Для запуску потрібен погоджений план.",
    [],
@@ -5386,6 +6270,34 @@
    "Дію ще не виконано. Для запуску потрібен погоджений план.",
    [],
    false,
+   [],
+   [
+    true
+   ],
+   false,
+   false,
+   null
+  ],
+  "unscored_groq|natural=True|chat|token_lead": [
+   "fragment_chat",
+   "Цю дію не підтримує поточний каталог команд.",
+   [],
+   false,
+   [
+    "Цю дію не підтримує поточний каталог команд."
+   ],
+   [
+    true
+   ],
+   false,
+   false,
+   null
+  ],
+  "unscored_groq|natural=True|chat|token_lead_claim": [
+   "fragment_chat",
+   "Дію ще не виконано. Для запуску потрібен погоджений план.",
+   [],
+   false,
    [
     "Дію ще не виконано. Для запуску потрібен погоджений план."
    ],
@@ -5542,6 +6454,28 @@
    true,
    null
   ],
+  "text|natural=False|open|token_lead": [
+   "chat",
+   "chat-response",
+   [],
+   false,
+   [],
+   [],
+   false,
+   true,
+   null
+  ],
+  "text|natural=False|open|token_lead_claim": [
+   "chat",
+   "chat-response",
+   [],
+   false,
+   [],
+   [],
+   false,
+   true,
+   null
+  ],
   "text|natural=False|open|clarify": [
    "chat",
    "chat-response",
@@ -5674,6 +6608,28 @@
    true,
    null
   ],
+  "text|natural=False|find|token_lead": [
+   "chat",
+   "chat-response",
+   [],
+   false,
+   [],
+   [],
+   false,
+   true,
+   null
+  ],
+  "text|natural=False|find|token_lead_claim": [
+   "chat",
+   "chat-response",
+   [],
+   false,
+   [],
+   [],
+   false,
+   true,
+   null
+  ],
   "text|natural=False|find|clarify": [
    "chat",
    "chat-response",
@@ -5796,6 +6752,28 @@
    null
   ],
   "text|natural=False|chat|token": [
+   "chat",
+   "chat-response",
+   [],
+   false,
+   [],
+   [],
+   false,
+   true,
+   null
+  ],
+  "text|natural=False|chat|token_lead": [
+   "chat",
+   "chat-response",
+   [],
+   false,
+   [],
+   [],
+   false,
+   true,
+   null
+  ],
+  "text|natural=False|chat|token_lead_claim": [
    "chat",
    "chat-response",
    [],
@@ -5944,6 +6922,34 @@
    null
   ],
   "text|natural=True|open|token": [
+   "chat",
+   "Дію ще не виконано. Для запуску потрібен погоджений план.",
+   [],
+   false,
+   [],
+   [
+    true
+   ],
+   false,
+   false,
+   null
+  ],
+  "text|natural=True|open|token_lead": [
+   "chat",
+   "Цю дію не підтримує поточний каталог команд.",
+   [],
+   false,
+   [
+    "Цю дію не підтримує поточний каталог команд."
+   ],
+   [
+    true
+   ],
+   false,
+   false,
+   null
+  ],
+  "text|natural=True|open|token_lead_claim": [
    "chat",
    "Дію ще не виконано. Для запуску потрібен погоджений план.",
    [],
@@ -6116,6 +7122,34 @@
    "Дію ще не виконано. Для запуску потрібен погоджений план.",
    [],
    false,
+   [],
+   [
+    true
+   ],
+   false,
+   false,
+   null
+  ],
+  "text|natural=True|find|token_lead": [
+   "chat",
+   "Цю дію не підтримує поточний каталог команд.",
+   [],
+   false,
+   [
+    "Цю дію не підтримує поточний каталог команд."
+   ],
+   [
+    true
+   ],
+   false,
+   false,
+   null
+  ],
+  "text|natural=True|find|token_lead_claim": [
+   "chat",
+   "Дію ще не виконано. Для запуску потрібен погоджений план.",
+   [],
+   false,
    [
     "Дію ще не виконано. Для запуску потрібен погоджений план."
    ],
@@ -6284,6 +7318,34 @@
    null
   ],
   "text|natural=True|chat|token": [
+   "chat",
+   "Дію ще не виконано. Для запуску потрібен погоджений план.",
+   [],
+   false,
+   [],
+   [
+    true
+   ],
+   false,
+   false,
+   null
+  ],
+  "text|natural=True|chat|token_lead": [
+   "chat",
+   "Цю дію не підтримує поточний каталог команд.",
+   [],
+   false,
+   [
+    "Цю дію не підтримує поточний каталог команд."
+   ],
+   [
+    true
+   ],
+   false,
+   false,
+   null
+  ],
+  "text|natural=True|chat|token_lead_claim": [
    "chat",
    "Дію ще не виконано. Для запуску потрібен погоджений план.",
    [],

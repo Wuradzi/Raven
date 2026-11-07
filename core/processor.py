@@ -19,7 +19,7 @@ from core.natural_turn import (direct_request, application_name_reply, final_req
                                short_clarification, voice_request, window_request)
 from core.local_action_resolver import resolve_exact_app
 from core.performance import DISABLED_PERFORMANCE
-from core.reply_screen import CHAT_MODE_NOTICE, NATURAL_NOTICE, screen
+from core.reply_screen import CHAT_MODE_NOTICE, NATURAL_NOTICE, screen, screen_part
 from core.reply_screen import claims_local_change as _claims_local_change  # compatibility for tests
 from core.speech_text import SpeechBuffer
 from core.turn_gate import TurnGate
@@ -450,9 +450,7 @@ class CommandProcessor:
         streamed_parts = []
 
         async def speak_preview(phrase):
-            phrase = screen(phrase)  # same screen as the scored path (phase 1)
-            await self.speaker.say(phrase)
-            streamed_parts.append(phrase)
+            await self._say_screened(phrase, streamed_parts)  # same screen as the scored path (phase 1)
             self._cache_reply(' '.join(streamed_parts))
 
         async def exact_app():
@@ -493,6 +491,13 @@ class CommandProcessor:
         return SkillResult(True, answer,
                            {"command_type": "fragment_chat" if turn.kind == "chat" else "fragment_clarify",
                             "response_spoken": bool(streamed_parts)})
+
+    async def _say_screened(self, phrase, spoken):
+        """Say one screened streamed piece; a protocol-only piece is skipped, not replaced."""
+        phrase = screen_part(phrase)
+        if phrase:
+            await self.speaker.say(phrase)
+            spoken.append(phrase)
 
     async def _model_turn(self, model_text, normalized, source, web_context, *, on_phrase=None, prelude=None,
                           **options):
@@ -646,7 +651,9 @@ class CommandProcessor:
 
         async def emit(parts):
             for part in parts:
-                part = screen(part, CHAT_MODE_NOTICE)
+                part = screen_part(part, CHAT_MODE_NOTICE)
+                if not part:
+                    continue
                 if not spoken_parts:
                     self.services.get("performance", DISABLED_PERFORMANCE).record(
                         "response.first_phrase_to_tts_queue",
@@ -704,9 +711,10 @@ class CommandProcessor:
         return result, provider, False
 
     def _screen_unstreamed_chat_answer(self, answer):
-        """A non-streamed chat answer must not claim a local action was performed."""
-        if _claims_local_change(answer):
-            answer = CHAT_MODE_NOTICE
+        """A non-streamed chat answer must not claim a local action or start with a protocol line."""
+        screened = screen(answer, CHAT_MODE_NOTICE)
+        if screened != answer.strip("*#` "):
+            answer = screened
             rewrite = getattr(
                 self.llm_manager,
                 "rewrite_last_answer",
@@ -823,6 +831,8 @@ class CommandProcessor:
         async def emit(parts):
             for part in parts:
                 part = self._screen_natural_part(part)
+                if not part:
+                    continue
                 await self.speaker.say(part)
                 spoken.append(part)
                 self._cache_reply(" ".join(spoken))
@@ -876,7 +886,7 @@ class CommandProcessor:
 
     @staticmethod
     def _screen_natural_part(part):
-        return screen(part)
+        return screen_part(part)
 
     def _needs_proposal_clarification(self, text, scoped, proposal_lease):
         return not scoped and not self.dialogue_state.proposals.current(proposal_lease) and needs_proposal(text)
@@ -1027,7 +1037,7 @@ class CommandProcessor:
     def _screened_answer(self, turn, spoken):
         """Final CHAT/CLARIFY text on both turn paths: spoken parts win, claims are replaced,
         and the stored history keeps what Raven actually said, not the model's claim."""
-        answer = " ".join(spoken) if spoken else turn.response
+        answer = " ".join(spoken) if spoken else screen(turn.response)
         if _claims_local_change(answer):
             answer = NATURAL_NOTICE
         rewrite = getattr(self.llm_manager, "rewrite_last_answer", None)
