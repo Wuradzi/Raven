@@ -7,9 +7,24 @@ it is never authorization to run a tool (see core.action_policy).
 from __future__ import annotations
 
 from dataclasses import dataclass
+from enum import Enum
 
 from core.action_policy import PolicyOutcome, turn_permission
 from core.models import TurnEnvelope
+
+
+class TrustLevel(Enum):
+    """How far the recognised text may be trusted (roadmap phase 1, step 1).
+
+    A label for routing and logs, never a permission: ACTION eligibility, policy and
+    confirmation still decide. Groq text without a confidence score is never SCORED.
+    """
+    SCORED = "scored"
+    """Typed text, or speech with a known confidence; not damaged (may still be not eligible)."""
+    UNSCORED_CLEAN = "unscored_clean"
+    """Groq speech without a confidence score that is not damaged."""
+    DAMAGED = "damaged"
+    """Unreliable, truncated, cut off or a repeat requested."""
 
 
 @dataclass(frozen=True, slots=True)
@@ -26,6 +41,10 @@ class TurnGate:
     groq_unscored: bool
     """Groq text has no confidence score; never treated as a measured score."""
     voice: bool
+    unscored: bool = False
+    """An envelope without a confidence score (any engine); False for direct string callers."""
+    lexical_fragment: bool = False
+    """Unscored text that is only linguistically cut off: not truncated, not unreliable."""
 
     @classmethod
     def evaluate(cls, turn: TurnEnvelope | None, allow_actions: bool,
@@ -44,7 +63,21 @@ class TurnGate:
             confidence_known=turn.confidence_available,
             groq_unscored=turn.stt_engine == "groq" and not turn.confidence_available,
             voice=turn.source == "voice",
+            unscored=not turn.confidence_available,
+            lexical_fragment=(not turn.confidence_available and turn.utterance_incomplete
+                              and not turn.capture_truncated and not turn.recognition_unreliable),
         )
+
+    @property
+    def trust(self) -> TrustLevel:
+        if not self.reliable:
+            return TrustLevel.DAMAGED
+        return TrustLevel.UNSCORED_CLEAN if self.groq_unscored else TrustLevel.SCORED
+
+    @property
+    def may_select_offer(self) -> bool:
+        """A clean unscored Groq voice reply may pick from Raven's own pending offer (06.11.2026)."""
+        return self.caller_allows and self.voice and self.trust is TrustLevel.UNSCORED_CLEAN
 
     @property
     def explicit_local_request(self) -> bool:
@@ -62,5 +95,4 @@ class TurnGate:
 
     def groq_candidate(self, natural_actions_enabled: bool) -> bool:
         """Separate unscored-Groq proposal path; still needs policy and confirmation."""
-        return (self.caller_allows and self.voice and self.groq_unscored and self.reliable
-                and natural_actions_enabled)
+        return self.may_select_offer and natural_actions_enabled

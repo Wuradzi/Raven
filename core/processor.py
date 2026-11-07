@@ -14,11 +14,13 @@ from core.action_proposal import ReplyKind, proposal_question, needs_proposal
 from core.command_actions import execute_intent
 from core.command_intent import CommandIntent, InterpretationUnavailable, MULTI_ACTION, can_interpret, original_search_intent, preserves_search_intent
 from core.command_catalog import chat_catalog, local_intent_candidates
-from core.natural_turn import (direct_request, application_name_reply, final_request, memory_change_claim,
+from core.natural_turn import (direct_request, application_name_reply, final_request,
                                request_scope,
                                short_clarification, voice_request, window_request)
 from core.local_action_resolver import resolve_exact_app
 from core.performance import DISABLED_PERFORMANCE
+from core.reply_screen import CHAT_MODE_NOTICE, NATURAL_NOTICE, screen
+from core.reply_screen import claims_local_change as _claims_local_change  # compatibility for tests
 from core.speech_text import SpeechBuffer
 from core.turn_gate import TurnGate
 from services.llm.manager import CHAT_MODE_PROMPT
@@ -36,23 +38,6 @@ COMMAND_PREFIX = re.compile(
     r"^команда\b(?:\s*[:,-]\s*|\s+)?(.*)$",
     re.IGNORECASE,
 )
-LOCAL_ACTION_CLAIM = re.compile(
-    r"^(?:відкриваю|відкрив|відкрила|запускаю|запустив|запустила|"
-    r"закриваю|закрив|закрила|вимикаю|вимкнув|вимкнула|вмикаю|увімкнув|увімкнула|"
-    # Live test 06.11.2026: «Зменшую гучність.» was spoken although nothing ran.
-    r"зменшую|зменшив|зменшила|збільшую|збільшив|збільшила|перемикаю|перемкнув|перемкнула|"
-    r"налаштовую|налаштував|налаштувала)\b"
-)
-# A bare protocol token is never a reply (live test 06.11.2026: «UNSUPPORTED» was spoken).
-CONTROL_TOKEN = re.compile(r"^(?:unsupported|chat|clarify|action|proposal|followup|lookup)[.!?]*$", re.I)
-
-
-def _claims_local_change(text):
-    """Model prose that claims a local action or a memory change, or a bare protocol token."""
-    value = text.lower().strip()
-    return bool(LOCAL_ACTION_CLAIM.match(value) or CONTROL_TOKEN.match(value) or memory_change_claim(text))
-
-
 LAST_OPEN_QUESTION = re.compile(
     r"^(?:що|яку програму|який браузер|ти\b).*"
     r"(?:відкрив|відкривав|запустив)"
@@ -422,8 +407,7 @@ class CommandProcessor:
         offered entries, once, within their TTL; file stamps and risky types are still checked.
         """
         tasks = self.services.get("tasks")
-        if (tasks is not None and mode == "chat" and gate.voice and gate.groq_unscored and gate.reliable
-                and gate.caller_allows and tasks.is_selection_reply(raw_text)):
+        if tasks is not None and mode == "chat" and gate.may_select_offer and tasks.is_selection_reply(raw_text):
             context = CommandContext(self.settings, self.services, confirm, source, raw_text=raw_text,
                                      normalized_text=normalized,
                                      turn_id=input_turn.turn_id if input_turn is not None else None)
@@ -441,14 +425,12 @@ class CommandProcessor:
         previous_reply = self._last_reply or None
         if self.conversation_paused:
             return SkillResult(True, "", {"command_type": "conversation_paused"})
-        lexical_fragment = (input_turn is not None and not input_turn.confidence_available
-            and input_turn.utterance_incomplete and not input_turn.capture_truncated
-            and not input_turn.recognition_unreliable and not COMMAND_PREFIX.match(raw_text))
+        lexical_fragment = gate.lexical_fragment and not COMMAND_PREFIX.match(raw_text)
         if gate.incomplete and not lexical_fragment:
             return SkillResult(True, "Схоже, фраза обірвалася. Повторіть її повністю, будь ласка.",
                                {"command_type": "fragment_clarify"})
         notice = "Почув фразу частинами. Повторіть повне прохання про дію; нічого не виконано."
-        if input_turn is not None and not input_turn.confidence_available and not lexical_fragment:
+        if gate.unscored and not lexical_fragment:
             notice = "Для цієї голосової репліки немає оцінки впевненості. Дію не виконано; введіть прохання текстом."
         groq_candidate = gate.groq_candidate(getattr(self.settings, 'natural_actions_enabled', False))
         if mode != "chat" or (COMMAND_PREFIX.match(raw_text) and not groq_candidate):
@@ -466,41 +448,28 @@ class CommandProcessor:
                       if scoped_name else candidate_text)
         web = self.services.get("web_answers")
         streamed_parts = []
-        # The unscored Groq path was missed by the first filler (live test 06.11.2026: a 60 s stall was silent).
-        filler = self._filler(source)
 
         async def speak_preview(phrase):
-            filler.heard()
-            phrase = phrase.strip()
+            phrase = screen(phrase)  # same screen as the scored path (phase 1)
             await self.speaker.say(phrase)
             streamed_parts.append(phrase)
             self._cache_reply(' '.join(streamed_parts))
 
-        async def propose():
-            intent = await self._resolve_exact_app(candidate_text) if groq_candidate else None
-            if intent is not None:
-                from core.natural_turn import NaturalTurn
-                logger.info('Groq proposal route=local_exact; confirmation_required=true')
-                return NaturalTurn('action', intent=intent)
-            return await self.llm_manager.converse(
-                model_text, self._memory_context(normalized),
-                enabled_skills=self.services.get("enabled_skills", set()),
-                web_context=web.dialogue_context() if web is not None else None,
-                **self._document_options(model_text),
-                **self._knowledge_options(model_text),
-                **({'on_chunk': speak_preview} if groq_candidate else {}))
+        async def exact_app():
+            intent = await self._resolve_exact_app(candidate_text)
+            if intent is None:
+                return None
+            from core.natural_turn import NaturalTurn
+            logger.info('Groq proposal route=local_exact; confirmation_required=true')
+            return NaturalTurn('action', intent=intent)
 
-        task = asyncio.create_task(propose())
-        self._chat_task = task
-        try:
-            turn = await task
-        except asyncio.CancelledError:
-            if asyncio.current_task().cancelling():
-                raise
+        # Damaged or non-candidate speech gets no streamed preview: its reply is checked whole.
+        turn = await self._model_turn(model_text, normalized, source,
+                                      web.dialogue_context() if web is not None else None,
+                                      on_phrase=speak_preview if groq_candidate else None,
+                                      prelude=exact_app if groq_candidate else None)
+        if turn is None:
             return SkillResult(True, "", {"command_type": "chat_interrupted"})
-        finally:
-            filler.stop()
-            self._chat_task = None
         if groq_candidate and turn.kind in {'action', 'lookup'}:
             context = CommandContext(self.settings, self.services, confirm, source,
                 raw_text=candidate_text, normalized_text=self._normalize(candidate_text), turn_id=input_turn.turn_id)
@@ -520,9 +489,46 @@ class CommandProcessor:
         if turn.kind in {'proposal', 'followup'}:
             return SkillResult(True, 'Уточніть повне прохання, якщо хочете виконати дію. Нічого не виконано.',
                                {'command_type': 'intent_clarification'})
-        return SkillResult(True, turn.response if turn.kind in {"chat", "clarify"} else notice,
+        answer = self._screened_answer(turn, streamed_parts) if turn.kind in {"chat", "clarify"} else notice
+        return SkillResult(True, answer,
                            {"command_type": "fragment_chat" if turn.kind == "chat" else "fragment_clarify",
                             "response_spoken": bool(streamed_parts)})
+
+    async def _model_turn(self, model_text, normalized, source, web_context, *, on_phrase=None, prelude=None,
+                          **options):
+        """One cancellable `converse` request shared by both turn paths (roadmap phase 1, step 2).
+
+        on_phrase receives streamed text (None: the reply is checked whole); a `prelude`
+        local turn (exact app) skips the model. The filler covers model silence on both
+        paths. None means the conversation was interrupted; local operations are not.
+        """
+        filler = self._filler(source)
+
+        async def on_chunk(chunk):
+            filler.heard()
+            await on_phrase(chunk)
+
+        async def request():
+            turn = await prelude() if prelude is not None else None
+            if turn is not None:
+                return turn
+            return await self.llm_manager.converse(
+                model_text, self._memory_context(normalized),
+                enabled_skills=self.services.get("enabled_skills", set()), web_context=web_context,
+                **self._document_options(model_text), **self._knowledge_options(model_text),
+                **({'on_chunk': on_chunk} if on_phrase is not None else {}), **options)
+
+        task = asyncio.create_task(request())
+        self._chat_task = task
+        try:
+            return await task
+        except asyncio.CancelledError:
+            if asyncio.current_task().cancelling():
+                raise
+            return None
+        finally:
+            filler.stop()
+            self._chat_task = None  # Local operations must not be cancelled by conversation interruption.
 
     async def _pentest_turn(self, raw_text, normalized, command_match, local_raw, local_command, context):
         """Pentest mode: speech stop, «Команда, …», otherwise only the pentest skill."""
@@ -640,9 +646,7 @@ class CommandProcessor:
 
         async def emit(parts):
             for part in parts:
-                part = part.strip("*#` ")
-                if _claims_local_change(part):
-                    part = "Я не виконую локальні дії в розмові. Скажіть: Команда, а потім назвіть дію."
+                part = screen(part, CHAT_MODE_NOTICE)
                 if not spoken_parts:
                     self.services.get("performance", DISABLED_PERFORMANCE).record(
                         "response.first_phrase_to_tts_queue",
@@ -702,10 +706,7 @@ class CommandProcessor:
     def _screen_unstreamed_chat_answer(self, answer):
         """A non-streamed chat answer must not claim a local action was performed."""
         if _claims_local_change(answer):
-            answer = (
-                "Я не виконую локальні дії в режимі розмови. "
-                "Скажіть: «Команда», а потім назвіть дію."
-            )
+            answer = CHAT_MODE_NOTICE
             rewrite = getattr(
                 self.llm_manager,
                 "rewrite_last_answer",
@@ -826,30 +827,14 @@ class CommandProcessor:
                 spoken.append(part)
                 self._cache_reply(" ".join(spoken))
 
-        filler = self._filler(context.source)
-
-        async def on_chunk(chunk):
+        async def stream(chunk):
             # Explicit CHAT supplies screened sentences; other formats wait for validation.
-            filler.heard()
             await emit(buffer.feed(chunk, final=True))
 
-        proposal_options = self._proposal_options(proposal_lease)
-        task = asyncio.create_task(self.llm_manager.converse(
-            model_text, self._memory_context(normalized),
-            enabled_skills=self.services.get("enabled_skills", set()), web_context=web_context,
-            **self._document_options(model_text),
-            **self._knowledge_options(model_text),
-            on_chunk=on_chunk, **proposal_options))
-        self._chat_task = task
-        try:
-            turn = await task
-        except asyncio.CancelledError:
-            if asyncio.current_task().cancelling():
-                raise
+        turn = await self._model_turn(model_text, normalized, context.source, web_context, on_phrase=stream,
+                                      **self._proposal_options(proposal_lease))
+        if turn is None:
             return SkillResult(True, "", {"command_type": "chat_interrupted"})
-        finally:
-            filler.stop()
-            self._chat_task = None  # Local operations must not be cancelled by conversation interruption.
         if turn.kind in {'proposal', 'followup'}:
             return await self._natural_proposal(turn, text, context, scoped, proposal_lease,
                                                 proposal_generation, session_id, proposal_quality)
@@ -891,10 +876,7 @@ class CommandProcessor:
 
     @staticmethod
     def _screen_natural_part(part):
-        part = part.strip("*#` ")
-        if _claims_local_change(part):
-            part = "Дію ще не виконано. Для запуску потрібен погоджений план."
-        return part
+        return screen(part)
 
     def _needs_proposal_clarification(self, text, scoped, proposal_lease):
         return not scoped and not self.dialogue_state.proposals.current(proposal_lease) and needs_proposal(text)
@@ -1042,13 +1024,19 @@ class CommandProcessor:
         permission = knowledge_gap_fallback(permission, decision, request, candidate_text, bool(scoped_name))
         return await self._run_permission(permission, context)
 
-    def _natural_answer(self, turn, spoken):
-        """Final CHAT/CLARIFY text: spoken parts win; local-action claims are rewritten."""
+    def _screened_answer(self, turn, spoken):
+        """Final CHAT/CLARIFY text on both turn paths: spoken parts win, claims are replaced,
+        and the stored history keeps what Raven actually said, not the model's claim."""
         answer = " ".join(spoken) if spoken else turn.response
         if _claims_local_change(answer):
-            answer = "Дію ще не виконано. Для запуску потрібен погоджений план."
-        if spoken and answer != turn.response:
-            self.llm_manager.rewrite_last_answer(answer)
+            answer = NATURAL_NOTICE
+        rewrite = getattr(self.llm_manager, "rewrite_last_answer", None)
+        if answer != turn.response and callable(rewrite):
+            rewrite(answer)
+        return answer
+
+    def _natural_answer(self, turn, spoken):
+        answer = self._screened_answer(turn, spoken)
         self._cache_reply(answer)
         self._reply_interrupted = False
         return answer
