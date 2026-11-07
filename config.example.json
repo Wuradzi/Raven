@@ -72,6 +72,7 @@
     "timeout_seconds": 10,
     "total_timeout_seconds": 90,
     "filler_seconds": 2.5,
+    "first_text_timeout_seconds": 5.0,
     "failures_before_switch": 3,
     "history_limit": 12,
     "models": {

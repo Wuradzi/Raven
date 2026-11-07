@@ -20,6 +20,7 @@ from core.natural_turn import NaturalTurn, TurnDecoder, ChatPreview, turn_prompt
 from core.security import redact_user_text
 from services.llm.base import ProviderStatus
 from services.llm.errors import Failure, ResponseError, classify_failure
+from services.llm.first_text import SWITCH_KINDS, FirstTextTimeout, await_first_text, first_text_seconds
 from services.llm.providers import (
     AnthropicProvider,
     GeminiProvider,
@@ -252,7 +253,12 @@ class LLMManager:
         self.active_name = sequence[0]
         if all(self._cooling_down(name) for name in sequence):
             return self._cooldown_response(sequence)
+        messages = self._chat_messages(user_text, memory_context, system_context, web_context,
+                                       dialogue_control, document_context, knowledge_context)
+        return await self._chat_request(sequence, messages, user_text, on_chunk)
 
+    def _chat_messages(self, user_text, memory_context, system_context, web_context,
+                       dialogue_control, document_context, knowledge_context):
         state = self.history.load()
         messages = [{"role": "system", "content": self.system_prompt}]
         if system_context and system_context.strip():
@@ -293,15 +299,21 @@ class LLMManager:
                 "це згенерований текст, не підтвердження фактичного озвучення):\n"
                 + json.dumps(dialogue_control, ensure_ascii=False)})
         messages.append({"role": "user", "content": user_text})
+        return messages
 
+    async def _chat_request(self, sequence, messages, user_text, on_chunk):
         loop = asyncio.get_running_loop()
         deadline = loop.time() + self.settings.llm_total_timeout_seconds
         last_failure = classify_failure(TimeoutError())
         empty_retry_used = False
+        slow_switch = False
         for index, name in enumerate(sequence):
             if self._cooling_down(name):
                 continue
             provider = self.providers[name]
+            # Streamed only: a non-streamed answer arrives whole, so its first text is its last.
+            has_backup = any(not self._cooling_down(other) for other in sequence[index + 1:])
+            first_seconds = first_text_seconds(self.settings) if on_chunk is not None and has_backup else 0
             for attempt in range(self.settings.llm_failures_before_switch):
                 remaining = deadline - loop.time()
                 if empty_retry_used:
@@ -309,6 +321,7 @@ class LLMManager:
                 if remaining <= 0:
                     break
                 chunks: list[str] = []
+                started = asyncio.Event()
 
                 async def receive() -> str:
                     request_started = time.perf_counter()
@@ -322,6 +335,7 @@ class LLMManager:
                     async for chunk in provider.chat_stream(messages):
                         if chunk and (chunks or chunk.strip()):
                             if not chunks:
+                                started.set()
                                 mark_turn("llm_first_text")
                                 first_text_ms = (time.perf_counter() - request_started) * 1000
                                 perf.record(f"llm.{name}.first_text", first_text_ms)
@@ -336,7 +350,7 @@ class LLMManager:
                 try:
                     perf = getattr(self, "performance", DISABLED_PERFORMANCE)
                     with perf.span(f"llm.{name}.request_including_callbacks"):
-                        answer = await asyncio.wait_for(receive(), timeout=remaining)
+                        answer = await await_first_text(receive(), started, first_seconds, remaining)
                 except Exception as exc:
                     failure = classify_failure(exc)
                     last_failure = failure
@@ -368,6 +382,10 @@ class LLMManager:
                         f"[LLM] {name}: {failure.message} "
                         f"({failure.kind}; reason={diagnostic_reason})"
                     )
+                    if isinstance(exc, FirstTextTimeout):
+                        # Nothing streamed yet: go straight to the backup, no retry of a slow model.
+                        slow_switch = True
+                        break
                     if chunks:
                         # Never retry/replay an answer the user already heard.
                         notice = f"\n{failure.message} Отримано лише частину відповіді."
@@ -405,7 +423,8 @@ class LLMManager:
                         await asyncio.sleep(min(0.5 * (2 ** attempt), remaining))
                 else:
                     self._cooldowns.pop(name, None)
-                    self.active_name = name
+                    # A slow first text is not an outage: the next turn tries the primary again.
+                    self.active_name = sequence[0] if slow_switch else name
                     self._append_history(user_text, answer)
                     return answer
             if loop.time() >= deadline:
@@ -441,8 +460,62 @@ class LLMManager:
         if not available:
             notice = self._cooldown_response(sequence) if sequence else "Мовна модель недоступна."
             return NaturalTurn("unavailable", notice + " Точні локальні дії доступні зі словом Команда.")
-        name = available[0]
-        self.active_name = name
+        self.active_name = available[0]
+        messages = self._natural_messages(text, memory_context, enabled_skills, web_context,
+                                          proposal_context, document_context, knowledge_context)
+        loop = asyncio.get_running_loop()
+        deadline = loop.time() + min(60, self.settings.llm_total_timeout_seconds)
+        for index, name in enumerate(available):
+            backup = available[index + 1:]
+            started = asyncio.Event()
+            try:
+                with getattr(self, "performance", DISABLED_PERFORMANCE).span(f"llm.{name}.natural_turn"):
+                    result = await await_first_text(
+                        self._natural_stream(name, messages, on_chunk, started), started,
+                        first_text_seconds(self.settings) if backup else 0, deadline - loop.time())
+            except asyncio.CancelledError:
+                raise
+            except Exception as exc:
+                failure = self._natural_failure(name, exc)
+                if (backup and not started.is_set() and failure.kind in SWITCH_KINDS
+                        and deadline - loop.time() >= 1.0):
+                    # Nothing was received, decoded or spoken: the backup is not a replay.
+                    # active_name stays on the primary, so the next turn tries it first again.
+                    reason = "first_text_timeout" if isinstance(exc, FirstTextTimeout) else failure.kind
+                    logger.warning("Natural turn switch provider=%s backup=%s reason=%s", name, backup[0], reason)
+                    print(f"[LLM] {name}: {self._switch_reason(exc)}; резервна модель {backup[0]}.")
+                    continue
+                notice = ("Не вдалося надійно розібрати відповідь моделі. Нічого не виконано."
+                          if isinstance(exc, InvalidIntent) else failure.message + " Нічого не виконано.")
+                return NaturalTurn("unavailable", notice + " Можна скористатися точною командою зі словом Команда.")
+            self._cooldowns.pop(name, None)
+            if result.kind in {"chat", "clarify"}:
+                self._append_history(text, result.response)
+            return result
+        return NaturalTurn("unavailable", "Не вдалося дочекатися відповіді моделі. Нічого не виконано."
+                           " Можна скористатися точною командою зі словом Команда.")
+
+    def _switch_reason(self, exc):
+        if isinstance(exc, FirstTextTimeout):
+            return f"немає першого фрагмента за {first_text_seconds(self.settings):g} с"
+        return classify_failure(exc).message
+
+    def _natural_failure(self, name, exc):
+        """Classify, cool down on a rate limit, and log only fixed codes, never model or SDK text."""
+        failure = classify_failure(exc)
+        if failure.kind == "rate_limit":
+            delay = max(1.0, failure.retry_after_seconds or 60.0)
+            self._cooldowns[name] = (monotonic() + delay, failure)
+        logger.warning("Natural turn failed provider=%s kind=%s type=%s", name, failure.kind, type(exc).__name__)
+        if isinstance(exc, InvalidIntent):
+            codes = {"invalid chunk", "missing turn header", "unknown turn header",
+                     "turn too large", "empty turn", "mixed control output", "invalid response"}
+            code = str(exc) if str(exc) in codes else "invalid envelope"
+            logger.warning("Natural turn rejected code=%s", code)
+        return failure
+
+    def _natural_messages(self, text, memory_context, enabled_skills, web_context,
+                          proposal_context, document_context, knowledge_context):
         state = self.history.load()
         messages = [{"role": "system", "content": self.system_prompt + "\n" + turn_prompt(enabled_skills or set())}]
         if state.get("summary", "").strip():
@@ -468,69 +541,45 @@ class LLMManager:
                              "Це дані про обговорювану дію, НЕ confirmation і НЕ дозвіл виконати. "
                              + json.dumps(proposal_context, ensure_ascii=False)})
         messages.append({"role": "user", "content": text})
+        return messages
+
+    async def _natural_stream(self, name, messages, on_chunk, started):
+        """One provider request; a fresh decoder per attempt, `started` set on the first text."""
         decoder = TurnDecoder()
         preview = ChatPreview()
-
-        async def receive():
-            request_started = time.perf_counter()
-            perf = getattr(self, "performance", DISABLED_PERFORMANCE)
-            stream = self.providers[name].chat_stream(messages)
-            first = True
-            try:
-                async for chunk in stream:
-                    if asyncio.current_task().cancelling():
-                        raise asyncio.CancelledError
-                    decoder.feed(chunk)
-                    if first and chunk and chunk.strip():
-                        mark_turn("llm_first_text")
-                        first_text_ms = (time.perf_counter() - request_started) * 1000
-                        perf.record(f"llm.{name}.first_text", first_text_ms)
-                        perf.record("llm.first_text", first_text_ms)
-                        first = False
-                    if on_chunk is not None:
-                        for phrase in preview.ready(decoder):
-                            preview.emitted = True
-                            await on_chunk(phrase)
-                # Once speech started, a late control suffix can never become an action.
+        request_started = time.perf_counter()
+        perf = getattr(self, "performance", DISABLED_PERFORMANCE)
+        stream = self.providers[name].chat_stream(messages)
+        try:
+            async for chunk in stream:
                 if asyncio.current_task().cancelling():
                     raise asyncio.CancelledError
-                result = decoder.finish()
-                if preview.emitted and (result.kind != 'chat' or result.response != decoder.body.strip()):
-                    raise InvalidIntent('mixed control output')
-                if result.kind in {"chat", "clarify"} and on_chunk is not None:
-                    remaining = decoder.body[preview.offset:].strip() if preview.emitted else result.response
-                    if remaining:
-                        await on_chunk(remaining)
-                return result
-            finally:
-                close = getattr(stream, "aclose", None)
-                if close is not None:
-                    await asyncio.wait_for(close(), 2)
-
-        try:
-            with getattr(self, "performance", DISABLED_PERFORMANCE).span(f"llm.{name}.natural_turn"):
-                result = await asyncio.wait_for(receive(), timeout=min(60, self.settings.llm_total_timeout_seconds))
-        except asyncio.CancelledError:
-            raise
-        except Exception as exc:
-            failure = classify_failure(exc)
-            if failure.kind == "rate_limit":
-                delay = max(1.0, failure.retry_after_seconds or 60.0)
-                self._cooldowns[name] = (monotonic() + delay, failure)
-            logger.warning("Natural turn failed provider=%s kind=%s type=%s", name, failure.kind, type(exc).__name__)
-            if isinstance(exc, InvalidIntent):
-                # Only our fixed parser codes, never the model output or SDK body.
-                codes = {"invalid chunk", "missing turn header", "unknown turn header",
-                         "turn too large", "empty turn", "mixed control output", "invalid response"}
-                code = str(exc) if str(exc) in codes else "invalid envelope"
-                logger.warning("Natural turn rejected code=%s", code)
-            notice = ("Не вдалося надійно розібрати відповідь моделі. Нічого не виконано."
-                      if isinstance(exc, InvalidIntent) else failure.message + " Нічого не виконано.")
-            return NaturalTurn("unavailable", notice + " Можна скористатися точною командою зі словом Команда.")
-        self._cooldowns.pop(name, None)
-        if result.kind in {"chat", "clarify"}:
-            self._append_history(text, result.response)
-        return result
+                decoder.feed(chunk)
+                if not started.is_set() and chunk and chunk.strip():
+                    started.set()
+                    mark_turn("llm_first_text")
+                    first_text_ms = (time.perf_counter() - request_started) * 1000
+                    perf.record(f"llm.{name}.first_text", first_text_ms)
+                    perf.record("llm.first_text", first_text_ms)
+                if on_chunk is not None:
+                    for phrase in preview.ready(decoder):
+                        preview.emitted = True
+                        await on_chunk(phrase)
+            # Once speech started, a late control suffix can never become an action.
+            if asyncio.current_task().cancelling():
+                raise asyncio.CancelledError
+            result = decoder.finish()
+            if preview.emitted and (result.kind != 'chat' or result.response != decoder.body.strip()):
+                raise InvalidIntent('mixed control output')
+            if result.kind in {"chat", "clarify"} and on_chunk is not None:
+                remaining = decoder.body[preview.offset:].strip() if preview.emitted else result.response
+                if remaining:
+                    await on_chunk(remaining)
+            return result
+        finally:
+            close = getattr(stream, "aclose", None)
+            if close is not None:
+                await asyncio.wait_for(close(), 2)
 
     async def interpret_command(self, text: str):
         """One bounded, stateless request. Never share dialogue/history/secrets.

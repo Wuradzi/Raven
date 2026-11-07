@@ -104,6 +104,7 @@ class Settings:
     llm_timeout_seconds: int = 10
     llm_total_timeout_seconds: int = 90
     llm_filler_seconds: float = 2.5
+    llm_first_text_timeout_seconds: float = 5.0
     llm_failures_before_switch: int = 3
     history_limit: int = 12
     command_interpretation_enabled: bool = True
@@ -206,6 +207,7 @@ def default_config(*, fresh: bool = True) -> dict[str, Any]:
             "timeout_seconds": 10,
             "total_timeout_seconds": 90,
             "filler_seconds": 2.5,
+            "first_text_timeout_seconds": 5.0,
             "failures_before_switch": 3,
             "history_limit": 12,
             "models": {
@@ -453,11 +455,17 @@ def _validate_timeouts(config: dict[str, Any]) -> None:
         raise ConfigError("llm.timeout_seconds має бути додатним")
     if int(config["llm"]["total_timeout_seconds"]) <= 0:
         raise ConfigError("llm.total_timeout_seconds має бути додатним")
-    filler = config["llm"]["filler_seconds"]
-    if isinstance(filler, bool) or not isinstance(filler, (int, float)) or not 0 <= filler <= 30:
+    if not _seconds_in_range(config["llm"]["filler_seconds"], 30):
         raise ConfigError("llm.filler_seconds має бути числом від 0 до 30; 0 вимикає фразу очікування")
+    if not _seconds_in_range(config["llm"]["first_text_timeout_seconds"], 60):
+        raise ConfigError("llm.first_text_timeout_seconds має бути числом від 0 до 60; "
+                          "0 вимикає перемикання на резервну модель")
     if not 0 <= int(config["fuzzy_threshold"]) <= 100:
         raise ConfigError("fuzzy_threshold має бути від 0 до 100")
+
+
+def _seconds_in_range(value: Any, high: float) -> bool:
+    return not isinstance(value, bool) and isinstance(value, (int, float)) and 0 <= value <= high
 
 
 def _validate_pentest(pentest: dict[str, Any]) -> None:
@@ -621,6 +629,7 @@ def load_settings(profile_override: str | None = None, *, read_only=False, root=
         llm_timeout_seconds=int(config["llm"]["timeout_seconds"]),
         llm_total_timeout_seconds=int(config["llm"]["total_timeout_seconds"]),
         llm_filler_seconds=float(config["llm"]["filler_seconds"]),
+        llm_first_text_timeout_seconds=float(config["llm"]["first_text_timeout_seconds"]),
         llm_failures_before_switch=int(config["llm"]["failures_before_switch"]),
         history_limit=int(config["llm"]["history_limit"]),
         command_interpretation_enabled=config["commands"]["llm_interpretation"],
