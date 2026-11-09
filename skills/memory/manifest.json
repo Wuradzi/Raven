@@ -10,7 +10,8 @@
     "покажи всю пам'ять"
   ],
   "platforms": [
-    "windows"
+    "windows",
+    "darwin"
   ],
   "enabled": true
 }

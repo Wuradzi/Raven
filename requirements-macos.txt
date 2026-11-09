@@ -1,0 +1,21 @@
+# macOS (Apple Silicon and Intel), Python 3.12 recommended. Installed by
+# scripts/install_macos.sh or `python install.py` on macOS. Never run on Windows/Linux.
+# Wheel availability was checked against PyPI metadata on 2026-11-08, NOT on a real Mac.
+-r requirements.txt
+
+# pyobjc bridges: media transport keys (Quartz/AppKit), permission probes
+# (ApplicationServices = Accessibility, Quartz = Screen Recording, AVFoundation = Microphone).
+pyobjc-framework-Cocoa>=10.3; sys_platform == "darwin"
+pyobjc-framework-Quartz>=10.3; sys_platform == "darwin"
+pyobjc-framework-ApplicationServices>=10.3; sys_platform == "darwin"
+pyobjc-framework-AVFoundation>=10.3; sys_platform == "darwin"
+
+# cryptography >= 49 publishes macOS arm64 wheels only; 48.x still has universal2 (Intel).
+cryptography>=43.0,<49; sys_platform == "darwin" and platform_machine == "x86_64"
+
+# NOT installed on macOS (kept out on purpose):
+#   pywin32, PyGetWindow, pyautogui  -> Windows-only (platform markers already exclude them)
+#   pyttsx3                          -> Windows-only; macOS speaks through the system `say`
+# Optional local Whisper (requirements-whisper.txt): faster-whisper needs onnxruntime, whose newest
+# wheels are Apple Silicon only (macOS 14+); on Intel pip falls back to an older onnxruntime.
+# Groq cloud STT (stt.backend "groq") needs none of it.

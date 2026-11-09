@@ -5,11 +5,12 @@ import inspect
 import json
 import logging
 import asyncio
-import platform
 from dataclasses import dataclass
 from pathlib import Path
 from types import ModuleType
 from typing import Any
+
+from services.platform.resolver import manifest_platform_matches
 
 logger = logging.getLogger(__name__)
 
@@ -60,7 +61,7 @@ class SkillLoader:
             if not manifest.get("enabled", True):
                 continue
             platforms = manifest.get("platforms", ["windows"])
-            if platform.system().lower() not in platforms and "all" not in platforms:
+            if not manifest_platform_matches(platforms):
                 logger.info("Skill %s skipped: platform_unavailable", manifest["name"])
                 continue
             if manifest["name"] in names:

@@ -6,7 +6,7 @@ from datetime import datetime
 import psutil
 
 from core.models import SkillResult
-from services.platform import resolve_platform
+from services.platform import PlatformOperationError, resolve_platform
 
 
 TIME_COMMANDS = {"котра година", "який час", "скажи час"}
@@ -79,7 +79,7 @@ async def handle(command, context, services):
         locked = bool(await asyncio.to_thread(resolve_platform().system_action, 'lock'))
         return SkillResult(
             True,
-            "Екран заблоковано." if locked else "Windows не підтвердила блокування екрана.",
+            "Екран заблоковано." if locked else f"{_os_name()} не підтвердила блокування екрана.",
             {"command_type": "lock"},
         )
     return SkillResult(False)
@@ -87,13 +87,22 @@ async def handle(command, context, services):
 
 # Model ACTIONs lock_screen and screenshot (user decision 07.11.2026): both keep the
 # correlated confirmation. A screenshot stays on this computer; it is never sent to a model.
+def _os_name():
+    return "macOS" if getattr(resolve_platform(), "os", "") == "Darwin" else "Windows"
+
+
 async def lock_screen(context):
     from core.confirmation import confirm_action
-    cancelled = await confirm_action(context, "блокування сеансу Windows", "Заблокувати екран")
+    cancelled = await confirm_action(context, f"блокування сеансу {_os_name()}", "Заблокувати екран")
     if cancelled is not None:
         return cancelled
-    locked = bool(await asyncio.to_thread(resolve_platform().system_action, 'lock'))
-    return SkillResult(True, "Екран заблоковано." if locked else "Windows не підтвердила блокування екрана.",
+    try:
+        locked = bool(await asyncio.to_thread(resolve_platform().system_action, 'lock'))
+    except PlatformOperationError as exc:
+        return SkillResult(True, f"{exc} Екран не заблоковано.",
+                           {"command_type": "lock", "accepted": False, "verified": False,
+                            "success": False, "status": exc.status})
+    return SkillResult(True, "Екран заблоковано." if locked else f"{_os_name()} не підтвердила блокування екрана.",
                        {"command_type": "lock", "accepted": True, "verified": locked,
                         "status": "verified" if locked else "unverified"})
 
@@ -105,8 +114,10 @@ def screenshot_folder():
 
 
 def _save_screenshot(path):
-    import pyautogui
     path.parent.mkdir(parents=True, exist_ok=True)
+    if getattr(resolve_platform(), "os", "") == "Darwin":
+        return resolve_platform().take_screenshot(path)  # screencapture; needs Screen Recording permission
+    import pyautogui
     pyautogui.screenshot(str(path))
     return path.is_file() and path.stat().st_size > 0
 
@@ -121,6 +132,10 @@ async def save_screenshot(context):
     path = folder / f"screenshot-{datetime.now():%Y%m%d-%H%M%S}.png"
     try:
         saved = await asyncio.to_thread(_save_screenshot, path)
+    except PlatformOperationError as exc:
+        return SkillResult(True, f"{exc} Знімок екрана не збережено.",
+                           {"command_type": "screenshot", "accepted": False, "verified": False,
+                            "success": False, "status": exc.status})
     except Exception:
         saved = False
     if not saved:

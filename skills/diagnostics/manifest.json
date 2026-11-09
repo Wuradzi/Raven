@@ -7,7 +7,8 @@
     "перевір системи рейвена"
   ],
   "platforms": [
-    "windows"
+    "windows",
+    "darwin"
   ],
   "enabled": true
 }

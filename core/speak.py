@@ -410,6 +410,7 @@ class Speaker:
             winsound.PlaySound(None, 0)
         except (ImportError, RuntimeError):
             pass
+        self.platform.stop_playback()  # macOS afplay only; no-op elsewhere
         if self._engine is not None:
             try:
                 self._engine.stop()

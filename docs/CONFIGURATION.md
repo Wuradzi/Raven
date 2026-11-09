@@ -16,7 +16,8 @@ Legacy Vosk capture не змінено. Якщо ліміту все-таки �
 Довші записи можуть збільшити час ASR/хмарні витрати; inference timeout не змінено.
 
 Повернутися до [README](../README.md). Приклади нижче не замінюють
-[підготовку Windows](WINDOWS_SETUP.md) або [інструкцію Linux](LINUX_RUNTIME.md).
+[підготовку Windows](WINDOWS_SETUP.md), [інструкцію Linux](LINUX_RUNTIME.md) або
+[інструкцію macOS](MACOS_SETUP.md) (там: `tts.voice_hint` для голосу Lesya, дозволи).
 Датовані результати є історичними; актуальні STT-профілі — у [STT backends](STT_BACKENDS.md).
 
 ## Журнал кожної сесії

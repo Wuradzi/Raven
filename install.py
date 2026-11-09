@@ -36,6 +36,31 @@ def _install(root: Path, requirement_file: str) -> None:
     )
 
 
+def _install_platform_extras(root: Path) -> None:
+    if platform.system() == "Darwin":
+        _install(root, "requirements-macos.txt")  # pyobjc bridges for media keys and permission checks
+
+
+def _print_check_hint() -> None:
+    if platform.system() == 'Darwin':
+        print('macOS: python tools/macos_check.py — системні утиліти, голос і дозволи (лише читання).')
+
+
+def _print_platform_notes() -> None:
+    system = platform.system()
+    if system == "Windows":
+        print("Встановіть RHVoice та український голос Volodymyr.")
+    elif system == "Darwin":
+        print("macOS: див. docs/MACOS_SETUP.md (Homebrew portaudio, голос Lesya, дозволи). "
+              "Рекомендовано scripts/install_macos.sh. Нічого з системних налаштувань не змінено.")
+    else:
+        print(
+            "Debian-family: Python venv + libportaudio2 are system prerequisites for audio. "
+            "Install them explicitly as administrator if needed. No sudo or OS changes were run. "
+            "Linux TTS/window/power control NOT_IMPLEMENTED; no desktop required."
+        )
+
+
 def main() -> int:
     args = parse_args()
     root = Path(__file__).resolve().parent
@@ -57,11 +82,13 @@ def main() -> int:
             print(f'{module}: {"installed" if present else "missing"}')
             if not present:
                 missing.append(module)
+        _print_check_hint()
         print('Next: python main.py --doctor (config, paths, models, audio runtime; no downloads).')
         return int(bool(missing))
     subprocess.run([sys.executable, "-m", "pip", "install", "--upgrade", "pip"], check=True)
     _install(root, "requirements.txt")
 
+    _install_platform_extras(root)
     if args.profile == "desktop":
         _install(root, "requirements-desktop.txt")
         _install(root, "requirements-whisper.txt")
@@ -72,14 +99,7 @@ def main() -> int:
     if args.with_vision:
         _install(root, "requirements-optional.txt")
 
-    if platform.system() == "Windows":
-        print("Встановіть RHVoice та український голос Volodymyr.")
-    else:
-        print(
-            "Debian-family: Python venv + libportaudio2 are system prerequisites for audio. "
-            "Install them explicitly as administrator if needed. No sudo or OS changes were run. "
-            "Linux TTS/window/power control NOT_IMPLEMENTED; no desktop required."
-        )
+    _print_platform_notes()
 
     print("Optional voice setup: python tools/download_vosk_model.py (explicit download)")
     if args.profile == "desktop":

@@ -1,5 +1,7 @@
 python-dotenv>=1.0
-vosk>=0.3.45
+vosk>=0.3.45; sys_platform != "darwin"
+# vosk 0.3.45 ships no macOS wheel (PyPI); 0.3.44 is the newest with a macOS universal2 wheel.
+vosk==0.3.44; sys_platform == "darwin"
 sounddevice>=0.5
 numpy>=2.0
 pyttsx3>=2.98; platform_system == "Windows"

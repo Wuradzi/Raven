@@ -9,7 +9,8 @@
     "виконано"
   ],
   "platforms": [
-    "windows"
+    "windows",
+    "darwin"
   ],
   "enabled": true
 }

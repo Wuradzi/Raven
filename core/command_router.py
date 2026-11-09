@@ -2,23 +2,20 @@ from __future__ import annotations
 
 import asyncio
 import logging
-import platform
+import platform  # noqa: F401  (tests patch core.command_router.platform.system)
 
 from rapidfuzz import fuzz
 
 from core.models import SkillResult
 from services.platform import PlatformOperationError
+from services.platform.resolver import manifest_platform_matches
 
 logger = logging.getLogger(__name__)
 
 
 class CommandRouter:
     def __init__(self, skills, threshold: int = 85):
-        current = platform.system().lower()
-        self.skills = [
-            skill for skill in skills
-            if current in skill.platforms or "all" in skill.platforms
-        ]
+        self.skills = [skill for skill in skills if manifest_platform_matches(skill.platforms)]
         self.threshold = threshold
 
     async def route(

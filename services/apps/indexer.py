@@ -6,6 +6,29 @@ from pathlib import Path
 from core.atomic_json import AtomicJSONFile
 
 
+MACOS_APP_ROOTS = ("/Applications", "/Applications/Utilities", "/System/Applications",
+                   "/System/Applications/Utilities", "~/Applications")
+
+
+def macos_applications(roots=MACOS_APP_ROOTS) -> dict[str, dict]:
+    """Installed .app bundles (one level per root); launched later with `open`, never executed here."""
+    found: dict[str, dict] = {}
+    for root in roots:
+        folder = Path(root).expanduser()
+        try:
+            bundles = sorted(folder.glob("*.app"))
+        except OSError:
+            continue
+        for bundle in bundles:
+            found.setdefault(bundle.stem.lower(), {"name": bundle.stem, "command": str(bundle),
+                                                   "aliases": [], "source": "indexed"})
+    return found
+
+
+def platform_applications(os_name: str) -> dict[str, dict]:
+    return macos_applications() if os_name == "Darwin" else {}
+
+
 class ApplicationIndexer:
     def __init__(self, path: Path, aliases: dict[str, str]):
         self.file = AtomicJSONFile(path, {"applications": [], "manual": []})
@@ -17,8 +40,10 @@ class ApplicationIndexer:
             return self.all()  # Read saved/manual index; do not scan Windows paths.
         state = self.file.load()
         found: dict[str, dict] = {}
-        if resolve_platform().os == 'Linux':
-            # Only explicitly configured entries; never reuse a Windows auto-index.
+        if resolve_platform().os in ('Linux', 'Darwin'):
+            found.update(platform_applications(resolve_platform().os))
+            # Explicitly configured entries (and, on macOS, installed .app bundles);
+            # never reuse a Windows auto-index.
             for item in state.get('manual', []):
                 found[item['name'].lower()] = dict(item, aliases=list(item.get('aliases', [])))
             for alias, target in self.aliases.items():

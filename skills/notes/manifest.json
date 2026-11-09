@@ -10,7 +10,8 @@
     "видали нотатку"
   ],
   "platforms": [
-    "windows"
+    "windows",
+    "darwin"
   ],
   "enabled": true
 }

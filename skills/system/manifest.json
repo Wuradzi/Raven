@@ -12,7 +12,8 @@
     "заверши роботу"
   ],
   "platforms": [
-    "windows", "linux"
+    "windows", "linux",
+    "darwin"
   ],
   "enabled": true
 }

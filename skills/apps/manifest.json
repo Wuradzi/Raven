@@ -8,7 +8,8 @@
     "переіндексуй програми"
   ],
   "platforms": [
-    "windows", "linux"
+    "windows", "linux",
+    "darwin"
   ],
   "enabled": true
 }

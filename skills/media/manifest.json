@@ -10,7 +10,8 @@
     "попередній трек"
   ],
   "platforms": [
-    "windows"
+    "windows",
+    "darwin"
   ],
   "enabled": true
 }

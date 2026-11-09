@@ -10,7 +10,8 @@
     "файли зі словом"
   ],
   "platforms": [
-    "windows"
+    "windows",
+    "darwin"
   ],
   "enabled": true
 }
