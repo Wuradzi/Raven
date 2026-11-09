@@ -1,2 +1,0 @@
-# Optional CPU/ARM64 ASR runtime; install explicitly, never during startup.
-sherpa-onnx>=1.12

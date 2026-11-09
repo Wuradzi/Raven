@@ -398,33 +398,36 @@ class DependencyAndScriptTests(unittest.TestCase):
 
     def test_vosk_uses_a_version_with_a_macos_wheel_only_on_mac(self):
         Requirement = self.requirement_class()
-        vosk = [Requirement(line) for line in self.lines("requirements.txt") if line.startswith("vosk")]
-        mac = [str(r.specifier) for r in vosk if self.applies(r, "Darwin", "arm64")]
-        windows = [str(r.specifier) for r in vosk if self.applies(r, "Windows", "AMD64")]
-        self.assertEqual(mac, ["==0.3.44"])
-        self.assertEqual(windows, [">=0.3.45"])
+
+        def vosk(file_name):
+            return [str(Requirement(line).specifier) for line in self.lines(file_name) if line.startswith("vosk")]
+
+        self.assertEqual(vosk("requirements_mac.txt"), ["==0.3.44"])
+        self.assertEqual(vosk("requirements_win.txt"), [">=0.3.45"])
+        self.assertEqual(vosk("requirements_linux.txt"), [">=0.3.45"])
 
     def test_windows_only_packages_never_apply_on_mac(self):
         Requirement = self.requirement_class()
-        for file_name in ("requirements.txt", "requirements-desktop.txt", "requirements-macos.txt"):
-            for line in self.lines(file_name):
-                requirement = Requirement(line)
-                if requirement.name.lower() in {"pywin32", "pygetwindow", "pyautogui", "pyttsx3"}:
-                    self.assertFalse(self.applies(requirement, "Darwin"), line)
-                    self.assertTrue(self.applies(requirement, "Windows", "AMD64"), line)
+        windows_only = {"pywin32", "pygetwindow", "pyautogui", "pyttsx3"}
+        for file_name in ("requirements_mac.txt", "requirements_linux.txt"):
+            names = {Requirement(line).name.lower() for line in self.lines(file_name)}
+            self.assertFalse(names & windows_only, file_name)
+        names = {Requirement(line).name.lower() for line in self.lines("requirements_win.txt")}
+        self.assertTrue(windows_only <= names)
+        for name in ("requirements_mac.txt", "requirements_linux.txt", "requirements_win.txt"):
+            self.assertIn("groq", {Requirement(line).name.lower() for line in self.lines(name)}, name)
 
     def test_macos_requirements_have_pyobjc_and_intel_cryptography_cap(self):
         Requirement = self.requirement_class()
-        parsed = [Requirement(line) for line in self.lines("requirements-macos.txt")]
+        parsed = [Requirement(line) for line in self.lines("requirements_mac.txt")]
         names = {r.name.lower() for r in parsed}
         self.assertTrue({"pyobjc-framework-quartz", "pyobjc-framework-cocoa",
                          "pyobjc-framework-applicationservices", "pyobjc-framework-avfoundation"} <= names)
         crypto = [r for r in parsed if r.name == "cryptography"][0]
         self.assertTrue(self.applies(crypto, "Darwin", "x86_64"))
         self.assertFalse(self.applies(crypto, "Darwin", "arm64"))
-        for r in parsed:
-            if r.name.startswith("pyobjc"):
-                self.assertFalse(self.applies(r, "Windows", "AMD64"))
+        windows = {Requirement(line).name.lower() for line in self.lines("requirements_win.txt")}
+        self.assertFalse({name for name in names if name.startswith("pyobjc")} & windows)
 
     def test_install_script_is_safe(self):
         text = (ROOT / "scripts" / "install_macos.sh").read_text(encoding="utf-8")
@@ -437,7 +440,7 @@ class DependencyAndScriptTests(unittest.TestCase):
         self.assertIn("if [ -f config.json ]", text)
         self.assertIn("cp config.example.json config.json", text)
         self.assertNotIn("cp -f", text)
-        self.assertIn("requirements-macos.txt", text)
+        self.assertIn("requirements_mac.txt", text)
         self.assertLess(text.index("if [ -f config.json ]"), text.index("cp config.example.json config.json"))
 
     def test_scripts_have_valid_bash_syntax(self):

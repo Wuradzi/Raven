@@ -1,4 +1,4 @@
--r requirements.txt
+# Developer tools only. Install a platform file first: requirements_win.txt / _mac.txt / _linux.txt
 pytest>=8.0
 pytest-asyncio>=0.25
 ruff>=0.12

@@ -2,7 +2,7 @@
 
 ## Відтворюване базове CI-середовище Windows
 
-`requirements-ci.txt` встановлює базові runtime dependencies та Ruff через
+`requirements-ci.txt` встановлює `requirements_win.txt` (на Linux-завданні — `requirements_linux.txt`) та Ruff через
 `constraints-windows-py312.txt`: точні версії з локального Windows x64/Python
 3.12.7 середовища від 08.10.2026, включно з транзитивними HTTP extras.
 CI використовує Windows 2022/Python 3.12, cache key враховує constraints.

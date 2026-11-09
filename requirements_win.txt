@@ -1,0 +1,44 @@
+# Windows 10/11, Python 3.12 (reference platform). Everything in one command:
+#   python -m pip install -r requirements_win.txt
+# This is the ONLY dependency list for Windows (plus requirements-dev.txt for developer tools).
+# ---- core ----
+vosk>=0.3.45
+cryptography>=43.0
+pyttsx3>=2.98
+pywin32>=310
+python-dotenv>=1.0
+sounddevice>=0.5
+numpy>=2.0
+psutil>=6.0
+rapidfuzz>=3.9
+httpx>=0.28
+ddgs>=9.0
+dateparser>=1.2
+send2trash>=1.8
+pyperclip>=1.9
+google-genai>=2.3.0
+# Groq: main cloud STT and LLM provider (stt.backend "groq"); required, not optional.
+groq>=0.30
+
+# ---- optional modules (not pinned in CI constraints) ----
+
+# Window / desktop control (Windows-only; macOS uses pyobjc, Linux has no equivalent)
+PyGetWindow>=0.0.9
+pyautogui>=0.9.54
+# Native Qt Widgets UI (--ui native)
+PySide6-Essentials==6.8.3
+
+# Local STT: faster-whisper (optional; Groq is the main recognizer) and sherpa-onnx (experimental, CPU/ARM64)
+faster-whisper>=1.2.1
+sherpa-onnx>=1.12
+
+# Computer vision (also needs the Tesseract program installed separately)
+mss>=10.0
+pytesseract>=0.3.13
+Pillow>=11.0
+opencv-python>=4.10
+
+# Extra LLM providers
+openai>=1.100
+anthropic>=0.60
+ollama>=0.5

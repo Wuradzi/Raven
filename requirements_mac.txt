@@ -1,0 +1,50 @@
+# macOS (Apple Silicon and Intel), Python 3.12 recommended. Everything in one command:
+#   python -m pip install -r requirements_mac.txt
+# This is the ONLY dependency list for macOS (plus requirements-dev.txt for developer tools).
+# Prefer scripts/install_macos.sh (also checks Homebrew/portaudio). NOT verified on a real Mac yet.
+# ---- core ----
+# vosk 0.3.45 ships no macOS wheel (PyPI); 0.3.44 is the newest with a macOS universal2 wheel.
+vosk==0.3.44
+# cryptography >= 49 publishes macOS arm64 wheels only; 48.x still has universal2 (Intel).
+cryptography>=43.0,<49; platform_machine == "x86_64"
+cryptography>=43.0; platform_machine != "x86_64"
+python-dotenv>=1.0
+sounddevice>=0.5
+numpy>=2.0
+psutil>=6.0
+rapidfuzz>=3.9
+httpx>=0.28
+ddgs>=9.0
+dateparser>=1.2
+send2trash>=1.8
+pyperclip>=1.9
+google-genai>=2.3.0
+# Groq: main cloud STT and LLM provider (stt.backend "groq"); required, not optional.
+groq>=0.30
+
+# macOS equivalents of the Windows-only libraries (pywin32, PyGetWindow, pyautogui, pyttsx3 are not used):
+# media transport keys, Accessibility / Screen Recording / Microphone permission probes.
+# Speech output uses the system `say`, screenshots use `screencapture`.
+pyobjc-framework-Cocoa>=10.3
+pyobjc-framework-Quartz>=10.3
+pyobjc-framework-ApplicationServices>=10.3
+pyobjc-framework-AVFoundation>=10.3
+
+# ---- optional modules (not pinned in CI constraints) ----
+# Native Qt Widgets UI (--ui native)
+PySide6-Essentials==6.8.3
+
+# Local STT: faster-whisper (optional; Groq is the main recognizer) and sherpa-onnx (experimental, CPU/ARM64)
+faster-whisper>=1.2.1
+sherpa-onnx>=1.12
+
+# Computer vision (also needs the Tesseract program installed separately)
+mss>=10.0
+pytesseract>=0.3.13
+Pillow>=11.0
+opencv-python>=4.10
+
+# Extra LLM providers
+openai>=1.100
+anthropic>=0.60
+ollama>=0.5

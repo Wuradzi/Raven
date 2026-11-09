@@ -36,9 +36,13 @@ def _install(root: Path, requirement_file: str) -> None:
     )
 
 
-def _install_platform_extras(root: Path) -> None:
-    if platform.system() == "Darwin":
-        _install(root, "requirements-macos.txt")  # pyobjc bridges for media keys and permission checks
+def _platform_requirements() -> str:
+    system = platform.system()
+    if system == "Windows":
+        return "requirements_win.txt"
+    if system == "Darwin":
+        return "requirements_mac.txt"
+    return "requirements_linux.txt"
 
 
 def _print_check_hint() -> None:
@@ -72,7 +76,7 @@ def main() -> int:
         return 2
     if args.check:
         modules = ('dotenv', 'psutil', 'rapidfuzz', 'cryptography', 'httpx', 'numpy', 'vosk', 'sounddevice',
-                   'ddgs', 'dateparser', 'send2trash', 'pyperclip', 'google.genai')
+                   'ddgs', 'dateparser', 'send2trash', 'pyperclip', 'google.genai', 'groq')
         missing = []
         for module in modules:
             try:
@@ -86,24 +90,14 @@ def main() -> int:
         print('Next: python main.py --doctor (config, paths, models, audio runtime; no downloads).')
         return int(bool(missing))
     subprocess.run([sys.executable, "-m", "pip", "install", "--upgrade", "pip"], check=True)
-    _install(root, "requirements.txt")
-
-    _install_platform_extras(root)
-    if args.profile == "desktop":
-        _install(root, "requirements-desktop.txt")
-        _install(root, "requirements-whisper.txt")
-    elif args.profile == 'edge' or args.with_voice:
-        _install(root, "requirements-edge.txt")
-    if args.with_extra_llm:
-        _install(root, "requirements-llm-extra.txt")
-    if args.with_vision:
-        _install(root, "requirements-optional.txt")
+    # One platform file installs every module (core, Groq, desktop/pyobjc, Qt, Whisper, sherpa-onnx, vision, extra LLMs).
+    _install(root, _platform_requirements())
 
     _print_platform_notes()
 
     print("Optional voice setup: python tools/download_vosk_model.py (explicit download)")
     if args.profile == "desktop":
-        print("Primary STT: python tools/download_whisper_model.py")
+        print("Primary STT: Groq (set GROQ_API_KEY in .env, stt.backend=groq). Local fallback: python tools/download_whisper_model.py")
     else:
         print('STT: виберіть stt.profile=edge; ONNX файли підготуйте за docs/STT_BACKENDS.md (експериментально).')
     print("Next: python main.py --doctor; python main.py --text-only (no audio models required).")

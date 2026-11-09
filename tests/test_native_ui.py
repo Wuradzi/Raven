@@ -7,6 +7,7 @@ import shutil
 import subprocess
 import sys
 import unittest
+from types import SimpleNamespace
 from unittest.mock import patch
 
 from native_ui.transport import NativeTransport
@@ -111,6 +112,31 @@ class NativeLaunchTests(unittest.TestCase):
         with patch.object(sys, 'argv', ['main.py', '--web-ui', '--ui', 'native']):
             with self.assertRaises(SystemExit):
                 parse_args()
+
+    def test_native_is_the_default_and_console_flows_stay_in_cli(self):
+        from main import parse_args
+        cases = [([], 'native', False), (['--ui', 'native'], 'native', True), (['--text-only'], 'headless', False),
+                 (['--setup'], 'headless', False), (['--doctor'], 'headless', False), (['--web-ui'], 'web', False),
+                 (['--ui', 'web'], 'web', True), (['--ui', 'headless'], 'headless', True)]
+        for flags, ui, explicit in cases:
+            with self.subTest(flags=flags), patch.object(sys, 'argv', ['main.py', *flags]):
+                args = parse_args()
+                self.assertEqual((args.ui, args.ui_explicit), (ui, explicit))
+
+    def test_implicit_native_falls_back_to_console_but_explicit_native_does_not(self):
+        import main
+        implicit = SimpleNamespace(ui='native', ui_explicit=False)
+        with patch.object(main, '_native_unavailable_reason', return_value='немає дисплея'), \
+                patch.object(main, 'console_print') as printed:
+            self.assertIsNone(main._load_native(implicit))
+            self.assertEqual(implicit.ui, 'headless')
+            self.assertIn('headless', printed.call_args[0][0])
+        explicit = SimpleNamespace(ui='native', ui_explicit=True)
+        with patch.object(main, '_native_unavailable_reason', return_value='немає дисплея'), \
+                patch.dict(sys.modules, {'native_ui.runtime': None}), patch.object(main, 'console_print'):
+            self.assertIs(main._load_native(explicit), False)
+        other = SimpleNamespace(ui='headless', ui_explicit=True)
+        self.assertIsNone(main._load_native(other))
 
     def test_headless_import_does_not_load_qt(self):
         code = "import main,sys; assert not any(n.startswith('PySide6') for n in sys.modules); sys.argv=['main.py','--ui','headless']; assert main.parse_args().ui=='headless'"

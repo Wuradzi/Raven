@@ -62,7 +62,7 @@ Changed components in this phase (not the entire preceding dirty worktree):
 `services/health/{checks,probes,runtime}.py`, `services/diagnostics.py`,
 `core/{speak,command_router}.py`, `config.py`, `install.py`,
 `skills/apps/{skill.py,manifest.json}`, `skills/system/manifest.json`,
-`requirements.txt`, `requirements-desktop.txt`,
+`requirements_linux.txt` (раніше `requirements.txt`, `requirements-desktop.txt`),
 `tests/{test_linux_runtime,test_platform_boundary}.py`, `.gitignore`, README,
 ARCHITECTURE and this guide; local development log/roadmap/evidence updated.
 

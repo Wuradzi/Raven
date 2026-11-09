@@ -175,7 +175,7 @@ a Linux TTS adapter. No implemented Pi TTS candidate found. ONNX runtimes/librar
 and faster-whisper native dependency compatibility on ARM64/Python3.13 remain
 NEEDS_LIVE_VERIFICATION, regardless of platform-neutral adapter Python code.
 
-Sherpa details: requirements-edge.txt `sherpa-onnx>=1.12`; int8 expects exactly
+Sherpa details: `sherpa-onnx>=1.12` (у requirements_<platform>.txt); int8 expects exactly
 one `*-encoder.int8.onnx`, `*-decoder.int8.onnx`, `*-tokens.txt`; float32 uses
 `*-encoder.onnx`/`*-decoder.onnx` (ambiguous matches rejected). Empty files and
 `.en-` names rejected. from_whisper(language='uk',task='transcribe',provider='cpu');
@@ -537,7 +537,7 @@ ARM64 runtime support does not prove Ukrainian accuracy, memory fit or RTF on Pi
 English-only tiny.en benchmarks are not evidence for this use case. No other
 language-specific ONNX family was selected without Ukrainian model evidence.
 
-Install requirements-edge.txt explicitly. Obtain/export a multilingual small
+sherpa-onnx is installed by requirements_<platform>.txt. Obtain/export a multilingual small
 model from the upstream instructions, placing `small-encoder.int8.onnx`,
 `small-decoder.int8.onnx`, `small-tokens.txt` inside
 `models/sherpa-onnx-whisper-small/`. Or configure another directory (absolute,
@@ -610,7 +610,7 @@ Do not upload recordings to the repository. Commands below use the local venv:
 
 ```bash
 python3 -m venv .venv
-.venv/bin/python -m pip install -r requirements.txt -r requirements-edge.txt
+.venv/bin/python -m pip install -r requirements_linux.txt
 .venv/bin/python tools/download_vosk_model.py
 .venv/bin/python tools/download_whisper_model.py --profile edge
 .venv/bin/python tester.py --probe stt_benchmark --allow-live --timeout 1800 -- --corpus logs/voice-corpus/ID --matrix testing/stt_matrix.json --candidates edge-small-onnx --device cpu --variant-timeout 1200

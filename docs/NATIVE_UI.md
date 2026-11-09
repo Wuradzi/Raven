@@ -9,22 +9,28 @@
 У вже налаштованому середовищі Raven:
 
 ```powershell
-python -m pip install -r requirements-native.txt
-python main.py --ui native
+python -m pip install -r requirements_win.txt  # або requirements_mac.txt / requirements_linux.txt (PySide6 входить)
+python main.py            # те саме, що --ui native: Native UI — режим за замовчуванням
 ```
 
 Якщо конфігурацію ще не створено, спочатку виконайте звичайний
 `python main.py --setup` у терміналі. Native UI не дублює майстер встановлення.
 Майстер-пароль наявного сховища вводиться в нативному діалозі, не в чаті.
-Відсутність Qt не заважає іншим режимам:
+Відсутність Qt не заважає іншим режимам. Без прапорця `--ui` запускається Native UI; консольні
+сценарії (`--text-only`, `--setup`, `--doctor`, `--diagnostics`, `--audio-test`, `--models`,
+`--smoke-live`) лишаються в консолі, `--web-ui` відкриває веб:
 
 ```powershell
-python main.py --ui native --text-only
+python main.py --ui native --text-only   # вікно без голосового введення
 python main.py --ui web
 python main.py --web-ui
 python main.py --ui headless
-python main.py --text-only
+python main.py --text-only               # консоль, як раніше
 ```
+
+Якщо Native UI вибрано неявно (без `--ui`), але PySide6 не встановлено або на Linux немає
+дисплея (`DISPLAY`/`WAYLAND_DISPLAY`), Raven повідомляє причину й продовжує в консолі
+(`--ui headless`). Явний `--ui native` у такому разі завершується помилкою (код 2).
 
 `--ui native` не запускає браузер, HTTP-сервер, WebEngine або HTML renderer.
 Qt встановлюється окремо; headless/Web не імпортують PySide6.

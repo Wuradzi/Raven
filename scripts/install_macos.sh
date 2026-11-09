@@ -7,6 +7,8 @@
 #
 # Usage: scripts/install_macos.sh [--install-brew-deps] [--with-whisper] [--with-native-ui]
 #                                 [--with-vision] [--check-only]
+# --with-whisper / --with-native-ui / --with-vision are accepted but no longer needed:
+# requirements_mac.txt installs every module.
 # Python override: RAVEN_PYTHON=/path/to/python3.12 scripts/install_macos.sh
 set -euo pipefail
 
@@ -90,10 +92,8 @@ if [ "$CHECK_ONLY" = 0 ]; then
     say ".venv уже є — використовую його."
   fi
   .venv/bin/python -m pip install --upgrade pip
-  .venv/bin/python -m pip install -r requirements-macos.txt
-  [ "$WITH_WHISPER" = 0 ] || .venv/bin/python -m pip install -r requirements-whisper.txt
-  [ "$WITH_NATIVE_UI" = 0 ] || .venv/bin/python -m pip install -r requirements-native.txt
-  [ "$WITH_VISION" = 0 ] || .venv/bin/python -m pip install -r requirements-optional.txt
+  # One file installs everything (core, Groq, pyobjc, Qt, Whisper, sherpa-onnx, vision, extra LLMs).
+  .venv/bin/python -m pip install -r requirements_mac.txt
 fi
 
 # --- 4. Local config and .env (never overwritten) ---------------------------

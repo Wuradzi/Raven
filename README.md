@@ -15,9 +15,9 @@ Raven — співрозмовник із локальним або опційн
 
 ## Навігація
 
-**Новий опційний Native UI:** `python -m pip install -r requirements-native.txt`,
-потім `python main.py --ui native`. Це Qt Widgets без браузера.
-Web і headless залишаються доступними. [Встановлення, функції та ARM64-обмеження](docs/NATIVE_UI.md).
+**Новий опційний Native UI:** `python -m pip install -r requirements_win.txt` (або `_mac` / `_linux`: один файл ставить усі залежності, зокрема PySide6),
+потім `python main.py` (Native UI — режим за замовчуванням). Це Qt Widgets без браузера.
+Консоль (`--ui headless`, `--text-only`) і веб (`--ui web`) залишаються доступними; без PySide6 або дисплея Raven сам переходить у консоль. [Встановлення, функції та ARM64-обмеження](docs/NATIVE_UI.md).
 
 - [1. Можливості й обмеження](#1-можливості-й-обмеження)
 - [2. Що потрібно для запуску](#2-що-потрібно-для-запуску)

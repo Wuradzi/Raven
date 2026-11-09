@@ -3,6 +3,8 @@ from __future__ import annotations
 import argparse
 import asyncio
 import logging
+import os
+import sys
 from pathlib import Path
 
 from config import ConfigError, load_settings
@@ -28,7 +30,7 @@ def parse_args() -> argparse.Namespace:
     parser.add_argument("--setup", action="store_true")
     parser.add_argument("--web-ui", action="store_true", help="Локальний вебінтерфейс")
     parser.add_argument('--ui', choices=('native', 'web', 'headless'), default=None,
-                        help='Інтерфейс: Qt Widgets, браузер або консоль')
+                        help='Інтерфейс: Qt Widgets (за замовчуванням), браузер або консоль')
     parser.add_argument("--web-port", type=int, default=0, help="Порт UI; 0 — вільний порт")
     parser.add_argument("--no-browser", action="store_true", help="Не відкривати UI автоматично")
     parser.add_argument(
@@ -39,8 +41,27 @@ def parse_args() -> argparse.Namespace:
     args = parser.parse_args()
     if args.web_ui and args.ui in {'native', 'headless'}:
         parser.error('--web-ui не поєднується з --ui native/headless')
+    args.ui_explicit = args.ui is not None
+    if args.ui is None:
+        args.ui = _default_ui(args)
     args.web_ui = args.web_ui or args.ui == 'web'
     return args
+
+
+def _default_ui(args: argparse.Namespace) -> str:
+    """Native Qt window by default; console flows (--text-only, --setup, maintenance) stay in the CLI."""
+    if args.web_ui:
+        return 'web'
+    console_flow = args.text_only or args.setup or any(
+        getattr(args, name) for name in ('doctor', 'diagnostics', 'audio_test', 'models', 'smoke_live'))
+    return 'headless' if console_flow else 'native'
+
+
+def _native_unavailable_reason() -> str:
+    """Why an implicitly selected native UI cannot start here (empty string: no known obstacle)."""
+    if sys.platform.startswith('linux') and not (os.environ.get('DISPLAY') or os.environ.get('WAYLAND_DISPLAY')):
+        return 'немає графічного дисплея (DISPLAY/WAYLAND_DISPLAY)'
+    return ''
 
 
 def unlock_vault(settings, password_prompt=console_getpass) -> SecretStore:
@@ -152,6 +173,26 @@ async def async_main(args=None, native_bridge=None) -> int:
         instance.release()
 
 
+def _load_native(args: argparse.Namespace):
+    """Native runner, None to continue in the console, False when an explicit --ui native cannot start."""
+    if getattr(args, 'ui', None) != 'native':
+        return None
+    explicit = getattr(args, 'ui_explicit', True)
+    reason = '' if explicit else _native_unavailable_reason()
+    if not reason:
+        try:
+            from native_ui.runtime import run_native
+            return run_native
+        except ImportError:
+            reason = 'не встановлено PySide6 (python -m pip install -r requirements_<платформа>.txt: win/mac/linux)'
+    if explicit:
+        console_print('Native UI недоступний: ' + reason)
+        return False
+    console_print('Native UI недоступний: ' + reason + '. Запускаю консольний режим (--ui headless).')
+    args.ui = 'headless'
+    return None
+
+
 def main() -> int:
     args = parse_args()
     if any(getattr(args, name) for name in ('doctor', 'diagnostics', 'audio_test', 'models', 'smoke_live')):
@@ -168,15 +209,13 @@ def main() -> int:
             from core.log_retention import prune_quietly, prune_sessions
             prune_quietly(prune_sessions, Path(__file__).resolve().parent)
             try:
-                if getattr(args, 'ui', None) == 'native':
-                    try:
-                        from native_ui.runtime import run_native
-                    except ImportError:
-                        console_print('Native UI потребує PySide6: python -m pip install -r requirements-native.txt')
-                        return 2
-                    exit_code = run_native(lambda bridge: async_main(args, bridge))
-                else:
+                run_native = _load_native(args)
+                if run_native is None:
                     exit_code = asyncio.run(async_main(args))
+                elif run_native is False:
+                    return 2
+                else:
+                    exit_code = run_native(lambda bridge: async_main(args, bridge))
             except KeyboardInterrupt:
                 logging.getLogger("session.lifecycle").info("Shutdown requested: Ctrl+C")
                 console_print("\nRaven завершено.")

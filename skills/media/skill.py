@@ -3,7 +3,7 @@ from __future__ import annotations
 import asyncio
 
 try:
-    import pyautogui  # Windows only (requirements-desktop.txt); macOS uses services.platform.macos
+    import pyautogui  # Windows only (requirements_win.txt); macOS uses services.platform.macos
 except ImportError:
     pyautogui = None
 

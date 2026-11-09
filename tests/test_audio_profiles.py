@@ -95,7 +95,7 @@ class DeploymentProfileTests(unittest.TestCase):
         backend = SherpaOnnxBackend(self.settings, p)
         ok, detail = backend.prepare()
         self.assertFalse(ok)
-        for part in ('edge', 'sherpa-onnx', 'requirements-edge.txt', 'docs/STT_BACKENDS.md'):
+        for part in ('edge', 'sherpa-onnx', 'requirements_<platform>.txt', 'docs/STT_BACKENDS.md'):
             self.assertIn(part, detail)
 
     def test_edge_adapter_forces_uk_cpu_with_local_files(self):

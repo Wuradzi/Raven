@@ -33,8 +33,10 @@ main.py
 main_text.py
 models/.gitkeep
 requirements-dev.txt
-requirements-optional.txt
-requirements.txt
+requirements-ci.txt
+requirements_linux.txt
+requirements_mac.txt
+requirements_win.txt
 services/__init__.py
 services/apps/__init__.py
 services/apps/controller.py

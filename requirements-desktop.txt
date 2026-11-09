@@ -1,2 +1,0 @@
-PyGetWindow>=0.0.9; platform_system == "Windows"
-pyautogui>=0.9.54; platform_system == "Windows"

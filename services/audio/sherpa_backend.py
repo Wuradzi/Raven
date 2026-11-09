@@ -55,7 +55,7 @@ class SherpaOnnxBackend:
                 return True, 'experimental; confidence unavailable, voice ACTION disabled'
             except Exception as exc:
                 self.last_error = (f'profile={self.profile.name} backend=sherpa-onnx model={self.profile.model}: '
-                    f'{type(exc).__name__}: {exc}; install requirements-edge.txt and prepare files as in docs/STT_BACKENDS.md')
+                    f'{type(exc).__name__}: {exc}; install sherpa-onnx (listed in requirements_<platform>.txt) and prepare files as in docs/STT_BACKENDS.md')
                 return False, self.last_error
             finally:
                 logger.info('stt.model_load backend=sherpa-onnx ms=%.1f', (time.perf_counter() - started) * 1000)

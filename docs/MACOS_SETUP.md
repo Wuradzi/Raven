@@ -52,9 +52,9 @@ brew install python@3.12 portaudio
 - Усе основне (`numpy`, `psutil`, `rapidfuzz`, `sounddevice`, `lxml`, `pyobjc-*`) має
   колеса macOS для arm64; для Intel — `numpy`, `psutil`, `rapidfuzz`, `lxml`, `sounddevice`, `ctranslate2`.
 - **vosk**: 0.3.45 не має macOS-колеса, тому для macOS закріплено `vosk==0.3.44`
-  (universal2). У `requirements.txt` це зроблено маркерами — Windows не змінено.
+  (universal2). У `requirements_mac.txt` закріплено `vosk==0.3.44`; Windows і Linux мають свої файли.
 - **cryptography ≥ 49** має macOS-колеса лише arm64, тому для Intel Mac
-  `requirements-macos.txt` обмежує версію `<49`.
+  `requirements_mac.txt` обмежує версію `<49`.
 - **onnxruntime** (залежність `faster-whisper`): найновіші колеса лише Apple Silicon, macOS 14+;
   на Intel pip шукатиме старішу версію. Локальний Whisper на Mac необов'язковий — основний STT
   зараз Groq. Якщо його не ставите, `stt.backend` залишайте `groq`/`auto` і не вмикайте Whisper.
@@ -79,7 +79,7 @@ bash scripts/install_macos.sh
 ```bash
 python3.12 -m venv .venv
 .venv/bin/python -m pip install --upgrade pip
-.venv/bin/python -m pip install -r requirements-macos.txt
+.venv/bin/python -m pip install -r requirements_mac.txt
 [ -f config.json ] || cp config.example.json config.json
 [ -f .env ] || cp .env.example .env
 ```

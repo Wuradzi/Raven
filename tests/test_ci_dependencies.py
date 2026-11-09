@@ -17,7 +17,8 @@ class CIDependencyTests(unittest.TestCase):
             self.assertIsNotNone(match, line)
             self.assertNotIn(match[1], names)
             names.add(match[1])
-        for line in (ROOT / 'requirements.txt').read_text().splitlines():
+        core = (ROOT / 'requirements_win.txt').read_text().split('# ---- optional modules')[0]
+        for line in core.splitlines():
             if line.strip() and not line.startswith('#'):
                 name = re.match(r'[\w-]+', line)[0].lower().replace('_', '-')
                 self.assertIn(name, names)
@@ -29,7 +30,7 @@ class CIDependencyTests(unittest.TestCase):
     def test_ci_consumes_snapshot_and_checks_consistency(self):
         requirements = (ROOT / 'requirements-ci.txt').read_text()
         self.assertIn('-c constraints-windows-py312.txt', requirements)
-        self.assertIn('-r requirements.txt', requirements)
+        self.assertIn('-r requirements_win.txt', requirements)
         workflow = (ROOT / '.github/workflows/ci.yml').read_text()
         for command in ('pip install -r requirements-ci.txt', 'pip check',
                         'python tester.py --all --verbose', 'python -m ruff check .'):
