@@ -122,6 +122,31 @@ whisper-тестів у Windows CI — faster-whisper не в `requirements-ci.t
 - `docs/README.md` лишається локальним навігатором; публічні правила — `DEVELOPMENT_RULES.md`.
 - Базову лінію храповика оновлювати лише після спрощення; числа — ruff/mccabe, не radon.
 
+## macOS — стан на 08.11.2026 (коміт e560a13; НЕ перевірено на реальному Mac)
+
+Окремий датований блок: решта цього файлу — знімок 30.10.2026. Покрокова інструкція,
+дозволи й обмеження — [docs/MACOS_SETUP.md](docs/MACOS_SETUP.md).
+
+- **Готово (код і mock-тести на Windows):** `services/platform/macos.py` (open/`open -a`, `say`,
+  `afplay`, osascript гучність і блокування, Quartz медіаклавіші, `screencapture`),
+  `macos_permissions.py` (лише читання дозволів), Darwin у `resolver.py`, спільний
+  `manifest_platform_matches` (значення `darwin`, псевдоніми `macos`/`mac`), індекс `.app`,
+  `requirements-macos.txt`, `scripts/install_macos.sh`, `scripts/run_macos.sh`, `tools/macos_check.py`,
+  `tests/test_macos_support.py` (48 тестів з підставними викликами).
+- **Вимкнено на macOS через `platforms` у маніфестах:** навички `windows` (вікна, Win+D, процеси)
+  і `workplace`. Вимкнення комп'ютера на macOS — unsupported (потрібен sudo). Не вмикати без
+  безпечної реалізації й перевірки на Mac.
+- **Залежності:** `vosk==0.3.44` на macOS (0.3.45 не має macOS-колеса); на Intel `cryptography<49`;
+  `pywin32`, `PyGetWindow`, `pyautogui`, `pyttsx3` лише для Windows (маркери). Колеса перевірено
+  за метаданими PyPI, не встановленням.
+- **НЕ перевірено:** `say` і голос Lesya, `afplay`, osascript, Quartz-клавіші, `screencapture`,
+  Vosk 0.3.44, дозволи (Мікрофон / Універсальний доступ / Запис екрана), native UI, Apple Silicon
+  і Intel окремо. Потрібен ручний smoke-тест за чекліст у MACOS_SETUP.md; результат записувати як
+  користувацький тест, не як mock.
+- **Контракти не змінено:** довіра до STT, підтвердження, «запит передано ≠ виконано» (медіа, блокування
+  і знімок відповідають «надіслано», `verified: false`). Windows-поведінку не змінювати: Windows-тести мають
+  лишатися зеленими.
+
 ## Продукт і пріоритети
 
 Raven (Рейвен) — українськомовний голосовий співрозмовник із контрольованими
@@ -234,7 +259,7 @@ Native UI, попередня переробка Web UI, інструкції Cl
 - [Архітектура](docs/ARCHITECTURE.md)
 - [Тести](docs/TESTING.md)
 - [STT](docs/STT_BACKENDS.md), [Groq](docs/GROQ_STT.md)
-- [Linux](docs/LINUX_RUNTIME.md)
+- [Linux](docs/LINUX_RUNTIME.md), [macOS](docs/MACOS_SETUP.md)
 - [Користування](docs/USER_GUIDE.md)
 
 Приватні journal/roadmap/evidence документи навмисно ігноруються Git, крім
