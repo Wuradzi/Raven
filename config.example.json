@@ -21,6 +21,7 @@
     "primary_device": "auto",
     "primary_local_files_only": true,
     "fallback_backend": "none",
+    "local_fallback": {"enabled": false, "max_consecutive": 5},
     "primary_timeout_ms": 60000,
     "pcm_short_silence_ms": 700,
     "pcm_long_silence_ms": 1600,

@@ -22,14 +22,12 @@ class DiagnosticsService:
     def __init__(
         self,
         settings,
-        secret_store,
         listener,
         speaker,
         llm,
         pentest,
     ):
         self.settings = settings
-        self.secret_store = secret_store
         self.listener = listener
         self.speaker = speaker
         self.llm = llm
@@ -71,14 +69,6 @@ class DiagnosticsService:
         self._check_storage(checks)
         self._add(
             checks,
-            "secret-store",
-            not self.secret_store.exists or self.secret_store.unlocked,
-            "розблоковано"
-            if self.secret_store.unlocked
-            else "сховище відсутнє або заблоковане",
-        )
-        self._add(
-            checks,
             "pentest-engine",
             self.pentest.enabled,
             "доступний" if self.pentest.enabled else "вимкнений у конфігурації",
@@ -102,22 +92,6 @@ class DiagnosticsService:
             "llm:any",
             bool(available_llms),
             ", ".join(available_llms) if available_llms else "немає доступних провайдерів",
-        )
-        recovery_file = self.settings.paths.project_root / "RECOVERY_KEY.txt"
-        self._add(
-            checks,
-            "recovery-key-local-copy",
-            not recovery_file.exists(),
-            (
-                "локальної копії немає"
-                if not recovery_file.exists()
-                else (
-                    "RECOVERY_KEY.txt лежить поруч зі сховищем і відкриває його без пароля: "
-                    "перенесіть ключ у менеджер паролів або на окремий носій і видаліть файл"
-                )
-            ),
-            required=False,
-            severity="warning",
         )
 
         report = {

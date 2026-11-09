@@ -125,7 +125,7 @@ def doctor(root, *, probe_audio=False, test_tts=True):
     rows.extend(audio)
     tts = tts_self_test(settings) if test_tts else check('TTS', 'NOT_TESTED', 'synthesis not requested')
     rows.append(tts)
-    # Presence only, never unlock the vault or issue healthcheck requests.
+    # Presence only, never issue healthcheck requests.
     from dotenv import dotenv_values
     keys = dotenv_values(settings.paths.env_file) if settings.paths.env_file.exists() else {}
     selected = profile.backend == 'groq'
@@ -137,5 +137,5 @@ def doctor(root, *, probe_audio=False, test_tts=True):
         key = f'{provider.upper()}_API_KEY'
         present = bool(os.environ.get(key) or keys.get(key)) if provider != 'ollama' else bool(settings.llm_models.get(provider))
         rows.append(check(f'LLM {provider}', 'PASS' if present else 'WARN',
-                          'configuration present; health NOT_TESTED' if present else 'key/model absent or locked vault'))
+                          'configuration present; health NOT_TESTED' if present else 'key/model absent'))
     return rows, dict(system=system, platform=target, stt_status=stt, tts_status=tts, models=inventory)

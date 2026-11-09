@@ -1,11 +1,10 @@
 from __future__ import annotations
 
-import asyncio
 import re
 
-import pyperclip
-
 from core.models import SkillResult
+
+NO_PASSWORDS = "Raven не зберігає й не показує паролі. Скористайтеся менеджером паролів."
 
 
 def can_handle(command, services):
@@ -19,15 +18,8 @@ def can_handle(command, services):
     ))
 
 
-async def clear_clipboard_later(expected_value: str):
-    await asyncio.sleep(30)
-    if pyperclip.paste() == expected_value:
-        pyperclip.copy("")
-
-
 async def handle(command, context, services):
     memory = services["memory"]
-    secrets = services["secrets"]
     raw_command = getattr(context, "raw_text", "") or command
 
     if command.startswith("очисти пам"):
@@ -52,24 +44,7 @@ async def handle(command, context, services):
         return SkillResult(True, f"Видалено записів: {count}.", {"command_type": "memory_forget"})
 
     if "пароль від" in command and not command.startswith("запам"):
-        key = re.split(
-            r"пароль від",
-            raw_command,
-            maxsplit=1,
-            flags=re.IGNORECASE,
-        )[1].strip()
-        if not await context.confirm(f"доступ до пароля {key}"):
-            return SkillResult(True, "")
-        value = secrets.get(key)
-        if value is None:
-            return SkillResult(True, "Пароль не знайдено.")
-        pyperclip.copy(value)
-        asyncio.create_task(clear_clipboard_later(value))
-        return SkillResult(
-            True,
-            "Пароль скопійовано в буфер обміну на 30 секунд.",
-            {"command_type": "secret_read"},
-        )
+        return SkillResult(True, NO_PASSWORDS, {"command_type": "secret_unsupported"})
 
     if command.startswith("запам"):
         content = re.sub(
@@ -79,24 +54,7 @@ async def handle(command, context, services):
             flags=re.IGNORECASE,
         ).strip()
         if re.search(r"пароль від", content, re.IGNORECASE):
-            if context.source == "voice":
-                return SkillResult(
-                    True,
-                    "Секрети не приймаються голосом. Введіть цю команду текстом.",
-                    {"command_type": "secret_write_rejected"},
-                )
-            match = re.match(
-                r"пароль від\s+(.+?)\s+(?:це|:)\s+(.+)",
-                content,
-                re.IGNORECASE,
-            )
-            if not match:
-                return SkillResult(True, "Скажіть: запам'ятай пароль від сервісу це значення.")
-            key, value = match.groups()
-            if not await context.confirm(f"збереження пароля для {key}"):
-                return SkillResult(True, "")
-            secrets.set(key, value)
-            return SkillResult(True, "Секрет збережено.", {"command_type": "secret_write"})
+            return SkillResult(True, NO_PASSWORDS, {"command_type": "secret_unsupported"})
 
         match = re.match(
             r"(?:що\s+)?(.+?)\s+(?:це|:)\s+(.+)",

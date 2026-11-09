@@ -8,10 +8,9 @@ import sys
 from pathlib import Path
 
 from config import ConfigError, load_settings
-from core.console import console_getpass, console_print
+from core.console import console_print
 from core.logging_setup import SessionLogging, configure_logging
 from core.single_instance import SingleInstance
-from services.storage.secret_store import SecretStore
 
 
 class ConsoleArgumentParser(argparse.ArgumentParser):
@@ -64,33 +63,6 @@ def _native_unavailable_reason() -> str:
     return ''
 
 
-def unlock_vault(settings, password_prompt=console_getpass) -> SecretStore:
-    vault = SecretStore(settings.paths.data_dir / "secrets.json")
-    if not vault.exists:
-        return vault
-
-    for attempt in range(3):
-        password = password_prompt("Майстер-пароль Raven: ")
-        if vault.unlock_with_password(password):
-            print("[SECURITY] Сховище секретів розблоковано.")
-            return vault
-        console_print(f"Неправильний пароль. Спроба {attempt + 1}/3.")
-    console_print("Сховище лишається заблокованим.")
-    return vault
-
-
-def warn_local_recovery_copy(project_root: Path) -> bool:
-    """A recovery key beside data/secrets.json unlocks the vault without the password."""
-    if not (project_root / "RECOVERY_KEY.txt").exists():
-        return False
-    console_print(
-        "УВАГА: у папці проєкту є RECOVERY_KEY.txt. Будь-хто з доступом до папки "
-        "розшифрує сховище без майстер-пароля. Перенесіть ключ у менеджер паролів "
-        "або на окремий носій і видаліть цей файл."
-    )
-    return True
-
-
 async def async_main(args=None, native_bridge=None) -> int:
     args = args or parse_args()
     if not 0 <= args.web_port <= 65535:
@@ -123,10 +95,7 @@ async def async_main(args=None, native_bridge=None) -> int:
     if not instance.acquire():
         console_print("Raven вже запущений.")
         return 2
-    warn_local_recovery_copy(settings.paths.project_root)
-
     try:
-        vault = unlock_vault(settings, native_bridge.password) if native_bridge else unlock_vault(settings)
         if native_bridge is not None and native_bridge.closing.is_set():
             return 0
 
@@ -138,7 +107,7 @@ async def async_main(args=None, native_bridge=None) -> int:
         with performance.span("startup.app_imports"):
             from core.app import RavenApp
         with performance.span("startup.app_construct"):
-            app = RavenApp(settings, vault, text_only=args.text_only, performance=performance)
+            app = RavenApp(settings, text_only=args.text_only, performance=performance)
         try:
             if native_bridge is not None:
                 await native_bridge.attach(app)

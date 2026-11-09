@@ -2,12 +2,11 @@
 from __future__ import annotations
 
 import asyncio
-import concurrent.futures
 import logging
 import threading
 
 from PySide6.QtCore import QObject, QThread, Signal, Slot
-from PySide6.QtWidgets import QApplication, QInputDialog, QLineEdit
+from PySide6.QtWidgets import QApplication
 
 from native_ui.transport import NativeTransport
 
@@ -16,7 +15,6 @@ class Bridge(QObject):
     snapshot = Signal(object)
     result = Signal(object)
     failure = Signal(str)
-    password_needed = Signal(object)
 
     def __init__(self):
         super().__init__()
@@ -25,22 +23,7 @@ class Bridge(QObject):
         self.app = None
         self.root = None
         self.closing = threading.Event()
-        self.password_future = None
         self.jobs = set()
-
-    def password(self, prompt):
-        if self.closing.is_set():
-            return ''
-        future = concurrent.futures.Future()
-        self.password_future = future
-        self.password_needed.emit((prompt, future))
-        try:
-            value = future.result()
-            from core.logging_setup import register_secret
-            register_secret(value)
-            return value
-        finally:
-            self.password_future = None
 
     async def attach(self, app):
         self.loop = asyncio.get_running_loop()
@@ -83,9 +66,6 @@ class Bridge(QObject):
     @Slot()
     def shutdown(self):
         self.closing.set()
-        future = self.password_future
-        if future is not None and not future.done():
-            future.set_result('')
         if self.loop and not self.loop.is_closed():
             self.loop.call_soon_threadsafe(self._cancel)
 
@@ -142,14 +122,6 @@ def run_native(factory):
     bridge.failure.connect(window.show_error)
     worker.finished.connect(window.core_finished)
 
-    def password_dialog(request):
-        prompt, future = request
-        if future.done():
-            return
-        password, accepted = QInputDialog.getText(window, 'Сховище Raven', prompt, QLineEdit.EchoMode.Password)
-        if not future.done():
-            future.set_result(password if accepted else '')
-    bridge.password_needed.connect(password_dialog)
     window.show()
     worker.start()
     try:

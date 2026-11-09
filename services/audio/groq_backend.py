@@ -29,14 +29,22 @@ def subtitle_hallucination(text):
 
 
 
+def _script_counts(text):
+    """Letter counts by script (uk / latin / other), never the text itself: shows why a short reply was rejected."""
+    letters = [c for c in text.casefold() if c.isalpha()]
+    uk = sum(c in 'абвгґдеєжзиіїйклмнопрстуфхцчшщьюя' for c in letters)
+    latin = sum('a' <= c <= 'z' for c in letters)
+    return f'uk={uk},latin={latin},other={len(letters) - uk - latin}'
+
+
 def _transcript_guard(text, error, contextual_name):
     """Error class for a transcript that must not reach the dialogue, else the given one."""
     if text and not error and subtitle_hallucination(text):
         logger.info('stt.hallucination_guard decision=reject chars=%s', len(text))
         return 'subtitle_hallucination'
     if text and not plausible_ukrainian(text) and not contextual_name:
-        logger.info('stt.language_guard decision=reject chars=%s words=%s foreign_cyrillic=%s',
-                    len(text), len(text.split()), any(c in text.casefold() for c in 'ыэёъ'))
+        logger.info('stt.language_guard decision=reject chars=%s words=%s foreign_cyrillic=%s scripts=%s',
+                    len(text), len(text.split()), any(c in text.casefold() for c in 'ыэёъ'), _script_counts(text))
         return 'non_ukrainian_transcript'
     if contextual_name:
         logger.info('stt.language_guard decision=accept reason=scoped_catalogue_name')
@@ -70,7 +78,7 @@ def plausible_ukrainian(text):
 class GroqBackend:
     def __init__(self, settings, profile):
         self.metadata = BackendMetadata('groq', profile.model, device='cloud', compute_type='remote')
-        # Match LLM providers: capture after vault unlock, before Core scrubs env.
+        # Match LLM providers: capture before Core scrubs env.
         self._key = settings.api_keys.get('groq', '')
         self._timeout = settings.stt_groq_timeout_seconds
         self._lock = threading.Lock()

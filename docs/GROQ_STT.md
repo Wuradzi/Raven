@@ -145,7 +145,28 @@ Profiles can also explicitly set backend=groq/model=one of the two model IDs.
 Selecting Groq means captured utterances are uploaded to Groq. See the provider's
 privacy/retention terms before sending personal speech. Doctor only checks local
 configuration: CONFIGURED / MISSING_KEY / NOT_SELECTED and LIVE_NOT_TESTED.
-A locked vault can appear as missing until unlocked; presence is not API health.
+Presence is not API health.
+
+## Local Vosk reserve during a Groq outage (09.11.2026, off by default)
+
+`stt.local_fallback` is a lazy, optional local reserve for when Groq itself is failing:
+
+```json
+"local_fallback": {"enabled": false, "max_consecutive": 5}
+```
+
+- Used only when `enabled` is `true` and Groq fails with `timeout`, `network`, `rate_limit` or `server`.
+  Not for a bad key, silence, a non-Ukrainian transcript or a hallucination guard rejection.
+- Vosk is **not** preloaded: nothing is loaded while Groq works. The small Ukrainian model must already
+  be in `stt.model_path` (`python tools/download_vosk_model.py`, explicit download); if it is missing the
+  user hears that the reserve is not ready and nothing is executed.
+- The reserve result is an ordinary Vosk result with Vosk's own confidence and goes through the usual trust
+  and confirmation policy. Groq stays primary: every turn tries Groq first.
+- At most `max_consecutive` reserve uses in a row; the user is told once when the reserve takes over, and once
+  when the limit is reached. The counter resets as soon as Groq answers again.
+- Journal: `stt.local_fallback engaged reason=… streak=… usable=…` and `cloud_recovered`.
+
+Status: offline/mock tests only; not verified against a real Groq outage or a real Vosk model on macOS.
 
 ## One explicitly selected WAV
 

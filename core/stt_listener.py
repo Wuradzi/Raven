@@ -16,6 +16,14 @@ from services.audio.pcm_capture import capture_pcm, sparse_activity
 
 logger = logging.getLogger(__name__)
 
+# Groq failures that justify the lazy local reserve: transport or service trouble, never a bad key or empty audio.
+CLOUD_OUTAGE_REASONS = frozenset({'timeout', 'network', 'rate_limit', 'server'})
+FALLBACK_NOTICES = {
+    'engaged': 'Хмарне розпізнавання недоступне, переходжу на локальне.',
+    'local_unavailable': 'Хмарне розпізнавання недоступне, а локальний резерв не готовий.',
+    'exhausted': 'Хмарне розпізнавання досі недоступне; локальний резерв вимкнено до його відновлення.',
+}
+
 
 class SpeechListener(VoskListener):
     def __init__(self, settings):
@@ -26,6 +34,8 @@ class SpeechListener(VoskListener):
                     self.profile.name, self.profile.backend, self.profile.model, self.profile.device,
                     self.profile.compute_type, self.capabilities.architecture, self.capabilities.platform)
         self.primary = None
+        self._cloud_outage_streak = 0
+        self._fallback_notice = None
         if self.profile.backend != 'vosk':
             self.primary = create_backend(settings, self.profile)
             if self.profile.backend == 'faster-whisper':
@@ -125,16 +135,12 @@ class SpeechListener(VoskListener):
             return RecognitionResult('', 0, 'interrupted')
         failed = (outcome != 'done' or result.recognition_unreliable or not result.text.strip() or not math.isfinite(result.confidence)
                   or (result.confidence_available and result.confidence < self.settings.stt_whisper_min_confidence))
+        reason = backend_failure_reason(outcome, self.primary)
+        self._note_primary_outcome(outcome, reason)  # Primary verdict only: a reserve result never resets the streak.
         if failed:
-            reason = backend_failure_reason(outcome, self.primary)
             logger.warning('stt.fallback reason=%s target=%s model=%s', reason,
                            self.settings.stt_fallback_backend, self.primary.metadata.model)
-            if self.settings.stt_fallback_backend == 'vosk' and self.profile.backend != 'groq':
-                try:
-                    result = self.vosk_backend.transcribe(capture.pcm, capture.sample_rate)
-                except Exception as exc:
-                    logger.warning('stt.fallback failed error=%s', type(exc).__name__)
-                    result = RecognitionResult('', 0, 'vosk')
+            result, failed = self._fallback_result(result, capture, reason)
         if self._cancelled():
             return RecognitionResult('', 0, 'interrupted')
         result.utterance_incomplete = QuietEndpoint.possible_fragment(result.text)
@@ -175,6 +181,57 @@ class SpeechListener(VoskListener):
                     result.engine, failed, capture.truncated,
                     elapsed / 1000 / max(.001, len(capture.pcm) / 2 / capture.sample_rate))
         return result
+
+    def take_notice(self):
+        """One user-facing notice about the local reserve (or None); reading clears it."""
+        key, self._fallback_notice = self._fallback_notice, None
+        return FALLBACK_NOTICES.get(key)
+
+    def _fallback_mode(self, reason):
+        if self.profile.backend != 'groq':
+            return 'legacy' if self.settings.stt_fallback_backend == 'vosk' else None
+        if not self.settings.stt_local_fallback_enabled or reason not in CLOUD_OUTAGE_REASONS:
+            return None
+        if self._cloud_outage_streak >= self.settings.stt_local_fallback_max_consecutive:
+            if self._cloud_outage_streak == self.settings.stt_local_fallback_max_consecutive:
+                self._cloud_outage_streak += 1  # Say it once, then stay silent until the cloud answers.
+                self._fallback_notice = 'exhausted'
+            return None
+        return 'cloud'
+
+    def _fallback_result(self, result, capture, reason):
+        """(result, failed): local Vosk reserve for the utterance the primary recognizer could not read.
+
+        The reserve loads lazily on first use, only while the cloud recognizer fails (and only if
+        stt.local_fallback.enabled); it never replaces Groq as the primary. The legacy non-cloud
+        fallback keeps its old rule: the reserve result still counts as unreliable.
+        """
+        mode = self._fallback_mode(reason)
+        if mode is None:
+            return result, True
+        try:
+            vosk_result = self.vosk_backend.transcribe(capture.pcm, capture.sample_rate)
+        except Exception as exc:
+            logger.warning('stt.fallback failed error=%s', type(exc).__name__)
+            vosk_result = RecognitionResult('', 0, 'vosk')
+            if mode == 'cloud':
+                self._fallback_notice = 'local_unavailable'
+        if mode == 'legacy':
+            return vosk_result, True
+        self._cloud_outage_streak += 1
+        if self._fallback_notice is None and self._cloud_outage_streak == 1:
+            self._fallback_notice = 'engaged'
+        failed = not vosk_result.text.strip() or not math.isfinite(vosk_result.confidence)
+        logger.info('stt.local_fallback engaged reason=%s streak=%s usable=%s',
+                    reason, self._cloud_outage_streak, not failed)
+        return vosk_result, failed
+
+    def _note_primary_outcome(self, outcome, reason):
+        """The cloud answered (even with silence or an unreadable utterance): the outage is over."""
+        answered = outcome == 'done' and reason not in CLOUD_OUTAGE_REASONS
+        if self.profile.backend == 'groq' and answered and self._cloud_outage_streak:
+            logger.info('stt.local_fallback cloud_recovered streak=%s', self._cloud_outage_streak)
+            self._cloud_outage_streak = 0
 
     def close(self):
         super().close()

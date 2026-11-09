@@ -3,11 +3,11 @@ from __future__ import annotations
 from core.console import console_print as print
 
 
-async def run_diagnostics(settings, secret_store) -> int:
+async def run_diagnostics(settings) -> int:
     from core.app import RavenApp
 
     print("=== Діагностика Raven ===")
-    app = RavenApp(settings, secret_store, text_only=False)
+    app = RavenApp(settings, text_only=False)
     await app.speaker.start()
     try:
         summary, report = await app.services["diagnostics"].run()

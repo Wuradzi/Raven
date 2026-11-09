@@ -76,7 +76,7 @@ def main() -> int:
         return 2
     if args.check:
         modules = ('dotenv', 'psutil', 'rapidfuzz', 'cryptography', 'httpx', 'numpy', 'vosk', 'sounddevice',
-                   'ddgs', 'dateparser', 'send2trash', 'pyperclip', 'google.genai', 'groq')
+                   'ddgs', 'dateparser', 'send2trash', 'google.genai', 'groq')
         missing = []
         for module in modules:
             try:

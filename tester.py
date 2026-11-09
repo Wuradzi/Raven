@@ -37,9 +37,9 @@ GROUPS = {
         "interaction", "router", "skill_loader", "command_intent", "task_context", "phrase_corpus", "dialogue_context", "knowledge_gap", "live_fixes_memory")),
     "files": ("Файли та вибір результату", ("task_context",)),
     "storage": ("Пам'ять, нагадування та сховище", (
-        "atomic_json", "memory_store", "reminder_store", "secret_store", "knowledge_base", "knowledge_import")),
+        "atomic_json", "memory_store", "reminder_store", "knowledge_base", "knowledge_import", "no_passwords", "ui_confirmation_logging", "local_stt_fallback")),
     "security": ("Секрети та обмеження виконання", (
-        "security", "secret_store", "single_instance", "command_intent", "task_context")),
+        "security", "single_instance", "command_intent", "task_context")),
     "web": ("Пошук і погода — тестові відповіді", ("web_voice",)),
     "performance": ("Метрики та профілі швидкодії", (
         "performance", "turn_timing", "audio_blocks", "whisper_comparison")),

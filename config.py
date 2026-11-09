@@ -62,6 +62,8 @@ class Settings:
     stt_primary_device: str = "auto"
     stt_primary_local_files_only: bool = True
     stt_fallback_backend: str = "none"
+    stt_local_fallback_enabled: bool = False  # Lazy Vosk reserve for a Groq outage; off by default.
+    stt_local_fallback_max_consecutive: int = 5
     stt_primary_timeout_ms: int = 60000
     stt_pcm_short_silence_ms: int = 700
     stt_pcm_long_silence_ms: int = 1600
@@ -162,6 +164,7 @@ def default_config(*, fresh: bool = True) -> dict[str, Any]:
             "primary_device": "auto",
             "primary_local_files_only": True,
             "fallback_backend": "none",
+            "local_fallback": {"enabled": False, "max_consecutive": 5},
             "primary_timeout_ms": 60000,
             "pcm_short_silence_ms": 700,
             "pcm_long_silence_ms": 1600,
@@ -263,6 +266,17 @@ def _deep_merge(base: dict[str, Any], custom: dict[str, Any]) -> dict[str, Any]:
         else:
             result[key] = value
     return result
+
+
+def _validate_local_fallback(section) -> None:
+    """stt.local_fallback: lazy local Vosk reserve used only while the cloud recognizer is failing."""
+    if not isinstance(section, dict) or set(section) - {'enabled', 'max_consecutive'}:
+        raise ConfigError('stt.local_fallback: об’єкт з enabled і max_consecutive')
+    if type(section.get('enabled')) is not bool:
+        raise ConfigError('stt.local_fallback.enabled має бути boolean')
+    limit = section.get('max_consecutive')
+    if type(limit) is not int or not 1 <= limit <= 50:
+        raise ConfigError('stt.local_fallback.max_consecutive має бути 1..50')
 
 
 def merge_config(custom: dict[str, Any]) -> dict[str, Any]:
@@ -382,6 +396,7 @@ def _validate_stt_runtime(stt: dict[str, Any]) -> None:
         raise ConfigError('stt.primary_device: auto, cpu або cuda')
     if stt['fallback_backend'] not in {'none', 'vosk'}:
         raise ConfigError('stt.fallback_backend: none або vosk')
+    _validate_local_fallback(stt['local_fallback'])
     if type(stt['primary_local_files_only']) is not bool:
         raise ConfigError('stt.primary_local_files_only має бути boolean')
     if type(stt['utterance_max_seconds']) is not int or not 15 <= stt['utterance_max_seconds'] <= 60:
@@ -578,6 +593,8 @@ def load_settings(profile_override: str | None = None, *, read_only=False, root=
         stt_primary_device=config['stt']['primary_device'],
         stt_primary_local_files_only=config['stt']['primary_local_files_only'],
         stt_fallback_backend=config['stt']['fallback_backend'],
+        stt_local_fallback_enabled=config['stt']['local_fallback']['enabled'],
+        stt_local_fallback_max_consecutive=config['stt']['local_fallback']['max_consecutive'],
         stt_primary_timeout_ms=config['stt']['primary_timeout_ms'],
         stt_pcm_short_silence_ms=config['stt']['pcm_short_silence_ms'],
         stt_pcm_long_silence_ms=config['stt']['pcm_long_silence_ms'],

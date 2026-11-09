@@ -80,9 +80,9 @@ class PiFindingsTests(unittest.TestCase):
              patch('setup_wizard.choose_device', return_value=None), \
              patch('setup_wizard.calibrate_microphone', return_value=.02), \
              patch('builtins.input', return_value=''), patch('setup_wizard.console_getpass', return_value=''), \
-             patch('setup_wizard.SecretStore') as vault, patch('setup_wizard.subprocess.run'):
-            vault.return_value.exists = True
+             patch('setup_wizard.subprocess.run'):
             run_first_start_wizard(self.root)
+        self.assertFalse((self.root / 'data' / 'secrets.json').exists())
         config = json.loads((self.root / 'config.json').read_text(encoding='utf-8'))
         self.assertEqual(config['performance']['profile'], 'raspberry_pi')
 

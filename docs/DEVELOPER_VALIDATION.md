@@ -52,7 +52,7 @@ No real Pi STT/TTS winner has been selected; production voice defaults are uncha
 | `python main.py --smoke-live` | Інтерактивний мікрофон, natural STT, transcript команди, constrained «так»/«ні», TTS і локальний contextual proposal dry-run. |
 | `python main.py --diagnostics` | Локальний знеособлений каталог і ZIP у `logs/diagnostics/`. Нічого не надсилає. |
 
-Doctor не змінює config, не розблоковує vault і не викликає LLM. Перевірка
+Doctor не змінює config і не викликає LLM. Перевірка
 прав доступу до директорій — лише `os.access`, не доказ успішного запису.
 Без `--probe-audio` він не перевіряє сигнал мікрофона. Наявність output device
 не доводить чутність звуку. Кеш перевіряється за файлами, не повним inference.

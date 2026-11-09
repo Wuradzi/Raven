@@ -17,7 +17,6 @@ httpx>=0.28
 ddgs>=9.0
 dateparser>=1.2
 send2trash>=1.8
-pyperclip>=1.9
 google-genai>=2.3.0
 # Groq: main cloud STT and LLM provider (stt.backend "groq"); required, not optional.
 groq>=0.30

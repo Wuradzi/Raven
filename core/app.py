@@ -43,8 +43,13 @@ from services.platform import resolve_platform
 logger = logging.getLogger(__name__)
 
 
+def _confidence_label(result, unavailable: str = 'n/a') -> str:
+    """Show a score only when the engine produced one; never print a made-up 0.00 (cloud STT)."""
+    return f'{result.confidence:.2f}' if result.confidence_available else unavailable
+
+
 class RavenApp:
-    def __init__(self, settings, secret_store, text_only: bool = False, *, performance=None):
+    def __init__(self, settings, text_only: bool = False, *, performance=None):
         self.settings = settings
         self.platform = resolve_platform()
         self.text_only = text_only
@@ -98,7 +103,6 @@ class RavenApp:
         services = {
             "memory": memory,
             "knowledge": knowledge,
-            "secrets": secret_store,
             "notes": notes,
             "reminders": reminders,
             "app_indexer": app_indexer,
@@ -124,7 +128,6 @@ class RavenApp:
         }
         services["diagnostics"] = DiagnosticsService(
             settings,
-            secret_store,
             self.listener,
             self.speaker,
             self.llm,
@@ -445,8 +448,8 @@ class RavenApp:
                                 recognition_reason(result), confirmation_id[:8] if confirmation_id else 'none',
                                 result.confidence_available)
                     decision = ConfirmationService._decision(result.text, reply_confidence)
-                    logger.info("confirmation_voice recognized=%r engine=%s confidence=%.3f semantic=%s request=%s",
-                                redact_user_text(result.text), result.engine, result.confidence,
+                    logger.info("confirmation_voice recognized=%r engine=%s confidence=%s semantic=%s request=%s",
+                                redact_user_text(result.text), result.engine, _confidence_label(result),
                                 'confirm' if decision is True else 'deny' if decision is False else 'unknown',
                                 confirmation_id[:8] if confirmation_id else 'none')
                     if result.text:
@@ -455,7 +458,7 @@ class RavenApp:
                         safe_text = redact_user_text(result.text)
                         print(
                             f"[CONFIRM VOICE/{result.engine} "
-                            f"{result.confidence:.2f}] {safe_text}"
+                            f"{_confidence_label(result)}] {safe_text}"
                         )
                         if self.confirmation.submit(result.text, confirmation_id, confidence=reply_confidence):
                             await self.confirmation.wait_until_response_processed()
@@ -465,6 +468,7 @@ class RavenApp:
                     15.0,
                     None,
                 )
+                await self._announce_stt_notice()
                 if result.engine == "conflict":
                     await self.speaker.say(
                         "Розпізнавачі не погодилися щодо фрази. Повторіть прохання, будь ласка; нічого не виконано."
@@ -475,7 +479,7 @@ class RavenApp:
                     logger.info('voice_input_discarded reason=%s engine=%s', recognition_reason(result), result.engine)
                     continue
 
-                confidence_label = f'{result.confidence:.2f}' if result.confidence_available else 'unscored'
+                confidence_label = _confidence_label(result, 'unscored')
                 print(
                     f"[VOICE/{result.engine} {confidence_label}] "
                     f"{redact_user_text(result.text)}"
@@ -511,6 +515,16 @@ class RavenApp:
                 logger.exception("Voice loop failed")
                 console_print("Помилка мікрофона. Подробиці — у журналі сесії.")
                 await asyncio.sleep(1)
+
+    async def _announce_stt_notice(self) -> None:
+        """Tell the user once when the local STT reserve takes over (or runs out) during a cloud outage."""
+        take = getattr(getattr(self, "listener", None), "take_notice", None)
+        notice = take() if callable(take) else None
+        if notice:
+            print(f"[STT] {notice}")
+            if self.web_ui is not None:
+                self.web_ui.publish("notice", notice)
+            await self.speaker.say(notice)
 
     async def _listen_for_turn(self, timeout, grammar):
         if not self.microphone_enabled:
@@ -789,8 +803,12 @@ class RavenApp:
             if (not self.confirmation.awaiting
                     or data.get("request_id") != self.confirmation.request_id
                     or type(data.get("accept")) is not bool):
+                logger.info("confirmation_button outcome=rejected reason=stale_or_invalid")
                 return 409, {"error": "Це підтвердження вже неактивне."}
             answer = "так" if data["accept"] else "ні"
+            # Outcome and request prefix only; never the dialog text.
+            logger.info("confirmation_button outcome=%s source=ui request=%s",
+                        "confirm" if data["accept"] else "deny", str(data["request_id"])[:8])
             self.confirmation.submit(answer, data["request_id"])
             self.web_ui.publish("user", answer, source="text")
         elif action == "microphone":

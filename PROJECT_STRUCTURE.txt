@@ -59,7 +59,6 @@ services/storage/__init__.py
 services/storage/memory_store.py
 services/storage/notes_store.py
 services/storage/reminder_store.py
-services/storage/secret_store.py
 services/update_checker.py
 services/web/__init__.py
 services/web/search.py
@@ -101,7 +100,5 @@ tests/test_interaction.py
 tests/test_memory_store.py
 tests/test_pentest.py
 tests/test_router.py
-tests/test_secret_store.py
 tools/download_vosk_model.py
-tools/recover_vault.py
 version.py

@@ -121,6 +121,22 @@ class GroqSTTTests(unittest.TestCase):
             self.assertTrue(result.recognition_unreliable)
             self.assertEqual(self.backend.last_error, 'non_ukrainian_transcript')
 
+    def test_language_guard_logs_script_counts_but_never_the_text(self):
+        self.response({'text': 'Okay.'})
+        with self.assertLogs('services.audio.groq_backend', 'INFO') as logs:
+            self.backend.transcribe(bytes(3200), 16000)
+        line = ' '.join(logs.output)
+        self.assertIn('stt.language_guard decision=reject chars=5', line)
+        self.assertIn('scripts=uk=0,latin=4,other=0', line)
+        self.assertNotIn('Okay', line)
+
+    def test_short_ukrainian_confirmations_pass_the_language_guard(self):
+        for text in ('так', 'Так.', 'Так!', 'ні', 'Ні.', 'так так'):
+            self.response({'text': text})
+            result = self.backend.transcribe(bytes(3200), 16000)
+            self.assertEqual(result.text, text)
+            self.assertFalse(result.recognition_unreliable)
+
     def test_subtitle_hallucination_is_discarded_without_authority(self):
         # Live test 06.11.2026: «Дякую за перегляд!» on silence in 6 of 39 turns.
         for text in ('Дякую за перегляд!', 'дякую за перегляд', 'Продовження слідує...'):
