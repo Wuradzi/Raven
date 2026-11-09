@@ -4,6 +4,7 @@ No confirmation: media keys, show desktop, switching to a window. Correlated
 confirmation: closing a window, locking the screen, a screenshot. Damaged speech
 reaches none of them (tests/test_turn_pipeline_snapshot.py).
 """
+import importlib.util
 import tempfile
 import unittest
 from pathlib import Path
@@ -74,7 +75,12 @@ class ValidationTests(unittest.TestCase):
                          "Перейти до вікна «Telegram»?")
 
 
+# pyautogui exists only on Windows (requirements_win.txt); macOS and Linux have their own paths and tests.
+WINDOWS_ONLY = unittest.skipUnless(importlib.util.find_spec('pyautogui'), 'pyautogui is Windows-only')
+
+
 class ExecutorTests(unittest.IsolatedAsyncioTestCase):
+    @WINDOWS_ONLY
     async def test_media_key_runs_without_confirmation_and_says_only_sent(self):
         ctx, confirm = context()
         with patch("skills.media.skill.pyautogui.press") as press:
@@ -85,6 +91,7 @@ class ExecutorTests(unittest.IsolatedAsyncioTestCase):
         self.assertIn("Надіслав", result.response)
         self.assertFalse(result.data["verified"])
 
+    @WINDOWS_ONLY
     async def test_show_desktop_runs_without_confirmation(self):
         ctx, confirm = context()
         with patch("pyautogui.hotkey") as hotkey:
@@ -103,6 +110,7 @@ class ExecutorTests(unittest.IsolatedAsyncioTestCase):
                 self.assertEqual(platform.system_action.called, accepted)
                 self.assertIn("заблоковано" if accepted else "скасовано", result.response)
 
+    @WINDOWS_ONLY
     async def test_screenshot_needs_confirmation_and_stays_local(self):
         with tempfile.TemporaryDirectory() as temp:
             folder = Path(temp) / "Raven"
@@ -164,6 +172,7 @@ class ExecutorTests(unittest.IsolatedAsyncioTestCase):
         self.assertIn("сховано", result.response)
         self.assertIn("треї", result.response)
 
+    @WINDOWS_ONLY
     async def test_disabled_skill_is_refused(self):
         ctx = CommandContext(SimpleNamespace(), {"enabled_skills": {"web"}}, AsyncMock(return_value=True), "voice")
         with patch("skills.media.skill.pyautogui.press") as press:

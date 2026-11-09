@@ -166,9 +166,9 @@ def run():
     worker.start()
     timer.start()
     deadline = time.monotonic()+3
-    while bridge.loop is None and time.monotonic() < deadline:
+    while (bridge.loop is None or bridge.transport is None) and time.monotonic() < deadline:
         QTest.qWait(10)
-    assert bridge.loop is not None
+    assert bridge.loop is not None and bridge.transport is not None
     bridge.submit({'action': 'stop'})
     deadline = time.monotonic()+3
     while not results and time.monotonic() < deadline:
