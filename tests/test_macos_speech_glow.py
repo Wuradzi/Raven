@@ -1,5 +1,4 @@
 """macOS speaker glow: real PCM levels from a shadow `say -o`, audible path untouched."""
-import struct
 import threading
 import unittest
 import wave
