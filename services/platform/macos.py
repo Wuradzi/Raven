@@ -209,6 +209,70 @@ def _say_argv(voice, rate, path=None):
     return argv + ['-f', '-']  # text on stdin: it can never be parsed as an option
 
 
+# Speaker glow on macOS. `say` plays straight to the speakers and exposes no PCM, so the level comes from a second,
+# low-priority `say -o` of the same phrase (real PCM of the same voice, not a fake animation). It is ready ~0.7 s
+# after the phrase starts; the frame is then picked by wall-clock time. GLOW_AUDIO_LATENCY_S is the approximate delay
+# between spawning the live `say` and its first sound. The audible path is untouched.
+GLOW_WINDOW_S = 0.05
+GLOW_AUDIO_LATENCY_S = 0.6
+GLOW_GAIN = 3.0
+
+
+def glow_frame(samples, rate, elapsed):
+    """(level 0..100, 32 values -100..100) for the 50 ms window at `elapsed` seconds, or None outside the audio."""
+    import numpy as np
+    start = int(elapsed * rate)
+    chunk = samples[max(0, start):max(0, start) + max(1, int(rate * GLOW_WINDOW_S))]
+    if elapsed < 0 or start >= len(samples) or len(chunk) == 0:
+        return None
+    scaled = chunk.astype(float) / 32768.0 * 100.0 * GLOW_GAIN
+    level = int(min(100, np.sqrt(np.mean(scaled ** 2))))
+    points = scaled[np.linspace(0, len(scaled) - 1, 32).astype(int)]
+    return level, [int(v) for v in np.clip(points, -100, 100)]
+
+
+def _read_wav_samples(path):
+    import wave
+    import numpy as np
+    with wave.open(str(path), 'rb') as wav:
+        if wav.getsampwidth() != 2 or wav.getnchannels() != 1:
+            raise ValueError('unexpected WAV format')
+        return np.frombuffer(wav.readframes(wav.getnframes()), dtype='<i2'), wav.getframerate()
+
+
+def _glow_meter(owner, text, voice, live, started):
+    """Feed owner._speech_audio from a shadow synthesis while the live `say` plays. Never raises, never blocks speech."""
+    import tempfile
+    shadow = None
+    try:
+        with tempfile.TemporaryDirectory(prefix='raven-glow-') as folder:
+            path = Path(folder) / 'glow.wav'
+            shadow = subprocess.Popen(['nice', '-n', '10', *_say_argv(voice, owner.settings.tts_rate, path)], shell=False,
+                                      stdin=subprocess.PIPE, stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL)
+            shadow.stdin.write(text.encode('utf-8'))
+            shadow.stdin.close()
+            while shadow.poll() is None:
+                if live.poll() is not None or owner._stop_requested.is_set() or owner._closing:
+                    return
+                time.sleep(0.02)
+            if shadow.returncode:
+                return
+            samples, rate = _read_wav_samples(path)
+            while live.poll() is None and not owner._stop_requested.is_set() and not owner._closing:
+                elapsed = time.monotonic() - started - GLOW_AUDIO_LATENCY_S
+                if elapsed >= len(samples) / rate:
+                    return
+                frame = glow_frame(samples, rate, elapsed)
+                if frame is not None:
+                    owner._speech_audio(*frame)
+                time.sleep(GLOW_WINDOW_S)
+    except Exception as exc:  # cosmetic only: the voice must never depend on the glow
+        logging.getLogger(__name__).debug('speech glow stopped: %s', type(exc).__name__)
+    finally:
+        if shadow is not None and shadow.poll() is None:
+            shadow.terminate()
+
+
 def _wait(owner, process, deadline):
     while process.poll() is None:
         if owner._stop_requested.is_set() or owner._closing:
@@ -235,6 +299,8 @@ def speech(owner, text, path):
             owner._tts_process = process
         if path is None:
             owner._set_playback(True)
+            threading.Thread(target=_glow_meter, args=(owner, text, voice, process, time.monotonic()),
+                             daemon=True, name='speech-glow').start()
         if owner._current_timing is not None:
             owner._current_timing.mark('tts_submit' if path is None else 'tts_file_synthesis')
         try:
