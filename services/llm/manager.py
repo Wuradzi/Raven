@@ -131,6 +131,31 @@ CHAT_MODE_PROMPT = """Звичайне голосове спілкування �
 """
 
 
+_RETRY = object()          # same provider, next attempt
+_NEXT_PROVIDER = object()  # give up on this provider
+
+
+class _ChatRun:
+    """State of one chat request across providers and attempts (deadline, retry flags, last failure)."""
+
+    def __init__(self, loop, total_seconds):
+        self.loop = loop
+        self.deadline = loop.time() + total_seconds
+        self.last_failure = classify_failure(TimeoutError())
+        self.empty_retry_used = False
+        self.slow_switch = False
+
+    def deadline_remaining(self) -> float:
+        return self.deadline - self.loop.time()
+
+    def remaining(self) -> float:
+        remaining = self.deadline_remaining()
+        return min(remaining, 10.0) if self.empty_retry_used else remaining
+
+    def expired(self) -> bool:
+        return self.loop.time() >= self.deadline
+
+
 class LLMManager:
     def __init__(self, settings):
         self.settings = settings
@@ -302,132 +327,14 @@ class LLMManager:
         return messages
 
     async def _chat_request(self, sequence, messages, user_text, on_chunk):
-        loop = asyncio.get_running_loop()
-        deadline = loop.time() + self.settings.llm_total_timeout_seconds
-        last_failure = classify_failure(TimeoutError())
-        empty_retry_used = False
-        slow_switch = False
+        run = _ChatRun(asyncio.get_running_loop(), self.settings.llm_total_timeout_seconds)
         for index, name in enumerate(sequence):
             if self._cooling_down(name):
                 continue
-            provider = self.providers[name]
-            # Streamed only: a non-streamed answer arrives whole, so its first text is its last.
-            has_backup = any(not self._cooling_down(other) for other in sequence[index + 1:])
-            first_seconds = first_text_seconds(self.settings) if on_chunk is not None and has_backup else 0
-            for attempt in range(self.settings.llm_failures_before_switch):
-                remaining = deadline - loop.time()
-                if empty_retry_used:
-                    remaining = min(remaining, 10.0)
-                if remaining <= 0:
-                    break
-                chunks: list[str] = []
-                started = asyncio.Event()
-
-                async def receive() -> str:
-                    request_started = time.perf_counter()
-                    perf = getattr(self, "performance", DISABLED_PERFORMANCE)
-                    if on_chunk is None:
-                        answer = await provider.chat(messages)
-                        if not answer or not answer.strip():
-                            raise ResponseError()
-                        mark_turn("llm_first_text")
-                        return answer
-                    async for chunk in provider.chat_stream(messages):
-                        if chunk and (chunks or chunk.strip()):
-                            if not chunks:
-                                started.set()
-                                mark_turn("llm_first_text")
-                                first_text_ms = (time.perf_counter() - request_started) * 1000
-                                perf.record(f"llm.{name}.first_text", first_text_ms)
-                                perf.record("llm.first_text", first_text_ms)
-                            chunks.append(chunk)
-                            await on_chunk(chunk)
-                    answer = "".join(chunks)
-                    if not answer.strip():
-                        raise ResponseError()
-                    return answer
-
-                try:
-                    perf = getattr(self, "performance", DISABLED_PERFORMANCE)
-                    with perf.span(f"llm.{name}.request_including_callbacks"):
-                        answer = await await_first_text(receive(), started, first_seconds, remaining)
-                except Exception as exc:
-                    failure = classify_failure(exc)
-                    last_failure = failure
-                    if failure.kind == "rate_limit":
-                        delay = failure.retry_after_seconds
-                        delay = max(1.0, delay) if delay is not None else 60.0
-                        self._cooldowns[name] = (monotonic() + delay, failure)
-                    # Exception bodies from an SDK can embed prompts, keys and
-                    # URLs. Keep only the category and structured diagnostics.
-                    # MAX_OUTPUT aliases MAX_TOKENS so the existing secret-log
-                    # filter does not mistake that enum for a credential.
-                    diagnostic_reason = (
-                        "MAX_OUTPUT" if failure.reason == "MAX_TOKENS" else failure.reason
-                    )
-                    logger.error(
-                        "LLM failure provider=%s attempt=%s kind=%s type=%s status=%s reason=%s retry_after_s=%s",
-                        name, attempt + 1, failure.kind, type(exc).__name__,
-                        failure.status, diagnostic_reason, failure.retry_after_seconds,
-                    )
-                    if isinstance(exc, ResponseError) and exc.diagnostics:
-                        # Allowlist at the logging boundary, even for errors
-                        # originating from another provider or a future adapter.
-                        fields = {key: value for key, value in exc.diagnostics.items()
-                                  if key in {"responses", "candidates", "parts", "text_parts", "visible_text_parts", "thought_parts",
-                                             "other_parts", "blocked_ratings"}
-                                  and type(value) is int and value >= 0}
-                        logger.warning("LLM response shape provider=%s counts=%s", name, fields)
-                    print(
-                        f"[LLM] {name}: {failure.message} "
-                        f"({failure.kind}; reason={diagnostic_reason})"
-                    )
-                    if isinstance(exc, FirstTextTimeout):
-                        # Nothing streamed yet: go straight to the backup, no retry of a slow model.
-                        slow_switch = True
-                        break
-                    if chunks:
-                        # Never retry/replay an answer the user already heard.
-                        notice = f"\n{failure.message} Отримано лише частину відповіді."
-                        if on_chunk is not None:
-                            await on_chunk(notice)
-                        answer = "".join(chunks) + notice
-                        self.active_name = name
-                        self._append_history(user_text, answer)
-                        return answer
-                    if empty_retry_used:
-                        if failure.kind == "rate_limit":
-                            return self._cooldown_response([name])
-                        return f"{failure.message} Спробуйте наступну репліку."
-                    if (name == "gemini" and isinstance(exc, ResponseError)
-                            and exc.kind == "empty_response" and exc.reason == "STOP" and exc.empty_retry_safe
-                            and attempt + 1 < self.settings.llm_failures_before_switch
-                            and deadline - loop.time() >= 1.0):
-                        # Same request, same model, one retry at most. No replay
-                        # after any streamed text; no safety or quota bypass.
-                        empty_retry_used = True
-                        print("[LLM] gemini: одна повторна спроба після порожньої відповіді.")
-                        continue
-                    if not failure.allow_fallback:
-                        self.active_name = name
-                        if failure.kind == "response_blocked":
-                            return (
-                                f"{failure.message} Обмеження може стосуватися всього "
-                                "контексту розмови, а не лише останньої репліки."
-                            )
-                        return f"{failure.message} Можемо продовжити розмову з наступної репліки."
-                    if not failure.retryable:
-                        break
-                    remaining = deadline - loop.time()
-                    if attempt + 1 < self.settings.llm_failures_before_switch and remaining > 0:
-                        await asyncio.sleep(min(0.5 * (2 ** attempt), remaining))
-                else:
-                    self._cooldowns.pop(name, None)
-                    # A slow first text is not an outage: the next turn tries the primary again.
-                    self.active_name = sequence[0] if slow_switch else name
-                    self._append_history(user_text, answer)
-                    return answer
-            if loop.time() >= deadline:
+            answer = await self._chat_provider(run, sequence, index, messages, user_text, on_chunk)
+            if answer is not None:
+                return answer
+            if run.expired():
                 break
             remaining_providers = [
                 candidate for candidate in sequence[index + 1:]
@@ -437,12 +344,154 @@ class LLMManager:
                 print(f"[LLM] Спроба резервного провайдера: {remaining_providers[0]}.")
 
         self.active_name = sequence[0]
-        if last_failure.kind == "rate_limit":
+        if run.last_failure.kind == "rate_limit":
             return self._cooldown_response(sequence)
         return (
-            f"{last_failure.message} Наступна репліка повторить спробу зв'язку; "
+            f"{run.last_failure.message} Наступна репліка повторить спробу зв'язку; "
             "перезапускати асистента не потрібно."
         )
+
+    async def _chat_provider(self, run, sequence, index, messages, user_text, on_chunk):
+        """Attempts on one provider: the final answer text, or None to move on to the next provider."""
+        name = sequence[index]
+        # Streamed only: a non-streamed answer arrives whole, so its first text is its last.
+        has_backup = any(not self._cooling_down(other) for other in sequence[index + 1:])
+        first_seconds = first_text_seconds(self.settings) if on_chunk is not None and has_backup else 0
+        for attempt in range(self.settings.llm_failures_before_switch):
+            remaining = run.remaining()
+            if remaining <= 0:
+                break
+            chunks: list[str] = []
+            started = asyncio.Event()
+            try:
+                perf = getattr(self, "performance", DISABLED_PERFORMANCE)
+                with perf.span(f"llm.{name}.request_including_callbacks"):
+                    answer = await await_first_text(
+                        self._chat_receive(name, messages, on_chunk, chunks, started), started, first_seconds, remaining)
+            except Exception as exc:
+                verdict = await self._chat_failure(run, name, attempt, exc, chunks, on_chunk, user_text)
+                if verdict is _RETRY:
+                    continue
+                if verdict is _NEXT_PROVIDER:
+                    break
+                return verdict
+            self._cooldowns.pop(name, None)
+            # A slow first text is not an outage: the next turn tries the primary again.
+            self.active_name = sequence[0] if run.slow_switch else name
+            self._append_history(user_text, answer)
+            return answer
+        return None
+
+    async def _chat_receive(self, name, messages, on_chunk, chunks, started) -> str:
+        provider = self.providers[name]
+        request_started = time.perf_counter()
+        if on_chunk is None:
+            answer = await provider.chat(messages)
+            if not answer or not answer.strip():
+                raise ResponseError()
+            mark_turn("llm_first_text")
+            return answer
+        async for chunk in provider.chat_stream(messages):
+            if chunk and (chunks or chunk.strip()):
+                if not chunks:
+                    started.set()
+                    self._record_first_text(name, request_started)
+                chunks.append(chunk)
+                await on_chunk(chunk)
+        answer = "".join(chunks)
+        if not answer.strip():
+            raise ResponseError()
+        return answer
+
+    def _record_first_text(self, name, request_started) -> None:
+        mark_turn("llm_first_text")
+        first_text_ms = (time.perf_counter() - request_started) * 1000
+        perf = getattr(self, "performance", DISABLED_PERFORMANCE)
+        perf.record(f"llm.{name}.first_text", first_text_ms)
+        perf.record("llm.first_text", first_text_ms)
+
+    def _log_chat_failure(self, name, attempt, exc, failure) -> None:
+        # Exception bodies from an SDK can embed prompts, keys and
+        # URLs. Keep only the category and structured diagnostics.
+        # MAX_OUTPUT aliases MAX_TOKENS so the existing secret-log
+        # filter does not mistake that enum for a credential.
+        diagnostic_reason = "MAX_OUTPUT" if failure.reason == "MAX_TOKENS" else failure.reason
+        logger.error(
+            "LLM failure provider=%s attempt=%s kind=%s type=%s status=%s reason=%s retry_after_s=%s",
+            name, attempt + 1, failure.kind, type(exc).__name__,
+            failure.status, diagnostic_reason, failure.retry_after_seconds,
+        )
+        if isinstance(exc, ResponseError) and exc.diagnostics:
+            # Allowlist at the logging boundary, even for errors
+            # originating from another provider or a future adapter.
+            fields = {key: value for key, value in exc.diagnostics.items()
+                      if key in {"responses", "candidates", "parts", "text_parts", "visible_text_parts", "thought_parts",
+                                 "other_parts", "blocked_ratings"}
+                      and type(value) is int and value >= 0}
+            logger.warning("LLM response shape provider=%s counts=%s", name, fields)
+        print(f"[LLM] {name}: {failure.message} ({failure.kind}; reason={diagnostic_reason})")
+
+    async def _chat_failure(self, run, name, attempt, exc, chunks, on_chunk, user_text):
+        """Decide after a failed attempt: _RETRY the same provider, _NEXT_PROVIDER, or the final reply text."""
+        failure = self._cool_down(name, exc)
+        run.last_failure = failure
+        self._log_chat_failure(name, attempt, exc, failure)
+        if isinstance(exc, FirstTextTimeout):
+            # Nothing streamed yet: go straight to the backup, no retry of a slow model.
+            run.slow_switch = True
+            return _NEXT_PROVIDER
+        if chunks:
+            return await self._partial_answer(name, failure, chunks, on_chunk, user_text)
+        if run.empty_retry_used:
+            if failure.kind == "rate_limit":
+                return self._cooldown_response([name])
+            return f"{failure.message} Спробуйте наступну репліку."
+        if (name == "gemini" and isinstance(exc, ResponseError)
+                and exc.kind == "empty_response" and exc.reason == "STOP" and exc.empty_retry_safe
+                and attempt + 1 < self.settings.llm_failures_before_switch
+                and run.remaining() >= 1.0):
+            # Same request, same model, one retry at most. No replay
+            # after any streamed text; no safety or quota bypass.
+            run.empty_retry_used = True
+            print("[LLM] gemini: одна повторна спроба після порожньої відповіді.")
+            return _RETRY
+        if not failure.allow_fallback:
+            self.active_name = name
+            return self._no_fallback_reply(failure)
+        if not failure.retryable:
+            return _NEXT_PROVIDER
+        remaining = run.deadline_remaining()
+        if attempt + 1 < self.settings.llm_failures_before_switch and remaining > 0:
+            await asyncio.sleep(min(0.5 * (2 ** attempt), remaining))
+        return _RETRY
+
+    async def _partial_answer(self, name, failure, chunks, on_chunk, user_text):
+        # Never retry/replay an answer the user already heard.
+        notice = f"\n{failure.message} Отримано лише частину відповіді."
+        if on_chunk is not None:
+            await on_chunk(notice)
+        answer = "".join(chunks) + notice
+        self.active_name = name
+        self._append_history(user_text, answer)
+        return answer
+
+    @staticmethod
+    def _no_fallback_reply(failure) -> str:
+        if failure.kind == "response_blocked":
+            return (
+                f"{failure.message} Обмеження може стосуватися всього "
+                "контексту розмови, а не лише останньої репліки."
+            )
+        return f"{failure.message} Можемо продовжити розмову з наступної репліки."
+
+    def _cool_down(self, name, exc):
+        """Classify a provider failure and start the cooldown on a rate limit (shared by every request kind)."""
+        failure = classify_failure(exc)
+        if failure.kind == "rate_limit":
+            delay = failure.retry_after_seconds
+            delay = max(1.0, delay) if delay is not None else 60.0
+            self._cooldowns[name] = (monotonic() + delay, failure)
+        return failure
 
     def _sequence(self) -> list[str]:
         if not self.available_order:
@@ -502,10 +551,7 @@ class LLMManager:
 
     def _natural_failure(self, name, exc):
         """Classify, cool down on a rate limit, and log only fixed codes, never model or SDK text."""
-        failure = classify_failure(exc)
-        if failure.kind == "rate_limit":
-            delay = max(1.0, failure.retry_after_seconds or 60.0)
-            self._cooldowns[name] = (monotonic() + delay, failure)
+        failure = self._cool_down(name, exc)
         logger.warning("Natural turn failed provider=%s kind=%s type=%s", name, failure.kind, type(exc).__name__)
         if isinstance(exc, InvalidIntent):
             codes = {"invalid chunk", "missing turn header", "unknown turn header",
@@ -548,7 +594,6 @@ class LLMManager:
         decoder = TurnDecoder()
         preview = ChatPreview()
         request_started = time.perf_counter()
-        perf = getattr(self, "performance", DISABLED_PERFORMANCE)
         stream = self.providers[name].chat_stream(messages)
         try:
             async for chunk in stream:
@@ -557,10 +602,7 @@ class LLMManager:
                 decoder.feed(chunk)
                 if not started.is_set() and chunk and chunk.strip():
                     started.set()
-                    mark_turn("llm_first_text")
-                    first_text_ms = (time.perf_counter() - request_started) * 1000
-                    perf.record(f"llm.{name}.first_text", first_text_ms)
-                    perf.record("llm.first_text", first_text_ms)
+                    self._record_first_text(name, request_started)
                 if on_chunk is not None:
                     for phrase in preview.ready(decoder):
                         preview.emitted = True
@@ -603,10 +645,7 @@ class LLMManager:
             with getattr(self, "performance", DISABLED_PERFORMANCE).span("command.interpretation"):
                 answer = await asyncio.wait_for(self.providers[name].chat(messages), timeout=timeout)
         except Exception as exc:
-            failure = classify_failure(exc)
-            if failure.kind == "rate_limit":
-                delay = failure.retry_after_seconds
-                self._cooldowns[name] = (monotonic() + (max(1.0, delay) if delay is not None else 60.0), failure)
+            failure = self._cool_down(name, exc)
             logger.warning("Command interpretation failed provider=%s kind=%s", name, failure.kind)
             raise InterpretationUnavailable(f"{failure.message} Дію не виконано. Можна повторити точну локальну команду.") from None
         try:
@@ -643,10 +682,7 @@ class LLMManager:
                 # Still one call, no validation retry or automatic query expansion.
                 return await asyncio.wait_for(request, timeout=25)
         except Exception as exc:
-            failure = classify_failure(exc)
-            if failure.kind == "rate_limit":
-                delay = failure.retry_after_seconds
-                self._cooldowns[name] = (monotonic() + (max(1.0, delay) if delay is not None else 60.0), failure)
+            failure = self._cool_down(name, exc)
             logger.warning("Web summary failed provider=%s kind=%s", name, failure.kind)
             raise RuntimeError("Web summary unavailable") from None
 

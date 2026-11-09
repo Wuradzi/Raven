@@ -31,7 +31,6 @@
     "services/files/file_service.py::FileService._walk": 12,
     "services/files/file_service.py::FileService.search": 14,
     "services/llm/errors.py::_rate_limit_metadata": 17,
-    "services/llm/manager.py::LLMManager._chat_request": 30,
     "services/llm/manager.py::LLMManager._natural_stream": 11,
     "services/llm/response_diagnostics.py::ResponseDiagnostics.observe": 13,
     "services/pentest/scope.py::PentestScope.parse": 13,
