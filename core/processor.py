@@ -9,7 +9,8 @@ from core.models import CommandContext, SkillResult, TurnEnvelope
 from core.recognition_policy import DialogueState
 from core.dialogue_decision import DialogueDecision, DecisionKind
 from core.action_policy import (PolicyOutcome, knowledge_gap_fallback,
-                                knowledge_gap_permission, natural_action_permission)
+                                knowledge_gap_permission, natural_action_permission,
+                                unscored_candidate_permission)
 from core.action_proposal import ReplyKind, proposal_question, needs_proposal
 from core.command_actions import UNSCORED_VOICE_TOOLS, execute_intent
 from core.command_intent import CommandIntent, InterpretationUnavailable, MULTI_ACTION, can_interpret, original_search_intent, preserves_search_intent
@@ -401,26 +402,17 @@ class CommandProcessor:
         return {'knowledge_context': context} if context else {}
 
     async def _gated_turn(self, raw_text, normalized, input_turn, gate, mode, source, confirm):
-        """A clean unscored Groq reply may pick from Raven's own pending offer (06.11.2026).
+        """A turn below the pre-routing gate, by TrustLevel (roadmap phase 1, stage 2).
 
-        Same bar as a Groq confirmation reply: reliable, not truncated or cut off. Only the
-        offered entries, once, within their TTL; file stamps and risky types are still checked.
+        UNSCORED_CLEAN Groq voice becomes a restricted candidate turn; DAMAGED or not
+        eligible speech gets a tool-free reply only. STT continuation is context, never
+        authority for a tool or a pending selection.
         """
-        tasks = self.services.get("tasks")
-        if tasks is not None and mode == "chat" and gate.may_select_offer and tasks.is_selection_reply(raw_text):
-            context = CommandContext(self.settings, self.services, confirm, source, raw_text=raw_text,
-                                     normalized_text=normalized,
-                                     turn_id=input_turn.turn_id if input_turn is not None else None)
-            result = await tasks.consume(raw_text, context)
-            if result is not None:
-                return result
-        return await self._restricted_turn(raw_text, normalized, input_turn, gate, mode, source, confirm)
-
-    async def _restricted_turn(self, raw_text, normalized, input_turn, gate, mode, source, confirm):
-        """Turn that failed the pre-routing gate: tool-free reply or scoped Groq candidate."""
-        # STT continuation is context, never authority for a tool or a pending
-        # selection. Require a fresh complete request before normal approval.
-        prior_clarification = self._natural_pending
+        selected = (self._unscored_pause_control(raw_text, normalized, gate, mode)
+                    or await self._offer_selection(raw_text, normalized, input_turn, gate, mode, source, confirm))
+        if selected is not None:
+            return selected
+        prior = self._natural_pending
         self._natural_pending = None
         previous_reply = self._last_reply or None
         if self.conversation_paused:
@@ -429,23 +421,68 @@ class CommandProcessor:
         if gate.incomplete and not lexical_fragment:
             return SkillResult(True, "Схоже, фраза обірвалася. Повторіть її повністю, будь ласка.",
                                {"command_type": "fragment_clarify"})
-        notice = "Почув фразу частинами. Повторіть повне прохання про дію; нічого не виконано."
-        if gate.unscored and not lexical_fragment:
-            notice = "Для цієї голосової репліки немає оцінки впевненості. Дію не виконано; введіть прохання текстом."
-        groq_candidate = gate.groq_candidate(getattr(self.settings, 'natural_actions_enabled', False))
-        if mode != "chat" or (COMMAND_PREFIX.match(raw_text) and not groq_candidate):
+        notice = ("Для цієї голосової репліки немає оцінки впевненості. Дію не виконано; введіть прохання текстом."
+                  if gate.unscored and not lexical_fragment else
+                  "Почув фразу частинами. Повторіть повне прохання про дію; нічого не виконано.")
+        candidate = gate.groq_candidate(getattr(self.settings, 'natural_actions_enabled', False))
+        if mode != "chat" or (COMMAND_PREFIX.match(raw_text) and not candidate):
             return SkillResult(True, notice, {"command_type": "fragment_clarify"})
-        candidate_text = raw_text
-        if groq_candidate and COMMAND_PREFIX.match(raw_text):
-            candidate_text = COMMAND_PREFIX.match(raw_text).group(1).strip()
-        scoped_name = (application_name_reply(candidate_text) if groq_candidate
-            and prior_clarification and prior_clarification.get('groq_scoped')
-            and time.monotonic() < prior_clarification['expires']
-            and not direct_request(candidate_text, '') else None)
+        if not candidate:
+            return await self._reply_only_turn(raw_text, normalized, source, notice)
+        return await self._unscored_turn(raw_text, normalized, input_turn, source, confirm, prior, previous_reply,
+                                         notice)
+
+    def _unscored_pause_control(self, raw_text, normalized, gate, mode):
+        """«Пауза» / «продовжуй» by a clean Groq reply, as on the scored path (07.11.2026).
+
+        Before, a Groq «пауза» went to the model, and a pause set by text could not be
+        lifted by Groq voice at all: every gated turn returned the silent paused result.
+        Same bar as an offer selection; damaged speech neither pauses nor resumes.
+        """
+        if mode != "chat" or not gate.may_select_offer:
+            return None
+        if PAUSE_CONVERSATION.fullmatch(raw_text):
+            self.conversation_paused = True
+            self._natural_pending = None
+            return SkillResult(True, "Розмова на паузі. Скажіть «продовжуй», коли будете готові.",
+                               {"command_type": "conversation_paused"})
+        if self.conversation_paused and DIALOGUE_CONTROLS.get(normalized.rstrip('.!?')) == "continue":
+            self.conversation_paused = False
+            return SkillResult(True, "Знову слухаю. Щоб повторити відповідь, скажіть «повтори останнє».",
+                               {"command_type": "conversation_resume"})
+        return None
+
+    async def _offer_selection(self, raw_text, normalized, input_turn, gate, mode, source, confirm):
+        """A clean unscored Groq reply may pick from Raven's own pending offer (06.11.2026).
+
+        Same bar as a Groq confirmation reply: reliable, not truncated or cut off. Only the
+        offered entries, once, within their TTL; file stamps and risky types are still checked.
+        """
+        tasks = self.services.get("tasks")
+        if tasks is None or mode != "chat" or not gate.may_select_offer or not tasks.is_selection_reply(raw_text):
+            return None
+        context = CommandContext(self.settings, self.services, confirm, source, raw_text=raw_text,
+                                 normalized_text=normalized,
+                                 turn_id=input_turn.turn_id if input_turn is not None else None)
+        return await tasks.consume(raw_text, context)
+
+    async def _reply_only_turn(self, raw_text, normalized, source, notice):
+        """DAMAGED or not eligible speech: one whole, screened reply; never a tool or a proposal."""
+        web = self.services.get("web_answers")
+        turn = await self._model_turn(raw_text, normalized, source,
+                                      web.dialogue_context() if web is not None else None)
+        if turn is None:
+            return SkillResult(True, "", {"command_type": "chat_interrupted"})
+        return await self._unscored_reply(turn, [], notice)
+
+    async def _unscored_turn(self, raw_text, normalized, input_turn, source, confirm, prior, previous_reply, notice):
+        """UNSCORED_CLEAN Groq voice: streamed reply; ACTION / LOOKUP only as a policy candidate."""
+        command = COMMAND_PREFIX.match(raw_text)
+        candidate_text = command.group(1).strip() if command else raw_text
+        scoped_name = self._unscored_app_name(candidate_text, prior)
         # Only fill the missing app name of a recent explicit open request.
         # A conversational 'yes' is not permission and cannot fill this slot.
-        model_text = (prior_clarification['request'] + '\nНазва програми: ' + scoped_name
-                      if scoped_name else candidate_text)
+        model_text = prior['request'] + '\nНазва програми: ' + scoped_name if scoped_name else candidate_text
         web = self.services.get("web_answers")
         streamed_parts = []
 
@@ -461,26 +498,46 @@ class CommandProcessor:
             logger.info('Groq proposal route=local_exact; confirmation_required=true')
             return NaturalTurn('action', intent=intent)
 
-        # Damaged or non-candidate speech gets no streamed preview: its reply is checked whole.
         turn = await self._model_turn(model_text, normalized, source,
                                       web.dialogue_context() if web is not None else None,
-                                      on_phrase=speak_preview if groq_candidate else None,
-                                      prelude=exact_app if groq_candidate else None)
+                                      on_phrase=speak_preview, prelude=exact_app)
         if turn is None:
             return SkillResult(True, "", {"command_type": "chat_interrupted"})
-        if groq_candidate and turn.kind in {'action', 'lookup'}:
-            context = CommandContext(self.settings, self.services, confirm, source,
-                raw_text=candidate_text, normalized_text=self._normalize(candidate_text), turn_id=input_turn.turn_id)
-            return await self._groq_candidate_action(turn, candidate_text, prior_clarification, scoped_name,
-                                                     previous_reply, context)
-        missing_app_name = bool(re.search(r'\b(?:відкрити|відкрий|запустити|запусти)\s+(?:мені\s+)?програму[.!?\s]*$', candidate_text, re.I))
-        if (groq_candidate and request_scope(candidate_text) == 'open_app'
+        if turn.kind in {'action', 'lookup'}:
+            context = CommandContext(self.settings, self.services, confirm, source, raw_text=candidate_text,
+                                     normalized_text=self._normalize(candidate_text), turn_id=input_turn.turn_id)
+            # A conversational lead-in must not hide the direct request (J131).
+            request = prior['request'] if scoped_name else final_request(voice_request(candidate_text))
+            permission = unscored_candidate_permission(
+                turn, request, candidate_text, prior if scoped_name else None, bool(scoped_name),
+                previous_reply=previous_reply, turn_id=context.turn_id, allowed_tools=UNSCORED_VOICE_TOOLS)
+            return await self._run_permission(permission, context)
+        self._remember_unscored_question(turn, candidate_text)
+        return await self._unscored_reply(turn, streamed_parts, notice)
+
+    @staticmethod
+    def _unscored_app_name(candidate_text, prior):
+        """The app name that fills a recent Groq open-app clarification; None otherwise."""
+        if not (prior and prior.get('groq_scoped') and time.monotonic() < prior['expires']
+                and not direct_request(candidate_text, '')):
+            return None
+        return application_name_reply(candidate_text)
+
+    def _remember_unscored_question(self, turn, candidate_text):
+        """Keep only an open-app name slot for the next Groq turn (other tools need a full request)."""
+        missing_app_name = bool(re.search(r'\b(?:відкрити|відкрий|запустити|запусти)\s+(?:мені\s+)?програму[.!?\s]*$',
+                                          candidate_text, re.I))
+        if (request_scope(candidate_text) == 'open_app'
                 and (turn.kind == 'clarify' or (turn.kind == 'chat' and missing_app_name))):
             self._natural_pending = {'tool': 'open_app', 'request': candidate_text,
-                                    'expires': time.monotonic() + 120, 'groq_scoped': True}
+                                     'expires': time.monotonic() + 120, 'groq_scoped': True}
+
+    async def _unscored_reply(self, turn, streamed_parts, notice):
+        """Result of a turn below the gate that runs no tool (both trust levels)."""
         if turn.kind == 'unavailable':
             if streamed_parts:
-                await speak_preview(turn.response)
+                await self._say_screened(turn.response, streamed_parts)
+                self._cache_reply(' '.join(streamed_parts))
                 return SkillResult(True, ' '.join(streamed_parts),
                                    {'command_type': 'llm_unavailable', 'response_spoken': True})
             return SkillResult(True, turn.response, {'command_type': 'llm_unavailable'})
@@ -1007,35 +1064,6 @@ class CommandProcessor:
         record = getattr(self.llm_manager, "record_local_action", None)
         if callable(record):
             record(user_text, notice)
-
-    async def _groq_candidate_action(self, turn, candidate_text, prior_clarification, scoped_name,
-                                     previous_reply, context):
-        """Unscored Groq voice: separate candidate path, not ACTION eligibility or router re-entry.
-
-        Only UNSCORED_VOICE_TOOLS may be reached, through the same policy and executor
-        (user decisions 04.11.2026 and 07.11.2026). The executor confirms state changes;
-        UNCONFIRMED_TOOLS run without one: a misheard query may reach the search engine
-        or press a media key.
-        """
-        from core.command_intent import validate_intent, InvalidIntent
-        try:
-            intent = validate_intent({'tool': turn.intent.tool, 'arguments': turn.intent.arguments})
-        except (InvalidIntent, AttributeError, TypeError):
-            return SkillResult(True, 'Не вдалося перевірити дію. Уточніть повне прохання.',
-                               {'command_type': 'intent_clarification'})
-        if intent.tool not in UNSCORED_VOICE_TOOLS:
-            return SkillResult(True, 'Для цієї дії введіть прохання текстом. Нічого не виконано.',
-                               {'command_type': 'intent_clarification'})
-        kind = DecisionKind.KNOWLEDGE_GAP if turn.kind == 'lookup' else DecisionKind.ACTION_CANDIDATE
-        decision = DialogueDecision(kind, intent=intent, turn_id=context.turn_id)
-        if kind is DecisionKind.KNOWLEDGE_GAP:
-            return await self._run_permission(knowledge_gap_permission(decision, candidate_text), context)
-        # A conversational lead-in must not hide the direct request (J131).
-        request = prior_clarification['request'] if scoped_name else final_request(voice_request(candidate_text))
-        permission = natural_action_permission(decision, request, candidate_text,
-            prior_clarification if scoped_name else None, bool(scoped_name), assistant_offer=previous_reply)
-        permission = knowledge_gap_fallback(permission, decision, request, candidate_text, bool(scoped_name))
-        return await self._run_permission(permission, context)
 
     def _screened_answer(self, turn, spoken):
         """Final CHAT/CLARIFY text on both turn paths: spoken parts win, claims are replaced,

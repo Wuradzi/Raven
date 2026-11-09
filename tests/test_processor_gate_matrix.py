@@ -51,7 +51,8 @@ EXPECTED = {
     ('chat', False, 'pause', 'unreliable'): ('fragment_chat', False, None, False, True, False, False, False, False),
     ('chat', False, 'pause', 'truncated'): ('fragment_chat', False, None, False, True, False, False, False, False),
     ('chat', False, 'pause', 'incomplete'): ('fragment_clarify', False, None, False, False, False, False, False, False),
-    ('chat', False, 'pause', 'unscored_groq'): ('fragment_chat', False, None, False, True, False, False, False, False),
+    # 07.11.2026 (user decision, J149): a clean Groq «пауза» pauses like a scored one, no model call.
+    ('chat', False, 'pause', 'unscored_groq'): ('conversation_paused', False, None, False, False, False, False, False, False),
     ('chat', False, 'document', 'reliable'): ('', False, None, False, False, True, False, False, False),
     ('chat', False, 'document', 'not_eligible'): ('', False, None, False, False, False, False, False, False),
     ('chat', False, 'document', 'unreliable'): ('', False, None, False, False, False, False, False, False),
@@ -105,7 +106,8 @@ EXPECTED = {
     ('chat', True, 'pause', 'unreliable'): ('fragment_chat', False, None, False, True, False, False, False, False),
     ('chat', True, 'pause', 'truncated'): ('fragment_chat', False, None, False, True, False, False, False, False),
     ('chat', True, 'pause', 'incomplete'): ('fragment_clarify', False, None, False, False, False, False, False, False),
-    ('chat', True, 'pause', 'unscored_groq'): ('fragment_chat', False, None, False, True, False, False, False, False),
+    # 07.11.2026 (user decision, J149): a clean Groq «пауза» pauses like a scored one, no model call.
+    ('chat', True, 'pause', 'unscored_groq'): ('conversation_paused', False, None, False, False, False, False, False, False),
     ('chat', True, 'document', 'reliable'): ('', False, None, False, False, True, False, False, False),
     ('chat', True, 'document', 'not_eligible'): ('', False, None, False, False, False, False, False, False),
     ('chat', True, 'document', 'unreliable'): ('', False, None, False, False, False, False, False, False),

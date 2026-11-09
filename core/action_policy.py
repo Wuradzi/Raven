@@ -185,6 +185,31 @@ def _substantive(text):
     return len(knowledge_terms(text)) >= 2
 
 
+def unscored_candidate_permission(turn, request, text, pending, scoped, *, previous_reply, turn_id,
+                                  allowed_tools):
+    """Unscored Groq voice: the model's ACTION / LOOKUP is only a candidate (roadmap phase 1).
+
+    Not ACTION eligibility and no router re-entry: validated arguments, a closed tool set,
+    then the very same natural-action and knowledge-gap policy as a scored turn. The
+    executor still confirms every state change outside UNCONFIRMED_TOOLS.
+    """
+    from core.dialogue_decision import DialogueDecision
+    try:
+        intent = validate_intent({'tool': turn.intent.tool, 'arguments': turn.intent.arguments})
+    except (InvalidIntent, AttributeError, TypeError):
+        return ActionPermission(PolicyOutcome.CLARIFY, response='Не вдалося перевірити дію. Уточніть повне прохання.',
+                                turn_id=turn_id)
+    if intent.tool not in allowed_tools:
+        return ActionPermission(PolicyOutcome.CLARIFY, response='Для цієї дії введіть прохання текстом. Нічого не виконано.',
+                                turn_id=turn_id)
+    kind = DecisionKind.KNOWLEDGE_GAP if turn.kind == 'lookup' else DecisionKind.ACTION_CANDIDATE
+    decision = DialogueDecision(kind, intent=intent, turn_id=turn_id)
+    if kind is DecisionKind.KNOWLEDGE_GAP:
+        return knowledge_gap_permission(decision, text)
+    permission = natural_action_permission(decision, request, text, pending, scoped, assistant_offer=previous_reply)
+    return knowledge_gap_fallback(permission, decision, request, text, scoped)
+
+
 def knowledge_gap_fallback(permission, decision, request, text, scoped, *, action_eligible=True):
     """A refused, non-direct ACTION web_search is a knowledge gap, not a dead end."""
     intent = decision.intent

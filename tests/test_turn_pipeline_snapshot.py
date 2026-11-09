@@ -8,39 +8,32 @@ import json
 import unittest
 
 from core.command_actions import UNSCORED_VOICE_TOOLS
-from tests.turn_pipeline_snapshot import FIELDS, GOLDEN, key, cases, observe
+from tests.turn_pipeline_snapshot import FIELDS, GOLDEN, snapshot
+
+DAMAGED = {"unreliable", "truncated", "incomplete", "not_eligible", "unscored_cut"}
 
 
 class TurnPipelineSnapshotTests(unittest.IsolatedAsyncioTestCase):
-    async def test_every_case_matches_the_reviewed_snapshot(self):
+    async def test_snapshot_and_trust_invariants(self):
         golden = json.loads(GOLDEN.read_text(encoding="utf-8"))
         self.assertEqual(tuple(golden["fields"]), FIELDS)
         expected = golden["cases"]
-        seen = set()
-        for case in cases():
-            name = key(*case)
-            seen.add(name)
-            actual = await observe(*case)
+        actual = await snapshot()
+        self.assertEqual(set(expected) - set(actual), set(), "cases missing from the run")
+        self.assertEqual(set(actual) - set(expected), set(), "new cases need a reviewed golden file")
+        executed = FIELDS.index("executed")
+        for name, row in actual.items():
             with self.subTest(case=name):
-                self.assertIn(name, expected)
-                diff = {field: (want, got) for field, want, got in zip(FIELDS, expected[name], actual)
-                        if want != got}
+                diff = {field: (want, got) for field, want, got in zip(FIELDS, expected[name], row) if want != got}
                 self.assertEqual(diff, {})
-        self.assertEqual(set(expected) - seen, set())
-
-    async def test_damaged_or_unscored_voice_never_executes_a_state_change(self):
-        # Contract, independent of the golden file: damaged speech reaches no executor;
-        # clean unscored Groq voice reaches only UNSCORED_VOICE_TOOLS (the executor then
-        # confirms every state change except UNCONFIRMED_TOOLS and window focus).
-        for case in cases():
-            trust, _natural, _text, _reply = case
-            if trust in {"unreliable", "truncated", "incomplete", "not_eligible"}:
-                with self.subTest(case=key(*case)):
-                    self.assertEqual((await observe(*case))[2], [])
-            elif trust == "unscored_groq":
-                with self.subTest(case=key(*case)):
-                    executed = (await observe(*case))[2]
-                    self.assertLessEqual(set(executed), UNSCORED_VOICE_TOOLS)
+                # Contract, independent of the golden file: damaged speech reaches no executor;
+                # clean unscored Groq voice reaches only UNSCORED_VOICE_TOOLS (the executor then
+                # confirms every state change except UNCONFIRMED_TOOLS and window focus).
+                trust = name.split("|")[0]
+                if trust in DAMAGED:
+                    self.assertEqual(row[executed], [])
+                elif trust == "unscored_groq":
+                    self.assertLessEqual(set(row[executed]), UNSCORED_VOICE_TOOLS)
 
 
 if __name__ == "__main__":

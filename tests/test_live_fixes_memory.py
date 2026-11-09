@@ -303,7 +303,7 @@ class LiveTestFixesRound5(unittest.IsolatedAsyncioTestCase):
         return [call.args for call in speaker.say.await_args_list]
 
     async def test_filler_speaks_on_the_unscored_groq_path_too(self):
-        # The first filler missed it: all live Groq turns go through _restricted_turn (60 s of silence).
+        # The first filler missed it: all live Groq turns go through the unscored path (60 s of silence).
         for groq in (True, False):
             with self.subTest(groq=groq):
                 spoken = await self._slow_voice_turn(groq)
