@@ -1,8 +1,54 @@
 # Raven — контекст передачі роботи
 
-Дата знімка: **30.10.2026**. Це стартова карта для Claude Code, Codex та інших
+Дата знімка: **30.10.2026**, доповнено блоками від 08.11 і 09.11.2026 (нижче). Це стартова карта для Claude Code, Codex та інших
 учасників, не незмінна специфікація. Перед роботою звір із кодом і Git diff.
 Інструкції роботи: [CLAUDE.md](CLAUDE.md), [AGENTS.md](AGENTS.md).
+
+## Стан на 09.11.2026 (сесія Claude: Groq на Mac, Native UI, Фази 2 і 8, CI)
+
+Новіше за решту файлу: де блоки нижче суперечать цьому, вірити цьому, а потім коду й Git.
+
+- **Git і CI.** `main` = `origin/main`, останній коміт `5650dfc`. CI зелений: Windows 1110/1110;
+  Linux 1087 успішних, 0 невдалих, 23 пропуски (платформні тести й відсутні локальні моделі —
+  «зелений» не означає, що виконалося все). Локально на Mac `tester.py --all` дає 1110 тестів і два
+  відомі платформні збої (`test_router.test_fuzzy_route`, `test_audio_backends.test_primary_timeout_drains_once_without_late_dispatch`);
+  у CI вони не падають. `ruff` у Mac-`.venv` немає: храповик складності локально пропускається, його виконує CI.
+- **Залежності: три файли.** `requirements_win.txt`, `requirements_mac.txt`, `requirements_linux.txt`; одна команда
+  `python -m pip install -r requirements_<платформа>.txt` ставить усе (ядро з `groq`, Qt, faster-whisper,
+  sherpa-onnx, зір, openai/anthropic/ollama; Windows: pywin32/pyttsx3/PyGetWindow/pyautogui; macOS: pyobjc).
+  Старі `requirements.txt` і `requirements-*.txt` вилучено, лишилися `requirements-ci.txt` і `requirements-dev.txt`.
+  CI-констрейнти (`constraints-windows-py312.txt`) фіксують лише блок «core» у `requirements_win.txt`
+  (до рядка `# ---- optional modules`); решта не зафіксована.
+- **Groq — основний STT.** На Mac `stt.backend=auto` обирав експериментальний `edge/sherpa-onnx` без пакета й моделі,
+  тож кожна репліка тихо ставала «ненадійною». Локальний `config.json` переведено на `stt.backend=groq`; у
+  `config.example.json` досі `auto` (пастка для чистого встановлення на Mac).
+- **Запуск.** `python main.py` без прапорців відкриває Native UI. `--text-only`, `--setup`, `--doctor`,
+  `--diagnostics`, `--audio-test`, `--models`, `--smoke-live` лишаються в консолі; `--ui headless|web`, `--web-ui`
+  працюють як раніше. Неявний native переходить у консоль, якщо немає PySide6 або (Linux) дисплея; явний `--ui native` у такому
+  разі завершується кодом 2.
+- **Сховище секретів вилучено** (рішення користувача 09.11.2026): майстер-пароль, ключ відновлення, `SecretStore`,
+  `tools/recover_vault.py`, діалог пароля в Native UI, перевірки `secret-store` і `recovery-key-local-copy`.
+  Майстер `--setup` пароль не створює. «Запам'ятай/покажи пароль від …» відхиляються (`secret_unsupported`).
+  `pyperclip` прибрано. Старі `data/secrets.json` і `RECOVERY_KEY.txt`, якщо є, ігноруються. Записи про ключ
+  відновлення (J121 тощо) нижче — історичні.
+- **Фаза 8 roadmap.** П.3: `n/a` замість `0.00` для Groq (лише журнал і CLI). П.4: рядок `confirmation_button
+  outcome=… source=ui request=<8 символів>` у журналі (без тексту діалогу). П.2: фільтр мови пропускає «так», «ні»,
+  «Так.»; причину відкинутого 5-символьного тексту не знайдено, додано лічильники літер `scripts=uk=…,latin=…` (без тексту).
+  П.5: `stt.local_fallback` (`enabled=false`, `max_consecutive=5`) — лінивий Vosk-резерв лише при збої Groq
+  (`timeout/network/rate_limit/server`); **вимкнений, і за рішенням користувача модель Vosk поки не встановлюється**
+  (`models/vosk-model-small-uk-v3-small` відсутня). П.1 (список галюцинацій Whisper) не зроблено — потрібні журнали.
+- **Фаза 2 roadmap (зменшена).** `LLMManager._chat_request` розкладено на малі методи, `_cool_down` і `_record_first_text`
+  спільні. `chat` і `converse` свідомо **не** злито: різні контракти (рядок із повторами/паузами/частковою відповіддю проти
+  `NaturalTurn` через декодер), перемикання процесора зламало б мокання `chat` у ~20 тестових файлах.
+- **Перший живий тест на Mac (09.11.2026, arm64, macOS 27.2, Python 3.12.16, M-серія).** Через Groq розпізнано 4 з 5
+  захоплень, Gemini відповідав, TTS (`say`) відпрацював за журналом, вебпошук і відповідь із джерелами спрацювали,
+  Native UI запустився й закрився штатно (`exit 0`). Дозволи: Мікрофон видано, Універсальний доступ і Запис екрана
+  були `denied` на момент `tools/macos_check.py`. **Не перевірено наживо:** дії (відкриття програм, медіаклавіші,
+  блокування, знімок), вигляд вікна на Retina, звучання голосу Lesya, Vosk-резерв. Журнали сесій приватні, сирий
+  вміст не цитувати.
+- **Відкриті задачі (користувач ще не обрав):** Mac-тест дій після видачі дозволів; Фази 3, 5, 6 roadmap; Фаза 8 п.1;
+  Фаза 8 п.5 готова, але неактивна без моделі Vosk; довге озвучення вебвідповіді (~36 с, черга TTS до 27 с) як кандидат у Фазу 4;
+  `RAVEN_CONTEXT.md` оновлювати лише в кінці етапів.
 
 ## Передача роботи — стан на 30.10.2026 (після сесії Claude, для Codex та інших агентів)
 
@@ -33,7 +79,7 @@ correlation checks збережені. Корпус: 91 фраза. Наступ
 
 | Запис | Суть |
 | --- | --- |
-| J121 | ключ відновлення показується один раз; «Душогуб» `enabled=false`, підтвердження цілі, `allowed_targets` |
+| J121 | (ключ відновлення вилучено 09.11.2026) ключ відновлення показувався один раз; «Душогуб» `enabled=false`, підтвердження цілі, `allowed_targets` |
 | J122–J125 | gate matrix (216 комбінацій), `core/turn_gate.py`, розділений `process`, храповик C901, «стоп» у pentest |
 | J126 | переносні тести (`tests/platform_fixtures.py`), Linux CI job `tests-linux` |
 | J127 | `docs/DEVELOPMENT_RULES.md` (публічний шаблон журналу); `validate_config`, `_conversation_turn`, `_natural_turn` ≤ 10 |
@@ -84,8 +130,7 @@ correlation checks збережені. Корпус: 91 фраза. Наступ
 9. **Залишок аудиту №3:** `CommandProcessor.process` 21, `_restricted_turn` 19.
 
 Відкриті дії користувача (не робити за нього): push і перевірка CI (чи падають 6
-whisper-тестів у Windows CI — faster-whisper не в `requirements-ci.txt`); перенести ключ і
-видалити `RECOVERY_KEY.txt`; перевірити `pentest.enabled` у локальному `config.json`
+whisper-тестів у Windows CI — faster-whisper не в `requirements-ci.txt`); (перенесення ключа відновлення втратило сенс: сховище вилучено 09.11.2026; `RECOVERY_KEY.txt`, якщо лишився, можна видалити); перевірити `pentest.enabled` у локальному `config.json`
 (агент його не відкривав).
 
 ### Практичні пастки (перевірено в цій сесії)
@@ -131,7 +176,7 @@ whisper-тестів у Windows CI — faster-whisper не в `requirements-ci.t
   `afplay`, osascript гучність і блокування, Quartz медіаклавіші, `screencapture`),
   `macos_permissions.py` (лише читання дозволів), Darwin у `resolver.py`, спільний
   `manifest_platform_matches` (значення `darwin`, псевдоніми `macos`/`mac`), індекс `.app`,
-  `requirements-macos.txt`, `scripts/install_macos.sh`, `scripts/run_macos.sh`, `tools/macos_check.py`,
+  `requirements_mac.txt` (раніше `requirements-macos.txt`), `scripts/install_macos.sh`, `scripts/run_macos.sh`, `tools/macos_check.py`,
   `tests/test_macos_support.py` (48 тестів з підставними викликами).
 - **Вимкнено на macOS через `platforms` у маніфестах:** навички `windows` (вікна, Win+D, процеси)
   і `workplace`. Вимкнення комп'ютера на macOS — unsupported (потрібен sudo). Не вмикати без
@@ -205,9 +250,9 @@ cloud mode не слід самовільно повертати до Vosk дл�
 
 ## Поточний UI
 
-Три режими запуску: `python main.py --ui native`, `--ui web`, `--ui headless`.
+Три режими запуску: `python main.py` (Native UI за замовчуванням, те саме що `--ui native`), `--ui web`, `--ui headless`.
 Native — Qt Widgets, не браузерний wrapper. Опційна залежність:
-`requirements-native.txt` (PySide6-Essentials 6.8.3). Встановлювати лише
+`requirements_<платформа>.txt` (PySide6-Essentials 6.8.3 входить). Встановлювати лише
 за погодженням. ARM64 wheel має обмеження glibc; дивись NATIVE_UI.md.
 
 Native GUI thread спілкується з asyncio Core через bridge/signals; transport
