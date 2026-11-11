@@ -79,43 +79,68 @@ class Metrics:
         self.turn_n = 0
 
     def add_line(self, line):
-        if "turn.route " in line:
-            f = kv(line.split("turn.route ", 1)[1])
-            src = f.get("source", "?")
-            self.routes[(src, f.get("scored"), f.get("eligible"), f.get("type"), f.get("route"))] += 1
-            self.groups[(src, route_group(f))] += 1
-            if src == "voice":
-                self.voice_turns += 1
-                self.voice_unscored += f.get("scored") == "False"
-                self.voice_eligible += f.get("eligible") == "True"
-                self.voice_natural_action += f.get("natural_action") == "True"
-            else:
-                self.text_turns += 1
-        elif "voice_input_discarded" in line:
-            self.discarded[kv(line).get("reason", "?")] += 1
-        elif "stt.language_guard decision=reject" in line:
-            self.language_reject += 1
-        elif "stt.groq.complete" in line:
-            f = kv(line)
-            ok = f.get("success") == "True"
-            self.groq["ok" if ok else "failed"] += 1
-            if not ok:
-                self.groq_errors[f.get("error_class", "?")] += 1
-            ms = re.search(r"api_roundtrip_ms=([\d.]+)", line)
-            if ms:
-                self.groq_ms.append(float(ms.group(1)))
-        elif "confirmation_capture " in line:
-            self.confirm_capture[kv(line).get("outcome", "?")] += 1
-        elif "confirmation_voice " in line:
-            self.confirm_voice[kv(line).get("semantic", "?")] += 1
-        elif "confirmation_button " in line:
-            self.confirm_button[kv(line).get("outcome", "?")] += 1
-        elif "confirmation_reply_rejected=" in line:
-            self.confirm_rejected[line.split("confirmation_reply_rejected=", 1)[1].split()[0]] += 1
-        elif "[TURN] " in line:
-            self.turn_n += 1
-            for k, v in parse_turn_line(line).items():
-                self.turn[k].append(v)
+        for marker, handler in self._handlers:
+            if marker in line:
+                handler(self, line)
+                return
+
+    def _route(self, line):
+        f = kv(line.split("turn.route ", 1)[1])
+        src = f.get("source", "?")
+        self.routes[(src, f.get("scored"), f.get("eligible"), f.get("type"), f.get("route"))] += 1
+        self.groups[(src, route_group(f))] += 1
+        if src != "voice":
+            self.text_turns += 1
+            return
+        self.voice_turns += 1
+        self.voice_unscored += f.get("scored") == "False"
+        self.voice_eligible += f.get("eligible") == "True"
+        self.voice_natural_action += f.get("natural_action") == "True"
+
+    def _discarded(self, line):
+        self.discarded[kv(line).get("reason", "?")] += 1
+
+    def _language_guard(self, line):
+        self.language_reject += 1
+
+    def _groq(self, line):
+        f = kv(line)
+        ok = f.get("success") == "True"
+        self.groq["ok" if ok else "failed"] += 1
+        if not ok:
+            self.groq_errors[f.get("error_class", "?")] += 1
+        ms = re.search(r"api_roundtrip_ms=([\d.]+)", line)
+        if ms:
+            self.groq_ms.append(float(ms.group(1)))
+
+    def _confirm_capture(self, line):
+        self.confirm_capture[kv(line).get("outcome", "?")] += 1
+
+    def _confirm_voice(self, line):
+        self.confirm_voice[kv(line).get("semantic", "?")] += 1
+
+    def _confirm_button(self, line):
+        self.confirm_button[kv(line).get("outcome", "?")] += 1
+
+    def _confirm_rejected(self, line):
+        self.confirm_rejected[line.split("confirmation_reply_rejected=", 1)[1].split()[0]] += 1
+
+    def _turn_line(self, line):
+        self.turn_n += 1
+        for k, v in parse_turn_line(line).items():
+            self.turn[k].append(v)
+
+    _handlers = (
+        ("turn.route ", _route),
+        ("voice_input_discarded", _discarded),
+        ("stt.language_guard decision=reject", _language_guard),
+        ("stt.groq.complete", _groq),
+        ("confirmation_capture ", _confirm_capture),
+        ("confirmation_voice ", _confirm_voice),
+        ("confirmation_button ", _confirm_button),
+        ("confirmation_reply_rejected=", _confirm_rejected),
+        ("[TURN] ", _turn_line),
+    )
 
     def add_file(self, path):
         self.sessions += 1
@@ -192,7 +217,10 @@ def table(headers, rows, markdown):
         out = ["| " + " | ".join(headers) + " |", "|" + "|".join("---" for _ in headers) + "|"]
         return out + ["| " + " | ".join(r) + " |" for r in rows]
     widths = [max(len(h), *(len(r[i]) for r in rows)) if rows else len(h) for i, h in enumerate(headers)]
-    line = lambda cells: "  ".join(c.ljust(w) if i == 0 else c.rjust(w) for i, (c, w) in enumerate(zip(cells, widths)))
+
+    def line(cells):
+        return "  ".join(c.ljust(w) if i == 0 else c.rjust(w) for i, (c, w) in enumerate(zip(cells, widths)))
+
     return ["  " + line(headers), "  " + "  ".join("─" * w for w in widths)] + ["  " + line(r) for r in rows]
 
 
