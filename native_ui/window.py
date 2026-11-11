@@ -54,7 +54,6 @@ def icon(kind):
         'muted': '<rect x="9" y="3" width="6" height="12" rx="3"/><path d="M5 10v2a7 7 0 0 0 14 0v-2M12 19v3M8 22h8M3 3l18 18"/>',
         'history': '<path d="M4 10a8 8 0 1 1 1 7M4 5v5h5M12 7v5l3 2"/>',
         'settings': '<path d="m10 3-1 3-3 1-3 3 2 2-2 2 3 3 3 1 1 3h4l1-3 3-1 3-3-2-2 2-2-3-3-3-1-1-3Z"/><circle cx="12" cy="12" r="3"/>',
-        'spark': '<path d="m9 5 2 6 6 2-6 2-2 6-2-6-6-2 6-2Z" fill="#ae79f4"/><path d="m18 1 1 3 3 1-3 1-1 3-1-3-3-1 3-1Z" fill="#ae79f4"/>',
     }
     svg = ('<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" '
            'fill="none" stroke="#e5c7ff" stroke-width="1.6" stroke-linecap="round" '
@@ -274,9 +273,6 @@ class RavenWindow(QMainWindow):
         composer_box.setObjectName('composer')
         composer_layout = QHBoxLayout(composer_box)
         composer_layout.setContentsMargins(14, 8, 8, 8)
-        spark = QLabel()
-        spark.setPixmap(icon('spark').pixmap(28, 28))
-        composer_layout.addWidget(spark)
         self.editor = Composer()
         self.editor.setPlaceholderText('Напиши або продиктуй свою думку…')
         self.editor.setAccessibleName('Твоє повідомлення')
@@ -414,6 +410,7 @@ class RavenWindow(QMainWindow):
         self.backend.setEnabled(ready)
         self.save_stt.setEnabled(ready and (self.backend.currentData() != 'groq' or self.consent.isChecked()))
         task = self.state.get('task') or {}
+        self.cancel_task.setVisible(bool(task.get('active')))
         self.cancel_task.setEnabled(ready and bool(task.get('active')) and not task.get('cancel_requested', False))
 
     def emit_action(self, name, **fields):
@@ -471,6 +468,9 @@ class RavenWindow(QMainWindow):
     def show_error(self, text):
         self.notice.setText(text)
         self.notice.setVisible(bool(text))
+        if text:
+            # Повідомлення про помилку зникає саме, якщо його не замінили новим.
+            QTimer.singleShot(8000, lambda t=text: self.notice.text() == t and self.notice.hide())
 
     def toggle_history(self, expanded):
         self.expanded = expanded
@@ -582,7 +582,7 @@ class RavenWindow(QMainWindow):
         self.stt_status.setText(f"Зараз: {self.state.get('stt_active', '—')}. Збережено: {self.state.get('stt_saved', '—')}."
                                + (' Потрібен перезапуск.' if self.state.get('stt_restart_required') else ''))
         task = self.state.get('task') or {}
-        self.task_box.setVisible(bool(task))
+        self.task_box.setVisible(self.task_visible(task))
         task_text = (' · '.join(str(task.get(k, '')) for k in ('title', 'detail', 'cancellation'))
                      + '\n' + TASK_STATES.get(task.get('status'), str(task.get('status', ''))))
         if self.task_text.toPlainText() != task_text:
@@ -616,6 +616,25 @@ class RavenWindow(QMainWindow):
             self.shutdown_requested.emit()
 
     @Slot()
+    def task_visible(self, task):
+        # Завершене завдання лишається видимим коротко, потім ховається.
+        if not task:
+            return False
+        key = (task.get('id'), task.get('kind'))
+        if task.get('active') or task.get('status') in ('planning', 'awaiting_confirmation', 'running', 'verifying', 'cancelling'):
+            self._task_done_key = None
+            return True
+        if getattr(self, '_task_done_key', None) != key:
+            self._task_done_key = key
+            self._task_hidden = False
+            QTimer.singleShot(6000, lambda k=key: self.hide_finished_task(k))
+        return not getattr(self, '_task_hidden', False)
+
+    def hide_finished_task(self, key):
+        if getattr(self, '_task_done_key', None) == key:
+            self._task_hidden = True
+            self.task_box.hide()
+
     def core_finished(self):
         self.core_done = True
         self.ready = False
