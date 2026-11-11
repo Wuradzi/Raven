@@ -384,9 +384,22 @@ class GroqProvider(LLMProvider):
             return ProviderStatus(self.name, False, "API-ключ відсутній")
         try:
             await asyncio.wait_for(asyncio.to_thread(self._client().models.list), self.timeout)
-            return ProviderStatus(self.name, True, self.model)
         except Exception as exc:
             return ProviderStatus(self.name, False, _error_detail(exc))
+        # models.list лише доводить чинність ключа. Доступ до налаштованої моделі
+        # (проєктні обмеження Groq) перевіряє мінімальний запит на 1 токен.
+        try:
+            await asyncio.wait_for(asyncio.to_thread(self._probe_model), self.timeout)
+        except Exception as exc:
+            if getattr(exc, "status_code", None) in {401, 403, 404}:
+                return ProviderStatus(self.name, False, f"модель {self.model} недоступна: {_error_detail(exc)}"[:300],
+                                      denied=True)
+            # Таймаут чи ліміт під час проби не доводять відмови доступу.
+        return ProviderStatus(self.name, True, self.model)
+
+    def _probe_model(self) -> None:
+        self._client().chat.completions.create(
+            model=self.model, messages=[{"role": "user", "content": "ok"}], max_tokens=1)
 
     async def chat(self, messages: list[dict[str, str]]) -> str:
         def call():

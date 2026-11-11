@@ -181,6 +181,15 @@ class LLMManager:
             {"summary": "", "messages": []},
         )
 
+    _denied: frozenset = frozenset()
+
+    def _usable_backup(self, names) -> list[str]:
+        """Резерв, який справді може відповісти: не на паузі й без відхиленого доступу."""
+        return [n for n in names if not self._cooling_down(n) and n not in self._denied]
+
+    def _mark_denied(self, name, denied: bool) -> None:
+        self._denied = (self._denied | {name}) if denied else (self._denied - {name})
+
     async def check_all(self) -> dict[str, ProviderStatus]:
         async def check(name: str):
             if not self._is_configured(name):
@@ -196,6 +205,7 @@ class LLMManager:
                     status = await self.providers[name].healthcheck()
                     if not status.available:
                         measurement.status = "unavailable"
+                self._mark_denied(name, bool(getattr(status, "denied", False)))
                 return name, status
             except Exception as exc:
                 return name, ProviderStatus(name, False, str(exc))
@@ -355,7 +365,7 @@ class LLMManager:
         """Attempts on one provider: the final answer text, or None to move on to the next provider."""
         name = sequence[index]
         # Streamed only: a non-streamed answer arrives whole, so its first text is its last.
-        has_backup = any(not self._cooling_down(other) for other in sequence[index + 1:])
+        has_backup = bool(self._usable_backup(sequence[index + 1:]))
         first_seconds = first_text_seconds(self.settings) if on_chunk is not None and has_backup else 0
         for attempt in range(self.settings.llm_failures_before_switch):
             remaining = run.remaining()
@@ -376,6 +386,7 @@ class LLMManager:
                     break
                 return verdict
             self._cooldowns.pop(name, None)
+            self._mark_denied(name, False)
             # A slow first text is not an outage: the next turn tries the primary again.
             self.active_name = sequence[0] if run.slow_switch else name
             self._append_history(user_text, answer)
@@ -487,6 +498,10 @@ class LLMManager:
     def _cool_down(self, name, exc):
         """Classify a provider failure and start the cooldown on a rate limit (shared by every request kind)."""
         failure = classify_failure(exc)
+        if failure.kind == "access_denied":
+            # Відмова доступу не минає сама: такий провайдер не рахується резервом,
+            # тож основний не обривається за 5 с заради резерву, що однаково відмовить.
+            self._mark_denied(name, True)
         if failure.kind == "rate_limit":
             delay = failure.retry_after_seconds
             delay = max(1.0, delay) if delay is not None else 60.0
@@ -515,7 +530,7 @@ class LLMManager:
         loop = asyncio.get_running_loop()
         deadline = loop.time() + min(60, self.settings.llm_total_timeout_seconds)
         for index, name in enumerate(available):
-            backup = available[index + 1:]
+            backup = self._usable_backup(available[index + 1:])
             started = asyncio.Event()
             try:
                 with getattr(self, "performance", DISABLED_PERFORMANCE).span(f"llm.{name}.natural_turn"):
@@ -538,6 +553,7 @@ class LLMManager:
                           if isinstance(exc, InvalidIntent) else failure.message + " Нічого не виконано.")
                 return NaturalTurn("unavailable", notice + " Можна скористатися точною командою зі словом Команда.")
             self._cooldowns.pop(name, None)
+            self._mark_denied(name, False)
             if result.kind in {"chat", "clarify"}:
                 self._append_history(text, result.response)
             return result

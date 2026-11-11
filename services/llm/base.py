@@ -10,6 +10,7 @@ class ProviderStatus:
     name: str
     available: bool
     detail: str = ""
+    denied: bool = False  # доступ відхилено (ключ/модель): резервом бути не може
 
 
 class LLMProvider(ABC):
