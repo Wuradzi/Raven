@@ -72,3 +72,4 @@ htmlcov/
 !/docs/TESTING.md
 !/docs/BEHAVIORAL_CONTRACTS.md
 !/docs/DEVELOPMENT_RULES.md
+.DS_Store
