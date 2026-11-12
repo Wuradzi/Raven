@@ -314,12 +314,15 @@ class RavenApp:
         if not hasattr(self, "_dispatch_guard"):
             self._dispatch_guard = DispatchGuard()
         turn_id = self._dispatch_guard.issue()
+        flags = RecognitionPolicy.turn_flags(recognition) if recognition is not None else {}
+        if recognition is not None and getattr(getattr(self, 'settings', None), 'stt_groq_trusted', False):
+            flags = RecognitionPolicy.groq_trusted_flags(recognition, flags)
         turn = TurnEnvelope(
             turn_id=turn_id, session_id=self._dispatch_guard.session_id,
             source=source, text=text, transcript=recognition.text if recognition is not None else text,
             stt_engine=recognition.engine if recognition is not None else ('text' if source == 'text' else 'unknown'),
             confidence=confidence,
-            **(RecognitionPolicy.turn_flags(recognition) if recognition is not None else {}),
+            **flags,
             timing=recognition.timing if recognition is not None else None,
         )
         try:
@@ -366,6 +369,8 @@ class RavenApp:
                         self.settings.stt_command_confidence_threshold if is_local
                         else self.settings.stt_chat_confidence_threshold
                     )
+                    groq_trusted = (turn.stt_engine == 'groq' and turn.cloud_trusted
+                                    and turn.action_eligible and not turn.confidence_available)
                     unscored_chat = (not turn.confidence_available and not turn.action_eligible
                         and not turn.recognition_unreliable and not turn.capture_truncated
                         and (not turn.clarification_required or turn.utterance_incomplete)
@@ -373,7 +378,8 @@ class RavenApp:
                             or (getattr(self.settings, 'natural_actions_enabled', False)
                                 and COMMAND_PREFIX.match(text.strip())))))
                         and self.services['state'].get('mode', 'chat') == 'chat')
-                    if not math.isfinite(confidence) or (confidence < threshold and not unscored_chat):
+                    if not math.isfinite(confidence) or (confidence < threshold and not unscored_chat
+                                                         and not groq_trusted):
                         await self.speaker.say(
                             "Не розібрав фразу. Повторіть її, будь ласка."
                         )

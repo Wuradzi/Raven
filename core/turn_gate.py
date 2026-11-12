@@ -55,13 +55,16 @@ class TurnGate:
                        True, False, False)
         incomplete = incomplete_input or turn.clarification_required
         damaged = turn.recognition_unreliable or turn.capture_truncated or turn.utterance_incomplete
+        # Чистий Groq, якому STT-шар явно дав action_eligible (stt.groq_trusted): як оцінений STT.
+        trusted_groq = (turn.stt_engine == "groq" and turn.cloud_trusted and turn.action_eligible
+                        and not turn.confidence_available)
         return cls(
             caller_allows=allow_actions,
-            allow_actions=allow_actions and turn.action_eligible and turn.confidence_available,
+            allow_actions=allow_actions and turn.action_eligible and (turn.confidence_available or trusted_groq),
             incomplete=incomplete,
             reliable=not incomplete and not damaged,
-            confidence_known=turn.confidence_available,
-            groq_unscored=turn.stt_engine == "groq" and not turn.confidence_available,
+            confidence_known=turn.confidence_available or trusted_groq,
+            groq_unscored=turn.stt_engine == "groq" and not turn.confidence_available and not trusted_groq,
             voice=turn.source == "voice",
             unscored=not turn.confidence_available,
             lexical_fragment=(not turn.confidence_available and turn.utterance_incomplete

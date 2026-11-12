@@ -40,7 +40,9 @@
   один operational `turn_id`, існуючий dispatch guard, не transcript як ключ.
 - Розділяй incomplete, truncated, unreliable, confidence availability та
   ACTION eligibility. Eligibility не є дозволом виконати дію.
-- Не підвищуй довіру до невпевненого STT і не вигадуй confidence хмарного STT.
+- Не підвищуй довіру до пошкодженого STT і не вигадуй confidence хмарного STT. Рішення 12.11.2026
+  (`stt.groq_trusted`): чистий текст Groq без confidence має право на дію, як оцінений STT; пошкоджене,
+  обрізане або незавершене мовлення й далі не виконує нічого.
 - CHAT / CLARIFY не виконують tools. Невалідний control output не стає ACTION.
 - Збережи `direct_request`, ActionPolicy, confirmation request correlation,
   scoped clarification та execution verification. «Запит передано» ≠ «виконано».

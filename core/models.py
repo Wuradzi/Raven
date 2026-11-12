@@ -57,6 +57,9 @@ class TurnEnvelope:
     timing: TurnTiming | None = field(default=None, repr=False, compare=False)
 
     confidence_available: bool = True
+    # Лише Groq і лише коли stt.groq_trusted: чистий текст без confidence має право на дію,
+    # як оцінений STT (рішення 12.11.2026). Оцінку не вигадуємо: confidence_available лишається False.
+    cloud_trusted: bool = False
 
     @property
     def fragmented(self) -> bool:

@@ -63,6 +63,20 @@ class RecognitionPolicy:
         """Legacy evidence adapter, not approval to execute."""
         return result.confidence_available and not result.fragmented
 
+    @staticmethod
+    def groq_trusted_flags(result, flags):
+        """Рішення 12.11.2026: чистий текст Groq без confidence має право на дію, як оцінений STT.
+
+        confidence_available лишається False (оцінку не вигадуємо); змінюється лише дозвіл увійти в
+        політику дій. Пошкоджене, обрізане або незавершене мовлення право не отримує.
+        """
+        # Для Groq `fragmented` завжди True як плейсхолдер відсутнього confidence (stt_listener), тож
+        # про шкоду кажуть лише явні прапорці: ненадійне, обрізане, незавершене, потрібне повторення.
+        clean = (result.engine == 'groq' and not result.confidence_available
+                 and not flags['recognition_unreliable'] and not flags['capture_truncated']
+                 and not flags['utterance_incomplete'] and not flags['clarification_required'])
+        return {**flags, 'action_eligible': True, 'cloud_trusted': True} if clean else flags
+
     @classmethod
     def turn_flags(cls, result: RecognitionResult) -> TurnRecognitionFlags:
         """Preserve existing queue semantics, keeping evidence axes independent.

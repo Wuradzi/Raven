@@ -147,6 +147,17 @@ privacy/retention terms before sending personal speech. Doctor only checks local
 configuration: CONFIGURED / MISSING_KEY / NOT_SELECTED and LIVE_NOT_TESTED.
 Presence is not API health.
 
+## Groq as an equal STT (12.11.2026, `stt.groq_trusted`, on by default)
+
+Groq returns no confidence score, and none is invented: `confidence_available` stays `false`. With
+`stt.groq_trusted: true` a clean Groq transcript (not unreliable, truncated, incomplete or a fragment) is
+marked `action_eligible` and `cloud_trusted` at ingress and then follows the same path as scored STT:
+the full natural-action policy, proposals, the stop phrase and local commands. It no longer uses the
+restricted unscored candidate path. Everything that is not STT-specific is unchanged: `direct_request`,
+the action policy, correlated confirmation of state changes, and execution verification. Damaged speech
+still reaches no tool. `false` restores the previous restricted behaviour. Whisper may hallucinate text on
+near-silence, so keep an eye on `turn.route` lines with `scored=False eligible=True`.
+
 ## Local Vosk reserve during a Groq outage (09.11.2026, off by default)
 
 `stt.local_fallback` is a lazy, optional local reserve for when Groq itself is failing:
