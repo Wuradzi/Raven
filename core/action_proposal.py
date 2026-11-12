@@ -50,6 +50,15 @@ def parse_reply(body):
 # Closed subset of existing validated tools; no shell, deletion or arbitrary path.
 PROPOSABLE = {'web_search', 'open_app', 'find_files', 'weather', 'window_control', 'prepare_workplace'}
 
+_MEDIA_QUESTIONS = {
+    'play_pause': 'Натиснути паузу або відтворення?',
+    'next_track': 'Перемкнути на наступний трек?',
+    'previous_track': 'Повернутися до попереднього треку?',
+    'volume_up': 'Збільшити гучність?',
+    'volume_down': 'Зменшити гучність?',
+    'mute_toggle': 'Вимкнути або увімкнути звук?',
+}
+
 
 def proposal_question(intent):
     args = intent.arguments
@@ -65,6 +74,8 @@ def proposal_question(intent):
     if intent.tool == 'window_control':
         from core.command_intent import WINDOW_PHRASES
         return f"{WINDOW_PHRASES[args['action']]} «{args['name']}»?"
+    if intent.tool == 'media_control':
+        return _MEDIA_QUESTIONS[args['action']]
     return 'Підготувати збережене робоче місце?'
 
 

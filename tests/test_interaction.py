@@ -303,6 +303,53 @@ class CommandProcessorModeTests(unittest.IsolatedAsyncioTestCase):
                 execute.assert_not_awaited()
             approval.assert_not_awaited()
 
+    async def test_unscored_groq_conversational_media_gets_short_question_then_yes_runs_once(self):
+        from core.models import TurnEnvelope
+        from core.natural_turn import NaturalTurn
+        from core.command_intent import CommandIntent
+        self.processor.settings.natural_actions_enabled = True
+        self.services['enabled_skills'] = {'media'}
+        self.llm.converse = AsyncMock(return_value=NaturalTurn(
+            'action', intent=CommandIntent('media_control', {'action': 'play_pause', 'steps': '1'})))
+
+        def groq(text, **flags):
+            return TurnEnvelope(turn_id='groq:' + text, session_id='test', source='voice', text=text,
+                transcript=text, stt_engine='groq', confidence=0, confidence_available=False,
+                action_eligible=False, **flags)
+        approval = AsyncMock(return_value=True)
+        with patch('core.processor.execute_intent', new_callable=AsyncMock,
+                   return_value=SkillResult(True, 'ok', {'success': True})) as execute:
+            question = await self.processor.process(groq('Овімкне музику'), approval)
+            execute.assert_not_awaited()
+            self.assertEqual(question.response, 'Натиснути паузу або відтворення?')
+            await self.processor.process(groq('так', recognition_unreliable=True), approval)
+            execute.assert_not_awaited()
+            await self.processor.process(groq('Овімкне музику'), approval)
+            result = await self.processor.process(groq('Так.'), approval)
+            execute.assert_awaited_once()
+            self.assertEqual(execute.await_args.args[0].tool, 'media_control')
+            self.assertEqual(result.data['intent_route'], 'local_offer')
+        approval.assert_not_awaited()
+
+    async def test_restricted_groq_action_result_is_recorded_for_the_model(self):
+        # Живий журнал 12.11.2026: після пошуку файлів модель заперечила, що шукала, бо цей шлях
+        # не записував результат локальної дії в історію.
+        from core.models import TurnEnvelope
+        from core.natural_turn import NaturalTurn
+        from core.command_intent import CommandIntent
+        self.processor.settings.natural_actions_enabled = True
+        self.llm.record_local_action = Mock()
+        self.llm.converse = AsyncMock(return_value=NaturalTurn(
+            'action', intent=CommandIntent('open_app', {'name': 'браузер'})))
+        turn = TurnEnvelope(turn_id='groq:rec', session_id='test', source='voice', text='Відкрий браузер',
+            transcript='Відкрий браузер', stt_engine='groq', confidence=0, confidence_available=False,
+            action_eligible=False)
+        with patch('core.processor.execute_intent', new_callable=AsyncMock,
+                   return_value=SkillResult(True, 'Браузер відкрито.', {'success': True})):
+            await self.processor.process(turn, AsyncMock(return_value=True))
+        self.llm.record_local_action.assert_called_once_with('Відкрий браузер', 'Браузер відкрито.')
+        self.assertEqual(self.services['state']['last_local_action']['response'], 'Браузер відкрито.')
+
     async def test_unscored_groq_chat_reaches_llm_but_never_executes(self):
         from core.natural_turn import NaturalTurn
         from core.command_intent import CommandIntent

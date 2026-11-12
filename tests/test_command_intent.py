@@ -59,6 +59,23 @@ class PoliteRequestTests(unittest.TestCase):
                 self.assertTrue(direct_request(text, scope))
                 self.assertEqual(request_scope(text), scope)
 
+    def test_media_start_phrases_are_media_not_app_launch(self):
+        from core.natural_turn import direct_request, request_scope
+        for text in ('Запусти відтворення.', 'Запусти музику', 'Увімкни музику!',
+                     'Рейвен, запусти пісню будь ласка'):
+            with self.subTest(text=text):
+                self.assertTrue(direct_request(text, 'media_control'))
+                self.assertEqual(request_scope(text), 'media_control')
+
+    def test_media_scope_does_not_swallow_app_or_garbled_requests(self):
+        from core.natural_turn import direct_request, request_scope
+        self.assertEqual(request_scope('Запусти музику в Spotify'), 'open_app')  # програму названо: поведінка не змінилась
+        self.assertEqual(request_scope('Відкрий Spotify'), 'open_app')
+        self.assertEqual(request_scope('Запусти Telegram'), 'open_app')
+        for text in ('Овімкни музику.', 'Увімкне музику.', 'Знимаєм з паузи', 'Продовжуй витворення', 'Не вімкни музику'):
+            with self.subTest(text=text):
+                self.assertFalse(direct_request(text, 'media_control'))
+
     def test_politeness_does_not_remove_negation_or_narrative(self):
         from core.natural_turn import direct_request
         for text in ('Я не хотів би, щоб ти відкрив браузер',
@@ -164,6 +181,53 @@ class ContextualProposalTests(unittest.IsolatedAsyncioTestCase):
             with patch('core.processor.execute_intent', new_callable=AsyncMock) as execute:
                 await self.turn('так')
                 execute.assert_not_awaited()
+
+    async def _media_question(self, text='Ну давай вже щось увімкнемо, музику якусь', **flags):
+        self.services['enabled_skills'] = {'media'}
+        self.output = 'ACTION\n' + json.dumps({'tool': 'media_control', 'arguments': {'action': 'play_pause'}})
+        with patch('core.processor.execute_intent', new_callable=AsyncMock) as execute:
+            result = await self.turn(text, **flags)
+        execute.assert_not_awaited()  # фільтр не певен: нічого не виконано, лише питання
+        return result
+
+    async def test_conversational_media_request_becomes_short_question_then_runs_after_yes(self):
+        result = await self._media_question()
+        self.assertEqual(result.data['command_type'], 'action_offer')
+        self.assertEqual(result.response, 'Натиснути паузу або відтворення?')
+        self.output = 'CHAT\nмодель не має бути викликана'
+        with patch('core.processor.execute_intent', new_callable=AsyncMock,
+                   return_value=SkillResult(True, 'ok', {'success': True})) as execute:
+            result = await self.turn('Так.')
+            execute.assert_awaited_once()
+            self.assertEqual(execute.await_args.args[0].tool, 'media_control')
+            self.assertEqual(result.data['intent_route'], 'local_offer')
+            await self.turn('так')  # питання вже використане: повторне «так» нічого не робить
+            execute.assert_awaited_once()
+
+    async def test_media_question_is_one_turn_and_refusal_or_other_text_never_runs(self):
+        for reply in ('ні', 'Розкажи про Марс', 'так, і ще відкрий браузер', 'так?'):
+            with self.subTest(reply=reply):
+                await self._media_question()
+                with patch('core.processor.execute_intent', new_callable=AsyncMock) as execute:
+                    self.output = 'CHAT\nВідповідь.'
+                    await self.turn(reply)
+                    await self.turn('так')
+                execute.assert_not_awaited()
+
+    async def test_media_question_answer_from_unreliable_speech_never_runs(self):
+        await self._media_question()
+        with patch('core.processor.execute_intent', new_callable=AsyncMock) as execute:
+            self.output = 'CHAT\nВідповідь.'
+            await self.turn('так', action_eligible=False, recognition_unreliable=True)
+        execute.assert_not_awaited()
+
+    async def test_stop_or_interrupt_clears_media_question(self):
+        await self._media_question()
+        self.processor.interrupt_conversation()
+        with patch('core.processor.execute_intent', new_callable=AsyncMock) as execute:
+            self.output = 'CHAT\nВідповідь.'
+            await self.turn('так')
+        execute.assert_not_awaited()
 
     async def test_reject_clears_without_confirmation_or_execution(self):
         proposal = await self.offer()

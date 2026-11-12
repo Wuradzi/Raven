@@ -2385,8 +2385,8 @@
    ]
   ],
   "reliable|natural=True|chat|action_media": [
-   "intent_clarification",
-   "Не впевнений, що це пряме прохання виконати дію. Уточніть, б",
+   "action_offer",
+   "Зменшити гучність?",
    [],
    false,
    [],
@@ -20954,8 +20954,8 @@
    ]
   ],
   "unscored_groq|natural=True|chat|action_media": [
-   "intent_clarification",
-   "Не впевнений, що це пряме прохання виконати дію. Уточніть, б",
+   "action_offer",
+   "Зменшити гучність?",
    [],
    false,
    [],
@@ -24475,8 +24475,8 @@
    ]
   ],
   "text|natural=True|chat|action_media": [
-   "intent_clarification",
-   "Не впевнений, що це пряме прохання виконати дію. Уточніть, б",
+   "action_offer",
+   "Зменшити гучність?",
    [],
    false,
    [],

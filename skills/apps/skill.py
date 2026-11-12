@@ -102,9 +102,6 @@ async def launch_result(apps, accepted, name, app=None, *, command_type="open_ap
     if isinstance(evidence, dict) and evidence.get("window") and evidence.get("process"):
         data.update(verified=True, success=True, status="verified")
         return SkillResult(True, f"Процес і видиме вікно {name} знайдено.", data)
-    response = f"Команду запуску {name} передано системі."
-    if callable(check):
-        response += (" Процес працює, але видимого вікна не підтверджено; можливо, програма у треї."
-                     if isinstance(evidence, dict) and evidence.get("process")
-                     else " Появу вікна не вдалося підтвердити; повторно не запускаю.")
-    return SkillResult(True, response, data)
+    # Непідтверджена поява вікна не озвучується щоразу: data["verified"] лишається False,
+    # а відповідь не стверджує виконання, лише передачу команди системі.
+    return SkillResult(True, f"Команду запуску {name} передано системі.", data)

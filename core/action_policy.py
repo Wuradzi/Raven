@@ -34,6 +34,8 @@ class ActionPermission:
 # Tools a «так» to Raven's own offer may start; the offer only has to name the kind
 # of action. find_files still confirms its exact arguments in the executor; web
 # search announces its exact query; weather and open_app run directly.
+# Інструменти без змін стану й даних: за сумніву лишається питання, а не відмова.
+OFFER_ON_DOUBT = frozenset({'media_control'})
 OFFER_VERBS = {
     'web_search': r'знайд|знайт|пошук|шука',
     'find_files': r'знайд|знайт|пошук|шука|файл',
@@ -86,6 +88,19 @@ def _permission(decision, outcome, intent=None, response='', route='direct'):
     return ActionPermission(outcome, intent, response, decision.turn_id, route)
 
 
+def _unsure_request(decision, intent, request, text, pending, scoped):
+    """None для прямого прохання; інакше уточнення або, для OFFER_ON_DOUBT, коротке питання."""
+    if intent is not None and (direct_request(request, intent.tool) or scoped
+                               or (pending and application_name_reply(text) is not None)):
+        return None
+    if intent is not None and intent.tool in OFFER_ON_DOUBT:
+        # Розмовна форма: модель зрозуміла прохання, але локальний фільтр не певен. Не відмовляємо
+        # й не виконуємо: процесор запитає коротке підтвердження (route='offer').
+        return ActionPermission(PolicyOutcome.CLARIFY, intent, '', decision.turn_id, 'offer')
+    return _permission(decision, PolicyOutcome.CLARIFY, response=
+        'Не впевнений, що це пряме прохання виконати дію. Уточніть, будь ласка; нічого не виконано.')
+
+
 def natural_action_permission(decision, request, text, pending, scoped, *, action_eligible=True,
                               contextual_proposal=None, assistant_offer=None):
     if not action_eligible or decision.kind != DecisionKind.ACTION_CANDIDATE:
@@ -119,11 +134,9 @@ def natural_action_permission(decision, request, text, pending, scoped, *, actio
                 'Назвіть, будь ласка, програму, яку відкрити.')
     else:
         pending = None
-    if intent is None or (not direct_request(request, intent.tool)
-                          and not scoped
-                          and not (pending and application_name_reply(text) is not None)):
-        return _permission(decision, PolicyOutcome.CLARIFY, response=
-            'Не впевнений, що це пряме прохання виконати дію. Уточніть, будь ласка; нічого не виконано.')
+    unsure = _unsure_request(decision, intent, request, text, pending, scoped)
+    if unsure is not None:
+        return unsure
     intent = original_search_intent(request, intent)
     if not preserves_search_intent(request, intent):
         return _permission(decision, PolicyOutcome.CLARIFY, response=

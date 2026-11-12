@@ -11,7 +11,7 @@ from core.dialogue_decision import DialogueDecision, DecisionKind
 from core.action_policy import (PolicyOutcome, knowledge_gap_fallback,
                                 knowledge_gap_permission, natural_action_permission,
                                 unscored_candidate_permission)
-from core.action_proposal import ReplyKind, proposal_question, needs_proposal
+from core.action_proposal import ReplyKind, acceptance_matches, proposal_question, needs_proposal
 from core.command_actions import UNSCORED_VOICE_TOOLS, execute_intent
 from core.command_intent import CommandIntent, InterpretationUnavailable, MULTI_ACTION, can_interpret, original_search_intent, preserves_search_intent
 from core.command_catalog import chat_catalog, local_intent_candidates
@@ -140,7 +140,13 @@ CONTROL_PROMPTS = {
 }
 
 
+LOCAL_OFFER_TTL = 90
+_OFFER_REFUSAL = re.compile(r'(?:ні|не треба|не потрібно|скасуй|відміна|не роби цього)')
+
+
 class CommandProcessor:
+    _local_offer = None  # (CommandIntent, deadline): коротке питання після розмовного прохання
+
     def __init__(self, settings, router, llm_manager, speaker, metrics, services):
         self.settings = settings
         self.router = router
@@ -179,6 +185,7 @@ class CommandProcessor:
 
     def interrupt_conversation(self, *, discard_proposal=False):
         """Cancel only tool-free conversation, never a local operation/confirmation."""
+        self._local_offer = None
         if discard_proposal:
             self.dialogue_state.proposals.clear()
         if self._chat_task is not None and not self._chat_task.done():
@@ -215,7 +222,7 @@ class CommandProcessor:
                 if self.services.get('tasks') is not None:
                     self.services['tasks'].clear()
                 return result
-        result = await self._memory_turn(raw_text, gate, mode, source, confirm, input_turn)
+        result = await self._early_reply(raw_text, gate, mode, source, confirm, input_turn)
         if result is not None:
             return result
         proposals = self.dialogue_state.proposals
@@ -228,7 +235,8 @@ class CommandProcessor:
             proposal_lease = None
         permission = gate.outcome(stop_phrase=bool(STOP_SPEECH.fullmatch(raw_text)))
         if permission is not PolicyOutcome.ALLOW:
-            return await self._gated_turn(raw_text, normalized, input_turn, gate, mode, source, confirm)
+            return await self._gated_turn_recorded(raw_text, normalized, input_turn, gate, mode, source,
+                                                   confirm, state)
         success = True
         provider = "local"
         command_match = COMMAND_PREFIX.match(raw_text)
@@ -284,6 +292,13 @@ class CommandProcessor:
             result = SkillResult(True, f"Не вдалося виконати команду: {exc}")
 
         return self._finish_turn(result, provider, success, raw_text, local_raw, source, started, state)
+
+    async def _early_reply(self, raw_text, gate, mode, source, confirm, input_turn):
+        """Відповіді без виклику моделі: пам'ять, потім відповідь на коротке питання про медіа."""
+        result = await self._memory_turn(raw_text, gate, mode, source, confirm, input_turn)
+        if result is None:
+            result = await self._local_offer_turn(raw_text, gate, mode, source, confirm, input_turn)
+        return result
 
     async def _memory_turn(self, raw_text, gate, mode, source, confirm, input_turn):
         """Explicit personal-memory or knowledge-base phrases; None for every other turn."""
@@ -400,6 +415,13 @@ class CommandProcessor:
         if entries:
             logger.info('Knowledge context entries=%d ids=%s', len(entries), ','.join(self._last_knowledge_ids))
         return {'knowledge_context': context} if context else {}
+
+    async def _gated_turn_recorded(self, raw_text, normalized, input_turn, gate, mode, source, confirm, state):
+        """_gated_turn + пам'ять про виконану локальну дію (раніше цей шлях її не записував)."""
+        result = await self._gated_turn(raw_text, normalized, input_turn, gate, mode, source, confirm)
+        self._remember_local_action(result, "local" if result.data.get("natural_action") else None,
+                                    raw_text, None, state)
+        return result
 
     async def _gated_turn(self, raw_text, normalized, input_turn, gate, mode, source, confirm):
         """A turn below the pre-routing gate, by TrustLevel (roadmap phase 1, stage 2).
@@ -794,6 +816,26 @@ class CommandProcessor:
             system_context += "\n" + CONTROL_PROMPTS[control]
         return system_context, web_options
 
+    def _remember_local_action(self, result, provider, raw_text, local_raw, state):
+        """Фактичний результат локальної дії — у стан і в історію моделі (щоб вона не заперечувала виконане)."""
+        command_type = result.data.get("command_type", "unknown")
+        if (
+            provider == "local"
+            and (command_type in LOCAL_ACTION_TYPES or result.data.get("natural_action"))
+            and result.response
+        ):
+            action = {
+                "command": local_raw or raw_text,
+                "response": result.response,
+                "command_type": command_type,
+            }
+            state["last_local_action"] = action
+            if command_type in OPEN_ACTION_TYPES and result.data.get("accepted", True):
+                state["last_open_action"] = action
+            record = getattr(self.llm_manager, "record_local_action", None)
+            if record:
+                record(action["command"], action["response"])
+
     def _finish_turn(self, result, provider, success, raw_text, local_raw, source, started, state):
         """Shared post-processing: context resets, last local action, metrics."""
         command_type = result.data.get("command_type", "unknown")
@@ -814,22 +856,7 @@ class CommandProcessor:
             self.conversation_paused = False
         elif command_type == "chat_mode_enable":
             self.conversation_paused = False
-        if (
-            provider == "local"
-            and (command_type in LOCAL_ACTION_TYPES or result.data.get("natural_action"))
-            and result.response
-        ):
-            action = {
-                "command": local_raw or raw_text,
-                "response": result.response,
-                "command_type": command_type,
-            }
-            state["last_local_action"] = action
-            if command_type in OPEN_ACTION_TYPES and result.data.get("accepted", True):
-                state["last_open_action"] = action
-            record = getattr(self.llm_manager, "record_local_action", None)
-            if record:
-                record(action["command"], action["response"])
+        self._remember_local_action(result, provider, raw_text, local_raw, state)
 
         self.metrics.record(
             "command_completed",
@@ -1040,8 +1067,40 @@ class CommandProcessor:
         self._reply_interrupted = False
         return result
 
+    def _offer_action(self, permission):
+        """Розмовне прохання без певного збігу з фільтром: коротке питання, виконання лише після «так».
+
+        Пропозиція локальна, на один наступний хід і лише для інструментів зі списку OFFER_ON_DOUBT;
+        вона нічого не виконує, а «так» проходить ті самі перевірки довіри, що й вибір із пропозиції.
+        """
+        self._local_offer = (permission.intent, time.monotonic() + LOCAL_OFFER_TTL)
+        question = proposal_question(permission.intent)
+        self._cache_reply(question)
+        return SkillResult(True, question, {'command_type': 'action_offer', 'success': False})
+
+    async def _local_offer_turn(self, raw_text, gate, mode, source, confirm, input_turn):
+        """Відповідь на коротке питання з _offer_action: лише наступний хід, лише чиста мова."""
+        offer, self._local_offer = self._local_offer, None
+        if (offer is None or mode != 'chat' or time.monotonic() >= offer[1]
+                or not (gate.caller_allows and gate.reliable and (gate.allow_actions or gate.may_select_offer))):
+            return None
+        intent = offer[0]
+        if acceptance_matches(raw_text, intent.tool):
+            context = CommandContext(self.settings, self.services, confirm, source, raw_text=raw_text,
+                                     normalized_text=raw_text,
+                                     turn_id=input_turn.turn_id if input_turn is not None else None)
+            result = await asyncio.wait_for(execute_intent(intent, context), timeout=120)
+            result.data['natural_action'] = True
+            result.data['intent_route'] = 'local_offer'
+            return result
+        if _OFFER_REFUSAL.fullmatch(raw_text.strip().casefold().rstrip('.!')):
+            return SkillResult(True, 'Добре, не виконую.', {'command_type': 'offer_rejected'})
+        return None
+
     async def _run_permission(self, permission, context):
         """Shared ALLOW/refusal handling; the executor validates and confirms state changes."""
+        if permission.route == 'offer':
+            return self._offer_action(permission)
         if permission.outcome is not PolicyOutcome.ALLOW:
             return SkillResult(True, permission.response,
                                {"command_type": "intent_clarification", "success": False})
