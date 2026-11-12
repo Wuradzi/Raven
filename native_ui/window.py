@@ -21,6 +21,7 @@ STATES = {
     'paused': 'Не поспішаємо.', 'confirmation': 'Потрібне твоє рішення.',
     'voice_error': 'Не чую мікрофона.',
 }
+BUSY_STATES = frozenset({'thinking', 'processing_audio', 'preparing_speech'})
 TASK_STATES = {'planning': 'Планую', 'awaiting_confirmation': 'Очікує рішення',
                'running': 'Виконую', 'verifying': 'Перевіряю', 'completed': 'Завершено',
                'partial': 'Частковий результат', 'failed': 'Помилка',
@@ -164,6 +165,7 @@ class RavenWindow(QMainWindow):
         self.page = QScrollArea()
         self.page.setWidgetResizable(True)
         self.page.setFrameShape(QFrame.Shape.NoFrame)
+        self.page.setHorizontalScrollBarPolicy(Qt.ScrollBarPolicy.ScrollBarAlwaysOff)
         self.page.setWidget(host)
         self.setCentralWidget(self.page)
         outer = QVBoxLayout(host)
@@ -187,6 +189,11 @@ class RavenWindow(QMainWindow):
         self.settings_button = settings
         self.status = label('З’єднуємося…', 'status')
         self.status.setAlignment(Qt.AlignmentFlag.AlignCenter)
+        self.busy = QTimer(self)
+        self.busy.setInterval(450)
+        self.busy.timeout.connect(self.tick_busy)
+        self._status_base = ''
+        self._busy_step = 0
         layout.addWidget(self.status)
         controls = QHBoxLayout()
         controls.addStretch()
@@ -214,7 +221,7 @@ class RavenWindow(QMainWindow):
         task_layout = QVBoxLayout(self.task_box)
         self.task_text = QPlainTextEdit()
         self.task_text.setReadOnly(True)
-        self.task_text.setFixedHeight(70)
+        self.task_text.setFixedHeight(58)
         task_layout.addWidget(self.task_text)
         self.task_details = button('План і результати кроків', 'secondary', 'Показати кроки завдання')
         self.task_details.setCheckable(True)
@@ -257,7 +264,7 @@ class RavenWindow(QMainWindow):
         confirm_layout = QVBoxLayout(self.confirmation)
         self.confirmation_text = QPlainTextEdit()
         self.confirmation_text.setReadOnly(True)
-        self.confirmation_text.setFixedHeight(85)
+        self.confirmation_text.setFixedHeight(44)
         confirm_layout.addWidget(self.confirmation_text)
         choices = QHBoxLayout()
         self.reject = button('Скасувати', 'secondary', 'Відхилити поточну дію')
@@ -274,7 +281,7 @@ class RavenWindow(QMainWindow):
         composer_layout = QHBoxLayout(composer_box)
         composer_layout.setContentsMargins(14, 8, 8, 8)
         self.editor = Composer()
-        self.editor.setPlaceholderText('Напиши або продиктуй свою думку…')
+        self.editor.setPlaceholderText('Напиши або продиктуй свою думку… · Enter — надіслати, Shift+Enter — новий рядок')
         self.editor.setAccessibleName('Твоє повідомлення')
         self.editor.setFixedHeight(58)
         self.editor.textChanged.connect(self.draft_changed)
@@ -319,14 +326,45 @@ class RavenWindow(QMainWindow):
         super().showEvent(event)
         QTimer.singleShot(0, self.position_chrome)
 
+    def set_status(self, status):
+        # Для станів очікування крапки анімуються, щоб було видно: Raven працює, а не завис.
+        self._status_base = STATES.get(status, 'Я поруч.')
+        if status in BUSY_STATES:
+            if self.busy.isActive():
+                return
+            self._busy_step = 0
+            self.busy.start()
+            self.tick_busy()
+        else:
+            self.busy.stop()
+            self.status.setText(self._status_base)
+
+    def tick_busy(self):
+        self._busy_step = self._busy_step % 3 + 1
+        self.status.setText(self._status_base.rstrip('…') + '.' * self._busy_step + '\u00a0' * (3 - self._busy_step))
+
+    def apply_density(self):
+        # Низьке вікно: стиснути шапку, щоб розмова займала більше місця.
+        compact = self.height() < 720
+        if self.status.property('compact') != compact:
+            for widget in (self.status, self.mic_detail):
+                widget.setProperty('compact', compact)
+                widget.style().unpolish(widget)
+                widget.style().polish(widget)
+        self.card.layout().setContentsMargins(24, 112 if compact else 138, 24, 20 if compact else 24)
+        self.card.layout().setSpacing(8 if compact else 12)
+
     def position_chrome(self):
         if hasattr(self, 'settings_button'):
+            self.apply_density()
             self.card.setFixedWidth(min(990, max(300, self.page.viewport().width()-48)))
             self.card.parentWidget().layout().activate()
             self.settings_button.move(self.card.width()-55, 18)
             self.settings_button.raise_()
             self.emblem.move(self.card.x()+(self.card.width()-190)//2, 8)
             self.emblem.raise_()
+            self.fit_height(self.task_text, 58, 90)
+            self.fit_height(self.confirmation_text, 44, 140)
             available = max(240, self.scroll.viewport().width()-16)
             for kind, row in self.rows:
                 row.setFixedWidth(int(available * (.85 if kind == 'user' else 1)))
@@ -544,9 +582,10 @@ class RavenWindow(QMainWindow):
                 if kind == 'assistant':
                     self.assistant = message
                 if kind == 'user' and event.get('source') == 'voice':
-                    edit = button('Виправити текст', 'secondary', 'Скопіювати репліку без автоматичного надсилання')
+                    edit = button('Виправити текст', 'link', 'Скопіювати репліку без автоматичного надсилання')
+                    edit.setCursor(Qt.CursorShape.PointingHandCursor)
                     edit.clicked.connect(lambda _=False, value=text: self.edit_transcript(value))
-                    content.addWidget(edit)
+                    content.addWidget(edit, 0, Qt.AlignmentFlag.AlignLeft)
             self.rows.append((kind, row))
             row.setFixedWidth(int(max(240, self.scroll.viewport().width()-16) * (.85 if kind == 'user' else 1)))
             self.message_layout.addWidget(row, 0, Qt.AlignmentFlag.AlignRight if kind == 'user' else Qt.AlignmentFlag.AlignLeft)
@@ -566,7 +605,7 @@ class RavenWindow(QMainWindow):
             return
         self.state = packet['state']
         self.ready = self.state.get('status') != 'offline'
-        self.status.setText(STATES.get(self.state.get('status'), 'Я поруч.'))
+        self.set_status(self.state.get('status'))
         self.mic_detail.setText('Голосове введення недоступне' if not self.state.get('microphone_available') else
                                'Мікрофон дозволено · під час озвучення слухання призупинене' if self.state.get('microphone') else
                                'Мікрофон вимкнено · захоплення зупинене')
@@ -574,6 +613,7 @@ class RavenWindow(QMainWindow):
         prompt = self.state.get('confirmation_prompt', '')
         if self.confirmation_text.toPlainText() != prompt:
             self.confirmation_text.setPlainText(prompt)
+            self.fit_height(self.confirmation_text, 44, 140)
         self.provider.setText('Модель: ' + str(self.state.get('provider', '—')))
         self.pause.setText('Повернутися до розмови' if self.state.get('paused') else 'Пауза розмови')
         if not hasattr(self, '_stt_initialized') and self.state.get('stt_saved'):
@@ -582,11 +622,13 @@ class RavenWindow(QMainWindow):
         self.stt_status.setText(f"Зараз: {self.state.get('stt_active', '—')}. Збережено: {self.state.get('stt_saved', '—')}."
                                + (' Потрібен перезапуск.' if self.state.get('stt_restart_required') else ''))
         task = self.state.get('task') or {}
-        self.task_box.setVisible(self.task_visible(task))
-        task_text = (' · '.join(str(task.get(k, '')) for k in ('title', 'detail', 'cancellation'))
-                     + '\n' + TASK_STATES.get(task.get('status'), str(task.get('status', ''))))
+        self.task_box.setVisible(self.task_visible(task) and not (
+            self.state.get('confirmation') and task.get('status') == 'awaiting_confirmation'))
+        head = ' · '.join(str(task[k]) for k in ('title', 'detail', 'cancellation') if task.get(k))
+        task_text = (head + '\n' if head else '') + TASK_STATES.get(task.get('status'), str(task.get('status', '')))
         if self.task_text.toPlainText() != task_text:
             self.task_text.setPlainText(task_text)
+            self.fit_height(self.task_text, 58, 90)
         steps = '\n'.join(f"{i}. {step.get('name', '')} — {TASK_STATES.get(step.get('status'), step.get('status', ''))}: {step.get('detail', '')}"
                           for i, step in enumerate(task.get('steps', ()), 1))
         if self.steps.toPlainText() != steps:
@@ -616,6 +658,12 @@ class RavenWindow(QMainWindow):
             self.shutdown_requested.emit()
 
     @Slot()
+    @staticmethod
+    def fit_height(edit, low, high):
+        # Висота поля під вміст у межах [low, high], щоб короткий текст не займав зайвого місця.
+        edit.document().setTextWidth(max(120, edit.viewport().width()))
+        edit.setFixedHeight(int(max(low, min(high, edit.document().size().height() + 14))))
+
     def task_visible(self, task):
         # Завершене завдання лишається видимим коротко, потім ховається.
         if not task:

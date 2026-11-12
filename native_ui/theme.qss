@@ -1,9 +1,11 @@
-QWidget { color: #e5dff4; font-family: "Segoe UI"; font-size: 14px; }
+QWidget { color: #e5dff4; font-family: "Segoe UI", ".AppleSystemUIFont", "SF Pro Text", "Helvetica Neue", "Noto Sans", sans-serif; font-size: 14px; }
 QWidget#background { background: #0b0b15; }
 QFrame#card { background: qlineargradient(x1:0,y1:0,x2:1,y2:1,stop:0 #242433,stop:0.6 #13131f,stop:1 #1b1929); border: 1px solid #695485; border-radius: 30px; }
 QLabel { background: transparent; border: none; }
 QLabel#status { font-size: 30px; color: #f6f1ff; }
 QLabel#detail { font-size: 12px; color: #bdb4d2; }
+QLabel#status[compact="true"] { font-size: 22px; }
+QLabel#detail[compact="true"] { font-size: 11px; }
 QLabel#notice { color: #e1cca5; padding: 8px; }
 QPushButton { background: #292436; border: 1px solid #785997; border-radius: 10px; padding: 7px 12px; }
 QPushButton:hover { background: #3b2b51; border-color: #bd7fff; }
@@ -11,6 +13,8 @@ QPushButton:focus { border: 2px solid #d5b4ff; }
 QPushButton:disabled { color: #766b86; background: #211d2a; border-color: #41354f; }
 QPushButton#round { border-radius: 28px; padding: 14px; }
 QPushButton#round:checked { background: #593481; border-color: #bd7fff; }
+QPushButton#link { background: transparent; border: none; color: #c9a7ff; font-size: 12px; padding: 2px 0; text-align: left; }
+QPushButton#link:hover { color: #e5c7ff; text-decoration: underline; }
 QPushButton#settings { background: transparent; border: none; padding: 7px; }
 QPushButton#primary { background: qlineargradient(x1:0,y1:0,x2:1,y2:1,stop:0 #a65bea,stop:1 #6532bb); border-radius: 13px; }
 QPushButton#primary:disabled { background: #40304f; }
