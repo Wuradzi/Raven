@@ -113,6 +113,37 @@ class GroqSTTTests(unittest.TestCase):
         self.assertEqual(self.backend.last_metrics['audio_seconds'], 1)
         self.client_factory.assert_called_once_with(timeout=15, follow_redirects=False)
 
+    def vocabulary_backend(self, *words):
+        from dataclasses import replace
+        backend = GroqBackend(replace(self.settings, stt_groq_vocabulary=words), self.profile)
+        self.addCleanup(backend.close)
+        return backend
+
+    def test_vocabulary_prompt_is_sent_only_when_configured(self):
+        self.response()
+        self.backend.transcribe(bytes(3200), 16000)
+        self.assertNotIn('prompt', self.client.post.call_args.kwargs['data'])
+        self.vocabulary_backend('Рейвен', 'Spotify').transcribe(bytes(3200), 16000)
+        self.assertEqual(self.client.post.call_args.kwargs['data']['prompt'], 'Рейвен, Spotify.')
+
+    def test_prompt_echo_on_silence_is_discarded_but_real_phrases_pass(self):
+        backend = self.vocabulary_backend('Рейвен', 'Spotify', 'Safari')
+        self.response({'text': 'Рейвен, Spotify, Safari.'})
+        result = backend.transcribe(bytes(3200), 16000)
+        self.assertEqual((result.text, backend.last_error), ('', 'prompt_echo'))
+        self.assertTrue(result.recognition_unreliable)
+        for text in ('Відкрий Spotify.', 'Рейвен.', 'Рейвен Spotify', 'Рейвен, відкрий Safari.'):
+            with self.subTest(text=text):
+                self.response({'text': text})
+                self.assertEqual(backend.transcribe(bytes(3200), 16000).text, text)
+        self.assertEqual(self.backend.last_error, '')  # без словника перевірка вимкнена
+
+    def test_vocabulary_prompt_builder_ignores_blank_and_non_text_entries(self):
+        from services.audio.groq_backend import vocabulary_prompt
+        self.assertEqual(vocabulary_prompt(('Рейвен', ' ', '', 5, 'Safari')), 'Рейвен, Safari.')
+        self.assertEqual(vocabulary_prompt(()), '')
+        self.assertEqual(vocabulary_prompt(None), '')
+
     def test_non_ukrainian_transcript_is_discarded_without_authority(self):
         for text in ('Vitgræ Brásar', 'Vigrei Browser', 'Ne відкрifa í browser.', 'Открой новый браузер'):
             self.response({'text': text})

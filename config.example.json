@@ -12,6 +12,7 @@
     "groq_model": "whisper-large-v3-turbo",
     "groq_timeout_seconds": 15,
     "groq_trusted": true,
+    "groq_vocabulary": ["Рейвен"],
     "profile": "auto",
     "profiles": {
       "quality": {"backend": "faster-whisper", "model": "large-v3", "device": "auto", "compute_type": "auto", "target_ram_mb": 8192, "target_rtf": 1.0},

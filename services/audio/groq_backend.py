@@ -37,8 +37,26 @@ def _script_counts(text):
     return f'uk={uk},latin={latin},other={len(letters) - uk - latin}'
 
 
-def _transcript_guard(text, error, contextual_name):
+def vocabulary_prompt(words):
+    """Підказка Whisper зі словником назв (не речення): порожній рядок, якщо словника немає."""
+    items = [w.strip() for w in (words or ()) if isinstance(w, str) and w.strip()]
+    return (', '.join(items) + '.') if items else ''
+
+
+def prompt_echo(text, prompt):
+    """Транскрипція тиші або шуму може повторити саму підказку: ≥ 3 слів, усі зі словника."""
+    if not prompt:
+        return False
+    spoken = re.findall(r"[^\W_]+", text.casefold())
+    known = set(re.findall(r"[^\W_]+", prompt.casefold()))
+    return len(spoken) >= 3 and all(word in known for word in spoken)
+
+
+def _transcript_guard(text, error, contextual_name, prompt=''):
     """Error class for a transcript that must not reach the dialogue, else the given one."""
+    if text and not error and prompt_echo(text, prompt):
+        logger.info('stt.hallucination_guard decision=reject reason=prompt_echo chars=%s', len(text))
+        return 'prompt_echo'
     if text and not error and subtitle_hallucination(text):
         logger.info('stt.hallucination_guard decision=reject chars=%s', len(text))
         return 'subtitle_hallucination'
@@ -81,6 +99,7 @@ class GroqBackend:
         # Match LLM providers: capture before Core scrubs env.
         self._key = settings.api_keys.get('groq', '')
         self._timeout = settings.stt_groq_timeout_seconds
+        self._prompt = vocabulary_prompt(getattr(settings, 'stt_groq_vocabulary', ()))
         self._lock = threading.Lock()
         self._closed = threading.Event()
         self.last_error = ''
@@ -127,7 +146,8 @@ class GroqBackend:
                             response = client.post(ENDPOINT,
                                 headers={'Authorization': 'Bearer ' + self._key},
                                 data={'model': self.metadata.model, 'language': 'uk',
-                                      'temperature': '0', 'response_format': 'json'},
+                                      'temperature': '0', 'response_format': 'json',
+                                      **({'prompt': self._prompt} if self._prompt else {})},
                                 files={'file': ('utterance.wav', wav.getvalue(), 'audio/wav')})
                         status = response.status_code
                         if status != 200:
@@ -162,7 +182,7 @@ class GroqBackend:
                         contextual_name = name_reply_allowed(text) is True
                     except Exception:
                         logger.info('stt.language_guard scope_check=unavailable')
-            error = _transcript_guard(text, error, contextual_name)
+            error = _transcript_guard(text, error, contextual_name, self._prompt)
             if error:
                 text = ''
             self.last_error = error

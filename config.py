@@ -62,6 +62,7 @@ class Settings:
     stt_primary_device: str = "auto"
     stt_primary_local_files_only: bool = True
     stt_fallback_backend: str = "none"
+    stt_groq_vocabulary: tuple = ()  # Назви для підказки Whisper на Groq (порожньо: без підказки).
     stt_groq_trusted: bool = False  # Чистий текст Groq без confidence має право на дію, як оцінений STT (рішення 12.11.2026).
     stt_local_fallback_enabled: bool = False  # Lazy Vosk reserve for a Groq outage; off by default.
     stt_local_fallback_max_consecutive: int = 5
@@ -159,6 +160,7 @@ def default_config(*, fresh: bool = True) -> dict[str, Any]:
             "groq_model": "whisper-large-v3-turbo",
             "groq_timeout_seconds": 15,
             "groq_trusted": True,
+            "groq_vocabulary": ["Рейвен"],
             "profile": "auto",
             "profiles": default_profiles(),
             "quality_profile": None,
@@ -350,6 +352,11 @@ def _validate_stt_selection(stt: dict[str, Any]) -> None:
         raise ConfigError('stt.groq_timeout_seconds must be 1..120')
     if type(stt['groq_trusted']) is not bool:
         raise ConfigError('stt.groq_trusted має бути boolean')
+    vocabulary = stt['groq_vocabulary']
+    if (not isinstance(vocabulary, list) or len(vocabulary) > 30
+            or any(not isinstance(w, str) or not 1 <= len(w.strip()) <= 40 or not w.isprintable() for w in vocabulary)
+            or len(', '.join(vocabulary)) > 400):
+        raise ConfigError('stt.groq_vocabulary: до 30 рядків по 1–40 символів, разом до 400')
     if stt['profile'] not in {'auto', 'quality', 'balanced', 'edge', 'low_resource'}:
         raise ConfigError('Invalid stt.profile')
     if stt.get('quality_profile') not in {None, 'quality', 'balanced', 'edge', 'low_resource'}:
@@ -591,6 +598,7 @@ def load_settings(profile_override: str | None = None, *, read_only=False, root=
         stt_groq_model=config['stt']['groq_model'],
         stt_groq_timeout_seconds=config['stt']['groq_timeout_seconds'],
         stt_groq_trusted=config['stt']['groq_trusted'],
+        stt_groq_vocabulary=tuple(config['stt']['groq_vocabulary']),
         stt_profile=config['stt']['profile'],
         stt_profiles=config['stt']['profiles'],
         stt_quality_profile=config['stt']['quality_profile'],
