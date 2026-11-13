@@ -21,6 +21,16 @@ STATES = {
     'paused': 'Не поспішаємо.', 'confirmation': 'Потрібне твоє рішення.',
     'voice_error': 'Не чую мікрофона.',
 }
+JOURNAL_STATUS = {'verified': 'виконано й перевірено', 'submitted': 'передано системі, не перевірено',
+                  'failed': 'не виконано', 'cancelled': 'скасовано'}
+JOURNAL_CONFIRMATION = {'accepted': 'підтверджено', 'declined': 'підтвердження відхилено',
+                        'none': 'без підтвердження'}
+PERMISSION_SETTINGS = {
+    'accessibility': ('Для цієї дії потрібен дозвіл «Універсальний доступ».',
+                      'x-apple.systempreferences:com.apple.preference.security?Privacy_Accessibility'),
+    'screen_recording': ('Для знімка екрана потрібен дозвіл «Запис екрана й системного аудіо».',
+                         'x-apple.systempreferences:com.apple.preference.security?Privacy_ScreenCapture'),
+}
 BUSY_STATES = frozenset({'thinking', 'processing_audio', 'preparing_speech'})
 TASK_STATES = {'planning': 'Планую', 'awaiting_confirmation': 'Очікує рішення',
                'running': 'Виконую', 'verifying': 'Перевіряю', 'completed': 'Завершено',
@@ -54,6 +64,7 @@ def icon(kind):
         'mic': '<rect x="9" y="3" width="6" height="12" rx="3"/><path d="M5 10v2a7 7 0 0 0 14 0v-2M12 19v3M8 22h8"/>',
         'muted': '<rect x="9" y="3" width="6" height="12" rx="3"/><path d="M5 10v2a7 7 0 0 0 14 0v-2M12 19v3M8 22h8M3 3l18 18"/>',
         'history': '<path d="M4 10a8 8 0 1 1 1 7M4 5v5h5M12 7v5l3 2"/>',
+        'journal': '<path d="M9 6h11M9 12h11M9 18h11M4 6h.01M4 12h.01M4 18h.01"/>',
         'settings': '<path d="m10 3-1 3-3 1-3 3 2 2-2 2 3 3 3 1 1 3h4l1-3 3-1 3-3-2-2 2-2-3-3-3-1-1-3Z"/><circle cx="12" cy="12" r="3"/>',
     }
     svg = ('<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" '
@@ -159,7 +170,7 @@ class RavenWindow(QMainWindow):
         self.draft_id = None
         self.expanded = False
         self.settings_store = QSettings('Raven', 'NativeUI')
-        self.icons = {name: icon(name) for name in ('send', 'stop', 'mic', 'muted', 'history', 'settings')}
+        self.icons = {name: icon(name) for name in ('send', 'stop', 'mic', 'muted', 'history', 'journal', 'settings')}
         host = QWidget()
         host.setObjectName('background')
         self.page = QScrollArea()
@@ -209,6 +220,12 @@ class RavenWindow(QMainWindow):
         self.history.setCheckable(True)
         self.history.clicked.connect(self.toggle_history)
         controls.addWidget(self.history)
+        controls.addSpacing(18)
+        self.journal_button = button('', 'round', 'Журнал дій: що запитано, підтверджено й виконано')
+        self.journal_button.setIcon(self.icons['journal'])
+        self.journal_button.setFixedSize(56, 56)
+        self.journal_button.clicked.connect(self.show_journal)
+        controls.addWidget(self.journal_button)
         controls.addStretch()
         layout.addLayout(controls)
         self.mic_detail = label('Очікування запуску Core.', 'detail')
@@ -293,6 +310,7 @@ class RavenWindow(QMainWindow):
         composer_layout.addWidget(self.send)
         layout.addWidget(composer_box)
         self.build_settings()
+        self.build_journal()
         self._restore_maximized = False
         self.fullscreen_shortcut = QShortcut('F11', self)
         self.fullscreen_shortcut.activated.connect(self.toggle_fullscreen)
@@ -368,6 +386,60 @@ class RavenWindow(QMainWindow):
             available = max(240, self.scroll.viewport().width()-16)
             for kind, row in self.rows:
                 row.setFixedWidth(int(available * (.85 if kind == 'user' else 1)))
+
+    def build_journal(self):
+        self.journal_dialog = QDialog(self)
+        self.journal_dialog.setWindowTitle('Журнал дій')
+        self.journal_dialog.resize(520, 460)
+        body = QVBoxLayout(self.journal_dialog)
+        body.addWidget(label('Дії цієї сесії: що запитано, чи було підтвердження і чим завершилось. '
+                             'Журнал не зберігається після закриття Рейвена.', 'detail'))
+        self.journal_text = QPlainTextEdit()
+        self.journal_text.setReadOnly(True)
+        body.addWidget(self.journal_text, 1)
+        close = button('Закрити', 'secondary', 'Закрити журнал дій')
+        close.clicked.connect(self.journal_dialog.close)
+        body.addWidget(close)
+
+    def show_journal(self):
+        self.render_journal()
+        self.journal_dialog.show()
+
+    def render_journal(self):
+        entries = self.state.get('journal') or ()
+        text = '\n\n'.join(
+            f"{item.get('time', '')} · {item.get('command', '')}\n"
+            f"{JOURNAL_CONFIRMATION.get(item.get('confirmation'), '')} · "
+            f"{JOURNAL_STATUS.get(item.get('status'), 'стан невідомий')}\n{item.get('result', '')}"
+            for item in reversed(entries)) or 'Поки що жодної дії.'
+        if self.journal_text.toPlainText() != text:
+            self.journal_text.setPlainText(text)
+
+    def route_event(self, event):
+        if event.get('kind') == 'permission':
+            self.append_permission(event)
+        else:
+            self.append_event(event)
+
+    def append_permission(self, event):
+        # Адреса фіксована за ідентифікатором дозволу; Core не передає довільних посилань.
+        target = PERMISSION_SETTINGS.get(event.get('target'))
+        if target is None:
+            return
+        row = QFrame()
+        row.setObjectName('bubble')
+        content = QVBoxLayout(row)
+        content.setContentsMargins(12, 10, 12, 10)
+        content.addWidget(label(target[0], 'detail'))
+        link = button('Відкрити налаштування macOS', 'secondary', 'Відкрити потрібний розділ системних налаштувань')
+        link.clicked.connect(lambda _=False, value=target[1]: QDesktopServices.openUrl(QUrl(value)))
+        content.addWidget(link)
+        self.empty.hide()
+        self.rows.append(('permission', row))
+        row.setFixedWidth(max(240, self.scroll.viewport().width()-16))
+        self.message_layout.addWidget(row, 0, Qt.AlignmentFlag.AlignLeft)
+        self.trim_visible()
+        QTimer.singleShot(0, self.jump_latest)
 
     def build_settings(self):
         self.dialog = QDialog(self)
@@ -637,7 +709,8 @@ class RavenWindow(QMainWindow):
         for event in packet.get('events', ()):
             if event.get('id', 0) > self.cursor:
                 self.cursor = event['id']
-                self.append_event(event)
+                self.route_event(event)
+        self.render_journal()
         self.update_controls()
 
     def closeEvent(self, event):

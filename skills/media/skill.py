@@ -9,6 +9,7 @@ except ImportError:
 
 from core.models import SkillResult
 from services.platform import PlatformOperationError, resolve_platform
+from services.platform.resolver import permission_reply
 
 # Model ACTION media_control (user decision 07.11.2026): fixed media keys only, no
 # confirmation, as reversible as a key on the keyboard. Windows reports nothing back,
@@ -26,9 +27,9 @@ async def press_media(action, steps):
         try:
             await asyncio.to_thread(resolve_platform().media_key, action, presses)
         except PlatformOperationError as exc:
-            return SkillResult(True, f"{exc} Медіакоманду не надіслано.",
-                               {"command_type": "media", "accepted": False, "verified": False,
-                                "success": False, "status": exc.status})
+            text, extra = permission_reply(exc, "Медіакоманду не надіслано.")
+            return SkillResult(True, text, {"command_type": "media", "accepted": False, "verified": False,
+                                            "success": False, "status": exc.status, **extra})
     else:
         await asyncio.to_thread(pyautogui.press, MEDIA_KEYS[action], presses=presses)
     return SkillResult(True, f"Надіслав медіакоманду: {_SENT[action].format(n=presses)}.",

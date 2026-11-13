@@ -7,6 +7,7 @@ import psutil
 
 from core.models import SkillResult
 from services.platform import PlatformOperationError, resolve_platform
+from services.platform.resolver import permission_reply
 
 
 TIME_COMMANDS = {"котра година", "який час", "скажи час"}
@@ -99,9 +100,9 @@ async def lock_screen(context):
     try:
         locked = bool(await asyncio.to_thread(resolve_platform().system_action, 'lock'))
     except PlatformOperationError as exc:
-        return SkillResult(True, f"{exc} Екран не заблоковано.",
-                           {"command_type": "lock", "accepted": False, "verified": False,
-                            "success": False, "status": exc.status})
+        text, extra = permission_reply(exc, "Екран не заблоковано.")
+        return SkillResult(True, text, {"command_type": "lock", "accepted": False, "verified": False,
+                                        "success": False, "status": exc.status, **extra})
     return SkillResult(True, "Екран заблоковано." if locked else f"{_os_name()} не підтвердила блокування екрана.",
                        {"command_type": "lock", "accepted": True, "verified": locked,
                         "status": "verified" if locked else "unverified"})
@@ -133,9 +134,9 @@ async def save_screenshot(context):
     try:
         saved = await asyncio.to_thread(_save_screenshot, path)
     except PlatformOperationError as exc:
-        return SkillResult(True, f"{exc} Знімок екрана не збережено.",
-                           {"command_type": "screenshot", "accepted": False, "verified": False,
-                            "success": False, "status": exc.status})
+        text, extra = permission_reply(exc, "Знімок екрана не збережено.")
+        return SkillResult(True, text, {"command_type": "screenshot", "accepted": False, "verified": False,
+                                        "success": False, "status": exc.status, **extra})
     except Exception:
         saved = False
     if not saved:

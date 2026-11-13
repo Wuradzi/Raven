@@ -332,6 +332,11 @@ class RavenApp:
             raise
         return turn
 
+    def _publish_permission(self, result) -> None:
+        """Підказка вікну, якого дозволу ОС бракує: лише ідентифікатор, адресу обирає саме вікно."""
+        if result.data.get("permission_hint"):
+            self.web_ui.publish("permission", target=str(result.data["permission_hint"])[:40])
+
     async def _command_loop(self) -> None:
         while self.running:
             turn = await self.command_queue.get()
@@ -405,6 +410,7 @@ class RavenApp:
                                             href=str(item.get("href", ""))[:2000])
                     for item in result.data.get("task_choices", []):
                         self.web_ui.publish("notice", item.get("location", ""))
+                    self._publish_permission(result)
                 for index, item in enumerate(result.data.get("web_results", []), 1):
                     number = item.get("source_id", index)
                     published = item.get("published") or "не встановлено"
@@ -779,7 +785,8 @@ class RavenApp:
                 "task": task.public() if task else None,
                 "tts_busy": self.speaker.busy,
                 "tts_playback": self.speaker.playback_active,
-                "tts_glow": self.speaker.glow_state()}
+                "tts_glow": self.speaker.glow_state(),
+                "journal": list(getattr(self.processor, "action_journal", ()))}
 
     async def web_control(self, action, data):
         if action == 'stt_backend':

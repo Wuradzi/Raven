@@ -21,10 +21,28 @@ def manifest_platform_matches(platforms):
     return current in normalized or 'all' in normalized
 
 
+# Який саме дозвіл ОС потрібен; текст і пункт налаштувань фіксовані, не з виводу ОС.
+PERMISSION_GUIDANCE = {
+    'accessibility': ' Потрібен дозвіл macOS: Системні налаштування → Конфіденційність і безпека → '
+                     'Універсальний доступ. Увімкніть програму, з якої запущено Рейвен, і перезапустіть її.',
+    'screen_recording': ' Потрібен дозвіл macOS: Системні налаштування → Конфіденційність і безпека → '
+                        'Запис екрана й системного аудіо. Увімкніть програму, з якої запущено Рейвен, '
+                        'і перезапустіть її.',
+}
+
+
+def permission_reply(exc, tail):
+    """(текст відповіді, додаткові дані) для відмови ОС: з підказкою, якщо відомо, якого дозволу бракує."""
+    hint = getattr(exc, 'hint', '')
+    extra = {'permission_hint': hint} if hint in PERMISSION_GUIDANCE else {}
+    return f"{exc} {tail}{PERMISSION_GUIDANCE.get(hint, '')}", extra
+
+
 class PlatformOperationError(RuntimeError):
-    def __init__(self, capability, status):
+    def __init__(self, capability, status, hint=''):
         self.capability = capability
         self.status = status
+        self.hint = hint
         super().__init__({'unsupported': 'Ця дія недоступна на цій платформі.',
                           'not_available': 'Ця дія недоступна в поточному середовищі.',
                           'not_found': 'Не знайдено потрібну програму.',

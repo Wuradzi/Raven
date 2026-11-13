@@ -5,6 +5,8 @@ import asyncio
 import re
 import time
 
+from core.security import redact_user_text
+
 from core.models import CommandContext, SkillResult, TurnEnvelope
 from core.recognition_policy import DialogueState
 from core.dialogue_decision import DialogueDecision, DecisionKind
@@ -146,6 +148,8 @@ _OFFER_REFUSAL = re.compile(r'(?:ні|не треба|не потрібно|ск
 
 class CommandProcessor:
     _local_offer = None  # (CommandIntent, deadline): коротке питання після розмовного прохання
+    _turn_confirm = None  # None: підтвердження не запитували; True/False: відповідь користувача
+    JOURNAL_LIMIT = 30
 
     def __init__(self, settings, router, llm_manager, speaker, metrics, services):
         self.settings = settings
@@ -202,6 +206,7 @@ class CommandProcessor:
         if input_turn is not None:
             command, source = input_turn.text, input_turn.source
         gate = TurnGate.evaluate(input_turn, allow_actions, incomplete_input)
+        confirm = self._watch_confirm(confirm)
         started = time.perf_counter()
         raw_text = command.strip()
         normalized = self._normalize(raw_text)
@@ -816,6 +821,39 @@ class CommandProcessor:
             system_context += "\n" + CONTROL_PROMPTS[control]
         return system_context, web_options
 
+    def _watch_confirm(self, confirm):
+        """Той самий запит підтвердження; лише запам'ятовує для журналу дій, чи його ставили й що відповіли."""
+        self._turn_confirm = None
+
+        async def watched(*args, **kwargs):
+            answer = await confirm(*args, **kwargs)
+            self._turn_confirm = bool(answer)
+            return answer
+        return watched
+
+    @property
+    def action_journal(self):
+        """Журнал дій сесії для інтерфейсу: лише в пам'яті, без запису на диск."""
+        if not hasattr(self, "_action_journal"):
+            self._action_journal = []
+        return self._action_journal
+
+    def _journal(self, command, result, command_type):
+        data = result.data
+        if "cancel" in command_type or self._turn_confirm is False:
+            status = "cancelled"
+        elif data.get("verified"):
+            status = "verified"
+        elif data.get("success") is False or data.get("accepted") is False:
+            status = "failed"
+        else:
+            status = "submitted"
+        journal = self.action_journal
+        journal.append({"time": time.strftime("%H:%M"), "command": redact_user_text(str(command))[:120],
+                        "result": redact_user_text(str(result.response))[:200], "status": status,
+                        "confirmation": {None: "none", True: "accepted", False: "declined"}[self._turn_confirm]})
+        del journal[:-self.JOURNAL_LIMIT]
+
     def _remember_local_action(self, result, provider, raw_text, local_raw, state):
         """Фактичний результат локальної дії — у стан і в історію моделі (щоб вона не заперечувала виконане)."""
         command_type = result.data.get("command_type", "unknown")
@@ -835,6 +873,7 @@ class CommandProcessor:
             record = getattr(self.llm_manager, "record_local_action", None)
             if record:
                 record(action["command"], action["response"])
+            self._journal(action["command"], result, command_type)
 
     def _finish_turn(self, result, provider, success, raw_text, local_raw, source, started, state):
         """Shared post-processing: context resets, last local action, metrics."""

@@ -102,6 +102,21 @@ def run():
     window.receive({'state': {**state, 'task': task}, 'events': []})
     window.cancel_task.click()
     assert actions[-1] == {'action': 'cancel_progress', 'task_id': 'job1', 'kind': 'file_search'}
+    journal = [{'time': '12:41', 'command': 'Зроби знімок екрана', 'status': 'failed',
+                'confirmation': 'accepted', 'result': 'Знімок екрана не збережено.'},
+               {'time': '12:43', 'command': 'Запусти Safari', 'status': 'submitted',
+                'confirmation': 'none', 'result': 'Команду запуску Safari передано системі.'}]
+    rows_before = len(window.rows)
+    window.receive({'state': {**state, 'journal': journal}, 'events': [
+        {'id': 900, 'kind': 'permission', 'text': '', 'target': 'screen_recording'},
+        {'id': 901, 'kind': 'permission', 'text': '', 'target': 'file:///etc/passwd'}]})
+    assert len(window.rows) == rows_before + 1 and window.rows[-1][0] == 'permission'  # unknown target ignored
+    window.journal_button.click()
+    shown = window.journal_text.toPlainText()
+    assert shown.index('Запусти Safari') < shown.index('Зроби знімок екрана')  # newest first
+    assert 'без підтвердження · передано системі, не перевірено' in shown
+    assert 'підтверджено · не виконано' in shown
+    window.journal_dialog.close()
     window.backend.setCurrentIndex(1)
     window.consent.setChecked(False)
     assert not window.save_stt.isEnabled()

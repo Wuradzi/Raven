@@ -23,6 +23,7 @@ logger = logging.getLogger(__name__)
 OPEN, OSASCRIPT, SAY, AFPLAY, SCREENCAPTURE = 'open', 'osascript', 'say', 'afplay', 'screencapture'
 VOLUME_STEP_PERCENT = 6  # one hardware key press is 1/16 of the range (~6%)
 MEDIA_TRANSPORT_KEYS = {'play_pause': 16, 'next_track': 17, 'previous_track': 18}
+PERMISSION_HINTS = {'macos_privacy_permission': 'accessibility', 'screen_recording_denied': 'screen_recording'}
 PERMISSION_MARKERS = ('not allowed assistive access', 'not allowed to send keystrokes', '(-1743)', '(1002)')
 _VOICE_LINE = re.compile(r'^(?P<name>.+?)\s+(?P<locale>[a-z]{2}_[A-Z]{2})\s+#')
 
@@ -36,7 +37,7 @@ def metadata():
 
 def _fail(capability, status, reason):
     logger.warning('macOS operation capability=%s status=%s reason=%s', capability, status, reason)
-    raise PlatformOperationError(capability, status)
+    raise PlatformOperationError(capability, status, PERMISSION_HINTS.get(reason, ''))
 
 
 def _run(argv, capability, timeout=8):
