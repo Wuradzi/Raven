@@ -56,22 +56,65 @@ cat > "$BUILD/Contents/Info.plist" <<PLIST
   <key>LSMinimumSystemVersion</key><string>12.0</string>
   <key>NSHighResolutionCapable</key><true/>
   <key>NSMicrophoneUsageDescription</key><string>Рейвен слухає голосові репліки, коли мікрофон увімкнено у вікні.</string>
+  <key>NSDocumentsFolderUsageDescription</key><string>Тека проєкту Рейвена (код, налаштування, журнали) лежить у Документах.</string>
+  <key>NSDesktopFolderUsageDescription</key><string>Рейвен шукає файли на робочому столі лише на ваше прохання.</string>
+  <key>NSDownloadsFolderUsageDescription</key><string>Рейвен шукає файли в Завантаженнях лише на ваше прохання.</string>
   <key>NSAppleEventsUsageDescription</key><string>Рейвен надсилає системні команди (медіаклавіші, блокування екрана) лише після вашого прохання.</string>
 </dict>
 </plist>
 PLIST
 
 # Launcher: absolute project path baked in; stdout/stderr go to a local log, never to the system log.
-cat > "$BUILD/Contents/MacOS/Raven" <<LAUNCHER
+# Shell part of the launcher. It lives in Resources: macOS checks privacy permissions against the
+# main executable, and a script main executable would be judged as /bin/bash, not as Raven.
+cat > "$BUILD/Contents/Resources/launch.sh" <<LAUNCHER
 #!/bin/bash
 ROOT="$ROOT"
 [ -d "\$ROOT" ] || { osascript -e 'display alert "Raven" message "Теку проєкту не знайдено. Перестворіть застосунок: scripts/make_macos_app.sh"'; exit 1; }
 export PATH="/opt/homebrew/bin:/usr/local/bin:/usr/bin:/bin:/usr/sbin:/sbin"
 mkdir -p "\$ROOT/logs"
 if [ -n "\${RAVEN_APP_DRY_RUN:-}" ]; then echo "\$ROOT/scripts/run_macos.sh \$*"; exit 0; fi
+if [ -n "\${RAVEN_APP_CHECK:-}" ]; then
+  # Безпечна перевірка доступу до теки проєкту: лише читає файл, Raven не запускає.
+  if /bin/cat "\$ROOT/scripts/run_macos.sh" >/dev/null 2>&1; then echo "check: доступ до теки проєкту є"; else echo "check: macOS не дає доступу до теки проєкту"; fi >>"\$ROOT/logs/macos-app.log" 2>&1
+  exit 0
+fi
 exec /bin/bash "\$ROOT/scripts/run_macos.sh" "\$@" >>"\$ROOT/logs/macos-app.log" 2>&1
 LAUNCHER
-chmod 755 "$BUILD/Contents/MacOS/Raven"
+chmod 755 "$BUILD/Contents/Resources/launch.sh"
+
+# Main executable: a tiny compiled program that runs launch.sh as its child and waits, so the
+# child (bash, then Python) stays attributed to Raven for Documents, microphone and other permissions.
+cat > "$TMP/launcher.c" <<'CSRC'
+#include <limits.h>
+#include <libgen.h>
+#include <mach-o/dyld.h>
+#include <spawn.h>
+#include <stdio.h>
+#include <stdlib.h>
+#include <string.h>
+#include <sys/wait.h>
+
+extern char **environ;
+
+int main(int argc, char *argv[]) {
+    char exe[PATH_MAX], real[PATH_MAX], script[PATH_MAX];
+    uint32_t size = sizeof exe;
+    if (_NSGetExecutablePath(exe, &size) != 0 || !realpath(exe, real)) return 1;
+    snprintf(script, sizeof script, "%s/../Resources/launch.sh", dirname(real));
+    char **args = calloc((size_t)argc + 2, sizeof *args);
+    if (!args) return 1;
+    args[0] = "/bin/bash";
+    args[1] = script;
+    for (int i = 1; i < argc; i++) args[i + 1] = argv[i];
+    pid_t child;
+    int status = 0;
+    if (posix_spawn(&child, "/bin/bash", NULL, NULL, args, environ) != 0) return 1;
+    while (waitpid(child, &status, 0) < 0) {}
+    return WIFEXITED(status) ? WEXITSTATUS(status) : 1;
+}
+CSRC
+cc -O2 -Wall -o "$BUILD/Contents/MacOS/Raven" "$TMP/launcher.c"
 
 plutil -lint "$BUILD/Contents/Info.plist" >/dev/null
 # Ad-hoc signature: a stable identity for macOS privacy permissions on this Mac (not notarized).
