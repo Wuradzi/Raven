@@ -379,7 +379,8 @@ class RavenWindow(QMainWindow):
             self.card.parentWidget().layout().activate()
             self.settings_button.move(self.card.width()-55, 18)
             self.settings_button.raise_()
-            self.emblem.move(self.card.x()+(self.card.width()-190)//2, 8)
+            # Картка завжди по центру вікна; card.x() у момент зміни розміру ще застарілий, тож рахуємо від ширини.
+            self.emblem.move((self.page.viewport().width()-190)//2, 8)
             self.emblem.raise_()
             self.fit_height(self.task_text, 58, 90)
             self.fit_height(self.confirmation_text, 44, 140)
