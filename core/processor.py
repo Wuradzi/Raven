@@ -319,6 +319,7 @@ class CommandProcessor:
         knowledge_request = (parse_knowledge_request(memory_text)
                              if self.services.get('knowledge') is not None else None)
         memory_request = None if knowledge_request else parse_request(memory_text)
+        knowledge_request, memory_request = self._route_remember(knowledge_request, memory_request)
         if knowledge_request is None and memory_request is None:
             return None
         if not gate.explicit_local_request:
@@ -328,6 +329,16 @@ class CommandProcessor:
         if knowledge_request is not None:
             return await self._knowledge_turn(knowledge_request, context)
         return await self._personal_memory_turn(memory_request, context)
+
+    def _route_remember(self, knowledge_request, memory_request):
+        """«Запам'ятай …» без уточнення: довідка без першої особи йде в базу знань, решта — в особисту пам'ять."""
+        if (memory_request is None or memory_request[0] != 'remember'
+                or self.services.get('knowledge') is None):
+            return knowledge_request, memory_request
+        from skills.memory.knowledge import reference_request, remember_destination
+        if remember_destination(memory_request[1]) == 'knowledge':
+            return reference_request(memory_request[1]), None
+        return knowledge_request, memory_request
 
     async def _knowledge_turn(self, request, context):
         from skills.memory.knowledge import handle_knowledge_request

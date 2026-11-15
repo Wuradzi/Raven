@@ -72,7 +72,7 @@ async def handle_request(request, context, llm):
                            'Збережених фактів поки немає.', {'command_type': 'memory_list'})
     key = value = ''
     if operation in {'remember', 'update'}:
-        content = re.sub(r'^що\s+', '', content, flags=re.I)
+        content = re.sub(r"^(?:про\s+мене[,:\s]+)?(?:що\s+)?", '', content, flags=re.I)
         pair = re.split(r'\s*:\s*|\s+це\s+', content, maxsplit=1)
         key, value = (pair if len(pair) == 2 else (content, content))
         if not key or not value:
@@ -81,7 +81,7 @@ async def handle_request(request, context, llm):
         if operation == 'update' and not existing:
             return SkillResult(True, 'Не знайшов точну тему. Скажіть «що ти пам’ятаєш», потім «онови тема: значення».')
         reset = bool(existing)
-        description = f'Зберегти факт «{fact_text(key, value)}»'
+        description = f'Зберегти як факт про вас: «{fact_text(key, value)}»'
     else:
         items, early = forget_selection(store, operation, content)
         if early is not None:

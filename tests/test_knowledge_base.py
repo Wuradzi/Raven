@@ -154,6 +154,31 @@ class ProcessorTests(_Store, unittest.IsolatedAsyncioTestCase):
         self.memory.remember.assert_not_called()
         self.llm.converse.assert_not_awaited()
 
+    async def test_plain_remember_routes_reference_to_knowledge_and_names_the_place(self):
+        confirm = AsyncMock(return_value=True)
+        result = await self.turn("Запам'ятай, що бібліотека ЛНТУ працює до шостої вечора", confirm)
+        self.assertEqual(result.data["command_type"], "knowledge_add")
+        self.assertIn("базу знань", str(confirm.await_args.args[0]))
+        self.memory.remember.assert_not_called()
+        self.assertEqual(self.store.entries()[-1]["text"], "бібліотека ЛНТУ працює до шостої вечора")
+
+    async def test_plain_remember_about_the_user_stays_personal_and_says_so(self):
+        for text in ("Запам'ятай, що мій керівник Гринюк Сергій Васильович",
+                     "Запам'ятай про мене: група КІм-21", "Запам'ятай кафедра: КІБ"):
+            with self.subTest(text=text):
+                confirm = AsyncMock(return_value=True)
+                before = len(self.store.entries())
+                await self.turn(text, confirm)
+                self.assertIn("факт про вас", str(confirm.await_args.args[0]))
+                self.assertEqual(len(self.store.entries()), before)
+
+    async def test_declined_routed_reference_stores_nothing(self):
+        result = await self.turn("Запам'ятай, що бібліотека ЛНТУ працює до шостої вечора",
+                                 AsyncMock(return_value=False))
+        self.assertEqual(self.store.entries(), [])
+        self.memory.remember.assert_not_called()
+        self.assertNotEqual(result.data.get("command_type"), "knowledge_add")
+
     async def test_matching_entries_reach_model_without_source_or_date(self):
         entry = self.store.add("Кафедра кібербезпеки", DEPARTMENT)
         for groq in (False, True):
@@ -198,3 +223,25 @@ class ProcessorTests(_Store, unittest.IsolatedAsyncioTestCase):
 
 if __name__ == "__main__":
     unittest.main()
+
+
+class RememberDestinationTests(unittest.TestCase):
+    def test_first_person_or_short_pairs_are_personal_long_statements_are_reference(self):
+        from skills.memory.knowledge import remember_destination
+        for content, expected in (
+                ("що мій день народження 3 березня", "personal"),
+                ("про мене: група КІм-21", "personal"),
+                ("що я працюю в ЛНТУ", "personal"),
+                ("кафедра: КІБ", "personal"),
+                ("що нашого куратора звати Олена", "personal"),
+                ("що бібліотека ЛНТУ працює до шостої вечора", "knowledge"),
+                ("розклад: автобус 12 відходить о 8:15 від головного корпусу", "knowledge"),
+                ("що мережа в аудиторії 210 називається LNTU-Guest", "knowledge")):
+            with self.subTest(content=content):
+                self.assertEqual(remember_destination(content), expected)
+
+    def test_reference_request_keeps_topic_and_text(self):
+        from skills.memory.knowledge import reference_request
+        self.assertEqual(reference_request("що розклад: автобус о 8:15."), ("add", "розклад", "автобус о 8:15"))
+        self.assertEqual(reference_request("що бібліотека працює до 18"),
+                         ("add", "бібліотека працює до 18", "бібліотека працює до 18"))

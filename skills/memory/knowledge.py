@@ -26,6 +26,33 @@ _SKIP_REASONS = {
 }
 
 
+# Єдина точка входу «запам'ятай…»: факт про користувача — в особисту пам'ять, довідка — в базу знань.
+_ABOUT_ME = re.compile(r"(?<![\w'])(?:я|мене|мені|мною|мій|моя|моє|мої|мого|моєї|моїх|моїм|моєму|моїми|мою|"
+                       r"наш|наша|наше|наші|нашого|нашої|нас|нам)(?![\w'])", re.I)
+_PERSONAL_LEAD = re.compile(r"^про\s+мене\b", re.I)
+REFERENCE_MIN_WORDS = 5
+
+
+def remember_destination(content):
+    """'personal' або 'knowledge' для «запам'ятай …», без моделі й лише за текстом.
+
+    Про себе («я», «мій», «про мене …») і короткі пари «тема: значення» — особиста пам'ять;
+    довше речення без першої особи — довідка в базі знань.
+    """
+    value = re.sub(r"[’ʼ]", "'", content.strip())
+    if _PERSONAL_LEAD.match(value) or _ABOUT_ME.search(value):
+        return "personal"
+    words = re.findall(r"[\w'-]+", re.sub(r"^що\s+", "", value, flags=re.I))
+    return "knowledge" if len(words) >= REFERENCE_MIN_WORDS else "personal"
+
+
+def reference_request(content):
+    """(«add», тема, текст) для довідки, сказаної через «запам'ятай …»."""
+    value = re.sub(r"^що\s+", "", content.strip().rstrip(".!?"), flags=re.I)
+    title, sep, body = value.partition(":")
+    return ("add", title.strip(), body.strip()) if sep and body.strip() else ("add", value[:60], value)
+
+
 def _collapse_repeats(value):
     """The same sentence said twice in one utterance counts once."""
     sentences = [part.strip().rstrip(".!?") for part in re.split(r"(?<=[.!?])\s+", value) if part.strip()]
