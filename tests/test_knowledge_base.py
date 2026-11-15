@@ -180,6 +180,15 @@ class ProcessorTests(_Store, unittest.IsolatedAsyncioTestCase):
         self.assertNotEqual(result.data.get("command_type"), "chat")
         self.llm.converse.assert_not_awaited()
 
+    async def test_personal_memory_list_phrases_are_local_not_model(self):
+        self.memory.all.return_value = [{"key": "керівник", "value": "Гринюк", "id": "1"}]
+        for text in ("Що міститься в особистій пам'яті?", "Що є в твоїй пам'яті?", "Що зберігається в пам'яті"):
+            with self.subTest(text=text):
+                self.llm.converse.reset_mock()
+                result = await self.turn(text)
+                self.assertEqual(result.data["command_type"], "memory_list")
+                self.llm.converse.assert_not_awaited()
+
     async def test_declined_routed_reference_stores_nothing(self):
         result = await self.turn("Запам'ятай, що бібліотека ЛНТУ працює до шостої вечора",
                                  AsyncMock(return_value=False))
