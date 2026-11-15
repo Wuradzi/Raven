@@ -103,7 +103,8 @@ class CaptureBudgetTests(TestCase):
         self.assertFalse(sparse_activity(result))
 
     def test_sparse_spikes_preserve_evidence_for_pre_upload_guard(self):
-        result, _ = self.capture([3000] + [0] * 40 + [3000] + [0] * 40 + [3000] + [0] * 20)
+        # Звичайний захват (не відповідь на підтвердження): мінімум мовлення 250 мс, розсіяні сплески не обривають запис.
+        result, _ = self.capture([3000] + [0] * 40 + [3000] + [0] * 40 + [3000] + [0] * 20, utterance_timeout=45)
         self.assertTrue(result.pcm)
         self.assertAlmostEqual(result.active_audio_ms, 300)
         self.assertAlmostEqual(result.speech_span_ms, 8300)

@@ -121,6 +121,17 @@ class STTPerformancePassTests(unittest.TestCase):
         endpoint.feed(bytes(rate * 4))
         self.assertTrue(endpoint.ready)
 
+    def test_one_short_word_counts_as_speech_only_with_the_confirmation_minimum(self):
+        # Живий журнал 15.11.2026: одне «так» (~0,15 с звуку) не вважалось мовленням, повторні зливались в одну відповідь.
+        rate = 16000
+        word = np.full(int(rate * .15), 3000, dtype=np.int16).tobytes()
+        for minimum, expected in ((250, False), (120, True)):
+            with self.subTest(minimum=minimum):
+                endpoint = AcousticEndpoint(rate, .01, short_ms=700, min_speech_ms=minimum)
+                endpoint.feed(word)
+                endpoint.feed(bytes(rate * 2))
+                self.assertEqual(endpoint.ready, expected)
+
     def test_silence_never_becomes_speech(self):
         endpoint = AcousticEndpoint(16000, .01, short_ms=700)
         endpoint.feed(bytes(16000 * 30))

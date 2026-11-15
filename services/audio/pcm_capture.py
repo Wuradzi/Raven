@@ -36,8 +36,9 @@ def sparse_activity(capture: CapturedAudio) -> bool:
 
 
 class AcousticEndpoint:
-    def __init__(self, rate, threshold, silence_ms=1200, *, short_ms=None, long_ms=1600):
+    def __init__(self, rate, threshold, silence_ms=1200, *, short_ms=None, long_ms=1600, min_speech_ms=250):
         self.rate, self.threshold = rate, threshold
+        self.min_speech_ms = min_speech_ms
         self.silence_ms = silence_ms or 1200
         self.pending = bytearray()
         self.processed = self.last_active = self.active = 0
@@ -46,7 +47,7 @@ class AcousticEndpoint:
 
     @property
     def speech(self):
-        return self.active >= self.rate * .25
+        return self.active >= self.rate * self.min_speech_ms / 1000
 
     def feed(self, pcm):
         self.pending.extend(pcm)
@@ -81,7 +82,10 @@ def capture_pcm(sd, device, rate, timeout, settings, cancelled, capture_state, *
     endpoint = AcousticEndpoint(rate, max(.0025, min(.08, settings.noise_threshold * .75)),
                                 settings.stt_endpoint_silence_ms,
                                 short_ms=settings.stt_pcm_short_silence_ms,
-                                long_ms=settings.stt_pcm_long_silence_ms)
+                                long_ms=settings.stt_pcm_long_silence_ms,
+                                # Відповідь на підтвердження (utterance_timeout=None) — одне коротке «так»/«ні»
+                                # (~150 мс звуку): при порозі 250 мс його не вважали мовленням, і повторні «так» зливались.
+                                min_speech_ms=120 if utterance_timeout is None else 250)
 
     def callback(data, frames, time_info, status):
         nonlocal overflow
