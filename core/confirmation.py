@@ -32,6 +32,7 @@ async def confirm_action(context, details, question):
 
 
 class ConfirmationService:
+    UNCLEAR_RETRIES = 2
     ACCEPTED = {
         "так",
         "гаразд",
@@ -140,6 +141,7 @@ class ConfirmationService:
                     await self.wait_for_speech()
                 loop = asyncio.get_running_loop()
                 deadline = loop.time() + self.timeout_seconds
+                unclear = 0
                 while True:
                     remaining = deadline - loop.time()
                     if remaining <= 0:
@@ -168,6 +170,11 @@ class ConfirmationService:
                     if self.wait_for_speech:
                         await self.wait_for_speech()
                     self._response_processed.set()
+                    unclear += 1
+                    if unclear <= self.UNCLEAR_RETRIES:
+                        # Живий журнал 15.11.2026: довге мовлення з'їло вікно, і кнопка спрацювала вже після
+                        # тайм-ауту. Після нерозібраної відповіді вікно відновлюється, але не більше двох разів.
+                        deadline = loop.time() + self.timeout_seconds
             finally:
                 self.request_id = None
                 self.prompt = ""
@@ -217,7 +224,30 @@ class ConfirmationService:
             return False if confidence is None or confidence >= cls.VOICE_DENY_MIN_CONFIDENCE else None
         if normalized in cls.ACCEPTED:
             return True if confidence is None or confidence >= cls.VOICE_MIN_CONFIDENCE else None
+        if confidence is None and cls._garbled_accept(normalized):
+            return True
         return None
+
+    # Хмарний текст без оцінки часто псує слово «підтверджую» («питварджую»). Згодою вважається лише
+    # «так» і/або слово, дуже схоже на «підтверджую», плюс порожні слова-пов'язки; інші слова, друга
+    # згода («так гаразд») і заперечення не проходять.
+    _CONFIRM_WORD = "підтверджую"
+    _FILLERS = {"саме", "ага", "будь", "ласка"}
+
+    @classmethod
+    def _garbled_accept(cls, normalized: str) -> bool:
+        from difflib import SequenceMatcher
+        found = set()
+        for word in normalized.split():
+            if len(word) <= 1 or word in cls._FILLERS:
+                continue
+            if word == "так":
+                found.add("так")
+            elif word == cls._CONFIRM_WORD or SequenceMatcher(None, word, cls._CONFIRM_WORD).ratio() >= 0.74:
+                found.add(cls._CONFIRM_WORD)
+            else:
+                return False
+        return found in ({"так"}, {cls._CONFIRM_WORD}, {"так", cls._CONFIRM_WORD})
 
     def _clear_responses(self) -> None:
         while not self._responses.empty():

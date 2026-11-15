@@ -32,6 +32,40 @@ class ConfirmationServiceTests(unittest.IsolatedAsyncioTestCase):
         for score in (float('nan'), float('inf'), -1, 1.1):
             self.assertIsNone(ConfirmationService._decision('так так', score))
 
+    def test_garbled_cloud_confirmation_is_accepted_only_in_the_narrow_known_shape(self):
+        # Живі журнали 12–15.11.2026: «Так. Петверджую.», «Так. Саме так.», «Питверджую.».
+        for text in ('Так. Петверджую.', 'Так. З... Питварджую.', 'Питверджую.', 'Так. Саме так.', 'так будь ласка'):
+            with self.subTest(text=text):
+                self.assertIs(ConfirmationService._decision(text), True)
+                self.assertIsNone(ConfirmationService._decision(text, .79))  # з оцінкою працює лише точна граматика
+        for text in ('Гринюк.', 'Так гаразд', 'Так, відкрий браузер', 'Так, але не зараз', 'не підтверджую так',
+                     'Питверджую ні', 'так підтверджую гаразд', 'Підтримую', 'Так, натисни і відкрий Safari'):
+            with self.subTest(text=text):
+                self.assertIsNot(ConfirmationService._decision(text), True)
+
+    async def test_unclear_reply_restarts_the_window_a_limited_number_of_times(self):
+        service = ConfirmationService(AsyncMock(), timeout_seconds=.3)
+        task = asyncio.create_task(service.ask('fixture'))
+        await service.wait_until_requested()
+        await asyncio.sleep(.2)
+        self.assertTrue(service.submit('щось незрозуміле', service.request_id))
+        await asyncio.wait_for(service.wait_until_response_processed(), 1)
+        await asyncio.sleep(.2)  # старе вікно вже минуло б (0,4 с з початку), нове ще діє
+        self.assertFalse(task.done())
+        self.assertTrue(service.submit('так', service.request_id))
+        self.assertTrue(await asyncio.wait_for(task, 1))
+
+    async def test_unclear_replies_cannot_extend_the_window_forever(self):
+        service = ConfirmationService(AsyncMock(), timeout_seconds=.15)
+        task = asyncio.create_task(service.ask('fixture'))
+        await service.wait_until_requested()
+        for _ in range(ConfirmationService.UNCLEAR_RETRIES + 1):
+            if task.done():
+                break
+            service.submit('незрозуміло', service.request_id)
+            await asyncio.sleep(.05)
+        self.assertFalse(await asyncio.wait_for(task, 2))
+
     async def test_repeated_reply_requires_current_request_and_mixed_reply_waits(self):
         for reply, expected in [('так так', True), ('ні ні', False)]:
             service = ConfirmationService(AsyncMock(), timeout_seconds=1)
