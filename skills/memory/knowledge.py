@@ -64,6 +64,7 @@ def _collapse_repeats(value):
 def parse_knowledge_request(text):
     """(operation, title, body) or None; never matches personal-memory phrases."""
     value = _collapse_repeats(re.sub(r"[’ʼ]", "'", text.strip())).rstrip(".!?")
+    value = re.sub(r"^запамятай\b", "запам'ятай", value, flags=re.I)
     match = _ADD.fullmatch(value)
     if match:
         content = match[1].strip()

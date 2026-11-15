@@ -67,6 +67,18 @@ class PoliteRequestTests(unittest.TestCase):
                 self.assertTrue(direct_request(text, 'media_control'))
                 self.assertEqual(request_scope(text), 'media_control')
 
+    def test_bare_pause_is_media_and_conversation_pause_needs_the_explicit_phrase(self):
+        from core.natural_turn import direct_request, request_scope
+        from core.processor import PAUSE_CONVERSATION
+        for text in ('Пауза.', 'пауза', 'Постав на паузу'):
+            with self.subTest(text=text):
+                self.assertFalse(PAUSE_CONVERSATION.fullmatch(text))
+                self.assertTrue(direct_request(text, 'media_control'))
+                self.assertEqual(request_scope(text), 'media_control')
+        for text in ('Пауза розмови.', 'зачекай', 'Постав розмову на паузу'):
+            with self.subTest(text=text):
+                self.assertTrue(PAUSE_CONVERSATION.fullmatch(text))
+
     def test_media_scope_does_not_swallow_app_or_garbled_requests(self):
         from core.natural_turn import direct_request, request_scope
         self.assertEqual(request_scope('Запусти музику в Spotify'), 'open_app')  # програму названо: поведінка не змінилась
@@ -204,8 +216,19 @@ class ContextualProposalTests(unittest.IsolatedAsyncioTestCase):
             await self.turn('так')  # питання вже використане: повторне «так» нічого не робить
             execute.assert_awaited_once()
 
+    async def test_live_acceptance_variants_run_the_offered_media_action(self):
+        # Живий журнал 15.11.2026: «Так. Так.» і «Так, натисни.» не приймались, питання повторювалось.
+        for reply in ('Так. Так.', 'Так, натисни.', 'Натисни', 'так, продовжуй'):
+            with self.subTest(reply=reply):
+                await self._media_question()
+                self.output = 'CHAT\nмодель не має бути викликана'
+                with patch('core.processor.execute_intent', new_callable=AsyncMock,
+                           return_value=SkillResult(True, 'ok', {'success': True})) as execute:
+                    await self.turn(reply)
+                execute.assert_awaited_once()
+
     async def test_media_question_is_one_turn_and_refusal_or_other_text_never_runs(self):
-        for reply in ('ні', 'Розкажи про Марс', 'так, і ще відкрий браузер', 'так?'):
+        for reply in ('ні', 'Розкажи про Марс', 'так, і ще відкрий браузер', 'так?', 'так, натисни і відкрий Safari'):
             with self.subTest(reply=reply):
                 await self._media_question()
                 with patch('core.processor.execute_intent', new_callable=AsyncMock) as execute:

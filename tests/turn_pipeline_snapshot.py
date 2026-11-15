@@ -86,8 +86,8 @@ SEQUENCES = {
     "scoped_app_yes": (("Відкрий програму", "clarify_app"), ("Так", "action_telegram")),
     "scoped_find": (("Знайди файл", "clarify_file"), ("звіт", "action_find")),
     "scoped_close": (("Закрий вікно", "clarify_window"), ("Блокнот", "action_close")),
-    "pause_then_chat": (("пауза", "chat"), ("Розкажи про Марс", "chat")),
-    "pause_resume": (("пауза", "chat"), ("продовжуй", "chat"), ("Розкажи про Марс", "chat")),
+    "pause_then_chat": (("пауза розмови", "chat"), ("Розкажи про Марс", "chat")),
+    "pause_resume": (("пауза розмови", "chat"), ("продовжуй", "chat"), ("Розкажи про Марс", "chat")),
     "command_prefix": (("Команда, відкрий блокнот", "action_open"),),
     "offer_yes": (("Розкажи про Марс", "chat_offer"), ("Так, пошукай", "action_search")),
 }

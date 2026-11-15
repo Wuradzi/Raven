@@ -128,7 +128,8 @@ def _knowledge_source_label(entry):
     return f"файл «{source.get('name', 'невідомий')}», {date}"
 
 
-PAUSE_CONVERSATION = re.compile(r"^(?:зачекай|пауза|постав розмову на паузу)[.!?]*$", re.I)
+# Голе «пауза» — медіаклавіша (живий журнал 15.11.2026); пауза розмови — лише явна фраза.
+PAUSE_CONVERSATION = re.compile(r"^(?:зачекай|пауза розмови|постав розмову на паузу|розмова на паузу)[.!?]*$", re.I)
 DIALOGUE_CONTROLS = {
     "продовжуй": "continue", "продовжимо": "continue", "продовж розмову": "continue",
     "повтори": "repeat", "повтори останнє": "repeat", "повтори відповідь": "repeat",

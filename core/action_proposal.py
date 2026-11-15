@@ -159,6 +159,9 @@ def acceptance_matches(text, tool):
     if '?' in value or any(c in value for c in '"«»“”`{}'):
         return False
     value = value.strip(' .!,')
+    sentences = [part.strip(' ,') for part in re.split(r'[.!]+\s*', value) if part.strip(' ,')]
+    if len(sentences) > 1 and len(set(sentences)) == 1:  # «Так. Так.» — одна згода, сказана двічі
+        value = sentences[0]
     value = re.sub(r'^(?:рейвен|рейвене|raven)[, ]+', '', value)
     value = re.sub(r'^(?:будь ласка[, ]+)', '', value)
     value = re.sub(r'[, ]+будь ласка$', '', value)
@@ -171,8 +174,10 @@ def acceptance_matches(text, tool):
         'weather': {'перевір', 'перевіряй', 'подивись'},
         'window_control': {'зроби це'},
         'prepare_workplace': {'підготуй'},
+        'media_control': {'натисни', 'натискай', 'запусти', 'увімкни', 'продовжуй'},
     }
-    return value in verbs.get(tool, set())
+    rest = re.sub(r'^так[, ]+', '', value)  # «Так, натисни»: згода плюс те саме дієслово
+    return value in verbs.get(tool, set()) or (rest != value and rest in verbs.get(tool, set()))
 
 
 def needs_proposal(text):

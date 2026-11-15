@@ -9,6 +9,7 @@ from core.security import redact_user_text
 def parse_request(text):
     text = text.strip().rstrip('.!?')
     text = re.sub(r"[’ʼ]", "'", text)
+    text = re.sub(r"^запамятай\b", "запам'ятай", text, flags=re.I)  # STT часто губить апостроф
     if re.fullmatch(r"(?:що ти пам'ятаєш(?: про мене)?|покажи (?:всю )?пам'ять)", text, re.I):
         return 'list', ''
     if re.fullmatch(r"(?:забудь усе(?: про мене)?|очисти пам'ять)", text, re.I):

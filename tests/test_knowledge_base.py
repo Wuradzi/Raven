@@ -172,6 +172,14 @@ class ProcessorTests(_Store, unittest.IsolatedAsyncioTestCase):
                 self.assertIn("факт про вас", str(confirm.await_args.args[0]))
                 self.assertEqual(len(self.store.entries()), before)
 
+    async def test_stt_without_apostrophe_still_asks_before_saving(self):
+        # Живий журнал 15.11.2026: «Запамятай, що мій корівник Гранюк» дійшло до моделі, яка збрехала «запам'ятав».
+        confirm = AsyncMock(return_value=True)
+        result = await self.turn("Запамятай, що мій керівник Гринюк", confirm)
+        self.assertIn("факт про вас", str(confirm.await_args.args[0]))
+        self.assertNotEqual(result.data.get("command_type"), "chat")
+        self.llm.converse.assert_not_awaited()
+
     async def test_declined_routed_reference_stores_nothing(self):
         result = await self.turn("Запам'ятай, що бібліотека ЛНТУ працює до шостої вечора",
                                  AsyncMock(return_value=False))

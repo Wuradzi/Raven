@@ -29,13 +29,15 @@ from tests.processor_gate_matrix import build
 class MemoryClaimTests(unittest.TestCase):
     def test_claims_of_saving_or_forgetting_are_detected(self):
         for text in ("Збережено до бази знань.", "Зрозумів, інформацію про кафедру кібербезпеки забуто.",
-                     "Я запам’ятав цей факт.", "Додав довідку в базу знань", "Видалено запис з пам'яті."):
+                     "Я запам’ятав цей факт.", "Додав довідку в базу знань", "Видалено запис з пам'яті.",
+                     "Зрозумів, запам'ятав.", "Запам’ятала."):
             with self.subTest(text=text):
                 self.assertTrue(memory_change_claim(text))
 
     def test_ordinary_speech_is_not_a_claim(self):
         for text in ("Я забув, як це називається.", "Гарібальді народився в Ніцці.",
-                     "Скажіть «Додай у базу знань», щоб зберегти довідку.", "Інформація про кафедру є на сайті."):
+                     "Скажіть «Додай у базу знань», щоб зберегти довідку.", "Інформація про кафедру є на сайті.",
+                     "Я не запам'ятав, як це називається."):
             with self.subTest(text=text):
                 self.assertFalse(memory_change_claim(text))
 

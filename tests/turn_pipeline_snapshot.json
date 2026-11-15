@@ -30233,7 +30233,7 @@
    null,
    [],
    [
-    "пауза"
+    "пауза розмови"
    ]
   ],
   "not_eligible|natural=False|seq:pause_then_chat#1": [
@@ -30267,7 +30267,7 @@
    null,
    [],
    [
-    "пауза"
+    "пауза розмови"
    ]
   ],
   "not_eligible|natural=False|seq:pause_resume#1": [
@@ -30535,7 +30535,7 @@
    null,
    [],
    [
-    "пауза"
+    "пауза розмови"
    ]
   ],
   "not_eligible|natural=True|seq:pause_then_chat#1": [
@@ -30569,7 +30569,7 @@
    null,
    [],
    [
-    "пауза"
+    "пауза розмови"
    ]
   ],
   "not_eligible|natural=True|seq:pause_resume#1": [
@@ -30837,7 +30837,7 @@
    null,
    [],
    [
-    "пауза"
+    "пауза розмови"
    ]
   ],
   "unreliable|natural=False|seq:pause_then_chat#1": [
@@ -30871,7 +30871,7 @@
    null,
    [],
    [
-    "пауза"
+    "пауза розмови"
    ]
   ],
   "unreliable|natural=False|seq:pause_resume#1": [
@@ -31139,7 +31139,7 @@
    null,
    [],
    [
-    "пауза"
+    "пауза розмови"
    ]
   ],
   "unreliable|natural=True|seq:pause_then_chat#1": [
@@ -31173,7 +31173,7 @@
    null,
    [],
    [
-    "пауза"
+    "пауза розмови"
    ]
   ],
   "unreliable|natural=True|seq:pause_resume#1": [
@@ -31441,7 +31441,7 @@
    null,
    [],
    [
-    "пауза"
+    "пауза розмови"
    ]
   ],
   "truncated|natural=False|seq:pause_then_chat#1": [
@@ -31475,7 +31475,7 @@
    null,
    [],
    [
-    "пауза"
+    "пауза розмови"
    ]
   ],
   "truncated|natural=False|seq:pause_resume#1": [
@@ -31743,7 +31743,7 @@
    null,
    [],
    [
-    "пауза"
+    "пауза розмови"
    ]
   ],
   "truncated|natural=True|seq:pause_then_chat#1": [
@@ -31777,7 +31777,7 @@
    null,
    [],
    [
-    "пауза"
+    "пауза розмови"
    ]
   ],
   "truncated|natural=True|seq:pause_resume#1": [
@@ -33662,7 +33662,7 @@
    null,
    [],
    [
-    "пауза"
+    "пауза розмови"
    ]
   ],
   "unscored_cut|natural=False|seq:pause_then_chat#1": [
@@ -33696,7 +33696,7 @@
    null,
    [],
    [
-    "пауза"
+    "пауза розмови"
    ]
   ],
   "unscored_cut|natural=False|seq:pause_resume#1": [
@@ -33964,7 +33964,7 @@
    null,
    [],
    [
-    "пауза"
+    "пауза розмови"
    ]
   ],
   "unscored_cut|natural=True|seq:pause_then_chat#1": [
@@ -33998,7 +33998,7 @@
    null,
    [],
    [
-    "пауза"
+    "пауза розмови"
    ]
   ],
   "unscored_cut|natural=True|seq:pause_resume#1": [
