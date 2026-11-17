@@ -86,10 +86,8 @@ class DocumentReading:
         natural = None if match or self.pending else natural_name(text)
         pending, self.pending = self.pending, None
         files = context.services['files']
-        if natural:
-            query = spoken_file_name(natural)
-        elif match:
-            query = spoken_file_name((match.group(1) or '').strip(' «»"'))
+        if natural or match:
+            query = spoken_file_name(natural or (match.group(1) or '').strip(' «»"'))
         elif pending and pending['kind'] == 'name':
             # Do not consume a new instruction as a file name.
             from core.natural_turn import direct_request
@@ -97,14 +95,9 @@ class DocumentReading:
                 return None
             query = spoken_file_name(text.strip(' «»"'))
         elif pending:
-            extension = choice_extension(normalized)
-            if extension:
-                matching = [entry for entry in pending['entries'] if entry[0].suffix.lower() == extension]
-                if len(matching) == 1:
-                    return await self._read(*matching[0], context)
-                self.pending = pending
-                return SkillResult(True, 'Серед запропонованих немає файлу з таким розширенням. Назвіть номер зі списку.'
-                                   if not matching else 'Файлів з таким розширенням кілька. Назвіть номер зі списку.')
+            by_extension = await self._choose_by_extension(pending, normalized, context)
+            if by_extension is not None:
+                return by_extension
             choice = CHOICE.fullmatch(normalized)
             if not choice:
                 return None
@@ -120,6 +113,10 @@ class DocumentReading:
         if not query:
             self.pending = {'kind': 'name', 'expires': time.monotonic() + 120}
             return SkillResult(True, 'Який файл прочитати? Назвіть ім’я з розширенням або введіть локальний шлях.')
+        return await self._find_and_offer(query, natural, files, context)
+
+    async def _find_and_offer(self, query, natural, files, context):
+        """Пошук документа за назвою або шляхом: читання одного, список кількох або None для природної фрази без файлу."""
         path = Path(query)
         if path.is_absolute():
             # No UNC/network paths, including on Windows.
@@ -144,6 +141,18 @@ class DocumentReading:
         return SkillResult(True, 'Який файл прочитати? ' + '; '.join(
             f'{i}. {p.name} ({p.parent})' for i, (p, _) in enumerate(entries, 1)),
             {'command_type': 'document_choice'})
+
+    async def _choose_by_extension(self, pending, normalized, context):
+        """Результат вибору за розширенням («тхт», «той що докс») або None, якщо це не така відповідь."""
+        extension = choice_extension(normalized)
+        if not extension:
+            return None
+        matching = [entry for entry in pending['entries'] if entry[0].suffix.lower() == extension]
+        if len(matching) == 1:
+            return await self._read(*matching[0], context)
+        self.pending = pending
+        return SkillResult(True, 'Серед запропонованих немає файлу з таким розширенням. Назвіть номер зі списку.'
+                           if not matching else 'Файлів з таким розширенням кілька. Назвіть номер зі списку.')
 
     async def _read(self, path, stamp, context):
         cancelled = await confirm_action(context,
