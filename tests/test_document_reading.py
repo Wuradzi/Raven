@@ -90,6 +90,62 @@ class DocumentReadingTests(unittest.IsolatedAsyncioTestCase):
         self.assertIn('хмарній', str(self.confirm.await_args))
         self.assertEqual(self.owner.document.context('архітектуру')['name'], 'example.md')
 
+    async def test_natural_phrases_read_an_existing_document_with_consent(self):
+        for phrase in ('Прочитай example', 'прочитай мені example.md', 'Подивись example', 'Що написано у файлі example?',
+                       'Прочитай мій example', 'Прочитай мені документ example'):
+            with self.subTest(phrase=phrase):
+                self.confirm.reset_mock()
+                self.owner.clear()
+                self.assertTrue(self.owner.accepts(phrase))
+                result = await self.owner.handle(phrase, self.context)
+                self.assertTrue(result.data['success'])
+                self.confirm.assert_awaited_once()  # згода на передавання тексту моделі лишається обов'язковою
+                self.assertEqual(self.owner.document.context('архітектуру')['name'], 'example.md')
+
+    async def test_natural_phrase_without_a_matching_document_falls_through_untouched(self):
+        for phrase in ('Прочитай вигадану річ', 'Що написано у файлі неіснуючий'):
+            with self.subTest(phrase=phrase):
+                self.assertTrue(self.owner.accepts(phrase))
+                self.assertIsNone(await self.owner.handle(phrase, self.context))
+                self.confirm.assert_not_awaited()
+        for phrase in ('Прочитай новини', 'Прочитай мені вірш', 'прочитай останню відповідь', 'Прочитай це',
+                       'Прочитай дуже довгу назву якогось невідомого файлу з п\'ятьма словами'):
+            with self.subTest(phrase=phrase):
+                self.assertFalse(self.owner.accepts(phrase))
+
+    async def listing(self, *names):
+        for name in names:
+            path = self.root / name
+            path.parent.mkdir(exist_ok=True)
+            path.write_text('Звичайний текст про тест.', encoding='utf-8')
+        self.owner.clear()
+        result = await self.owner.handle('Прочитай файл тест', self.context)
+        self.assertEqual(result.data['command_type'], 'document_choice')
+
+    async def test_choice_by_extension_among_same_named_files(self):
+        await self.listing('тест.md', 'тест.txt')
+        for phrase, expected in (('той що тхт', 'тест.txt'), ('Текстовий', 'тест.txt'), ('мд', 'тест.md'),
+                                 ('файл крапка md', 'тест.md')):
+            with self.subTest(phrase=phrase):
+                saved = dict(self.owner.pending)
+                self.confirm.reset_mock()
+                result = await self.owner.handle(phrase, self.context)
+                self.assertTrue(result.data['success'])
+                self.confirm.assert_awaited_once()  # вибір не замінює згоду на передавання тексту моделі
+                self.assertEqual(self.owner.document.context('текст')['name'], expected)
+                self.owner.pending = saved
+
+    async def test_choice_by_extension_never_guesses(self):
+        await self.listing('тест.md', 'тест.txt', 'вкладена/тест.txt')
+        saved = dict(self.owner.pending)
+        for phrase, fragment in (('докс', 'немає файлу'), ('тхт', 'кілька')):
+            with self.subTest(phrase=phrase):
+                self.confirm.reset_mock()
+                result = await self.owner.handle(phrase, self.context)
+                self.assertIn(fragment, result.response)
+                self.confirm.assert_not_awaited()
+                self.assertEqual(self.owner.pending['entries'], saved['entries'])
+
     async def test_denial_does_not_read_file(self):
         self.confirm.return_value = False
         with patch('core.document_reading.read_document') as read:
@@ -192,3 +248,19 @@ class DocumentReadingTests(unittest.IsolatedAsyncioTestCase):
         processor.metrics.record = Mock()
         await processor.process('Команда: нова розмова', self.confirm, source='text')
         self.assertIsNone(processor.documents.document.context(''))
+
+class SpokenFileNameTests(unittest.TestCase):
+    def test_extension_said_in_words_becomes_a_normal_extension(self):
+        # Живий сценарій 17.11.2026: «тест.docx» знаходиться лише при ручному введенні; голосом виходить «тест докс».
+        from core.document_reading import spoken_file_name
+        for spoken, expected in (('тест докс', 'тест.docx'), ('Тест. Докс', 'Тест.docx'),
+                                 ('звіт крапка тхт', 'звіт.txt'), ('мій звіт точка одт', 'мій звіт.odt'),
+                                 ('нотатки, md', 'нотатки.md'), ('Тест DOCX', 'Тест.docx')):
+            with self.subTest(spoken=spoken):
+                self.assertEqual(spoken_file_name(spoken), expected)
+
+    def test_names_that_are_already_complete_or_plain_are_untouched(self):
+        from core.document_reading import spoken_file_name
+        for value in ('тест.docx', 'тест', 'докс', '/Users/me/тест.docx', 'тест.pdf'):
+            with self.subTest(value=value):
+                self.assertEqual(spoken_file_name(value), value)
