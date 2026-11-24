@@ -155,7 +155,7 @@ class Speaker:
             if self.on_text is not None:
                 self.on_text(text)
             if not self.platform.supports('tts'):
-                return  # Linux Phase 3C: text output stays usable without a TTS backend.
+                return
             for part in SpeechBuffer().feed(text, final=True):
                 if generation != self.generation or self._closing:
                     return
@@ -241,6 +241,10 @@ class Speaker:
 
     def _speak_sync(self, text: str) -> None:
         try:
+            if self.platform.os == 'Linux':
+                with self._lock:
+                    self.platform.speech(self, text, None)
+                return
             self._speak_with_output(text)
         finally:
             self._set_playback(False)
@@ -313,6 +317,11 @@ class Speaker:
             self.settings.tts_rate,
         )
         try:
+            if self.platform.os == 'Linux':
+                result = self.platform.synthesize_probe(path, self.settings.tts_voice_hint)
+                if result['status'] == 'ok' and self._is_valid_wav(path):
+                    return True, f"RHVoice; голос {result['voice']}; WAV створено"
+                return False, result.get('exception_message') or "RHVoice не створив придатний WAV"
             if self.platform.supports('tts'):
                 self._generate_with_windows_speech(text, path)
                 if self._is_valid_wav(path):
@@ -360,6 +369,8 @@ class Speaker:
                         self._set_playback(True)
                         while data := wav_file.readframes(4096):
                             if self._stop_requested.is_set():
+                                if self.platform.os == 'Linux':
+                                    stream.abort()
                                 break
                             stream.write(data)
                 return
@@ -367,6 +378,9 @@ class Speaker:
                 self._set_playback(False)
                 logger.exception("Selected audio output failed; using system default")
         self._set_playback(True)
+        if self.platform.os == 'Linux':
+            self.platform.play_wav(path, stop_requested=self._stop_requested)
+            return
         self.platform.play_wav(path)
 
     @staticmethod

@@ -135,7 +135,8 @@ with tempfile.TemporaryDirectory() as root:
              patch('platform.machine', return_value='aarch64'), patch('services.platform.linux.metadata',
                  return_value=dict(raspberry_pi=True, headless=True, desktop_opener=False)), \
              patch('services.health.checks.models', return_value=[]), \
-             patch('services.health.probes.audio_inventory', return_value=[]):
+             patch('services.health.probes.audio_inventory', return_value=[]), \
+             patch('services.platform.linux_tts.shutil.which', return_value=None):
             rows, report = doctor(Path(root))
             self.assertEqual(report['platform']['architecture'], 'arm64')
             self.assertEqual(next(r for r in rows if r['name'] == 'TTS')['status'], 'NOT_AVAILABLE')

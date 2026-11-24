@@ -62,7 +62,7 @@ class PlatformServices:
 
     def supports(self, capability):
         return (self.os == 'Windows' and capability in CAPABILITIES
-                or self.os == 'Linux' and capability in {'application_launch', 'file_open'}
+                or self.os == 'Linux' and capability in {'tts', 'application_launch', 'file_open'}
                 or self.os == 'Darwin' and capability in DARWIN_CAPABILITIES)
 
     def report(self):
@@ -108,12 +108,17 @@ class PlatformServices:
     def speech(self, owner, text, path):
         from importlib import import_module
         self._driver('tts')
+        if self.os == 'Linux':
+            from services.platform import linux_tts
+            return linux_tts.speech(owner, text, path)
         if self.os == 'Darwin':
             return self._module().speech(owner, text, path)
         return import_module('services.platform.windows_tts').generate(owner, text, path)
 
     def start_speech(self, owner):
         self._driver('tts')
+        if self.os == 'Linux':
+            return  # RHVoice starts on demand for each phrase.
         if self.os == 'Darwin':
             return self._module().start_speech(owner)
         from services.platform.windows_tts import start
@@ -121,6 +126,9 @@ class PlatformServices:
 
     def synthesize_probe(self, path, hint):
         self._driver('tts')
+        if self.os == 'Linux':
+            from services.platform import linux_tts
+            return linux_tts.synthesize_probe(path, hint)
         if self.os == 'Darwin':
             return self._module().synthesize_probe(path, hint)
         from services.audio.windows_speech import synthesize_windows
@@ -138,7 +146,10 @@ class PlatformServices:
     def take_screenshot(self, path):
         return self._driver('screenshot').take_screenshot(path)
 
-    def play_wav(self, path):
+    def play_wav(self, path, *, stop_requested=None):
+        if self.os == 'Linux':
+            from services.platform import linux_tts
+            return linux_tts.play_wav(path, stop_requested)
         return self._driver('tts').play_wav(path)
 
 

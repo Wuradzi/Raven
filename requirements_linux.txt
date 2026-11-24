@@ -3,7 +3,7 @@
 # This is the ONLY dependency list for Linux (plus requirements-dev.txt for developer tools).
 # System prerequisites are NOT installed by pip: Python venv, libportaudio2 (apt, as administrator),
 # Tesseract for pytesseract. See docs/LINUX_RUNTIME.md.
-# Linux has no equivalents of pywin32 / pyautogui: TTS, window and power control are NOT_IMPLEMENTED.
+# Optional Linux TTS uses RHVoice and ALSA system packages (docs/LINUX_RUNTIME.md).
 # ---- core ----
 vosk>=0.3.45
 cryptography>=43.0
@@ -22,7 +22,7 @@ groq>=0.30
 
 # ---- optional modules (not pinned in CI constraints) ----
 # Native Qt Widgets UI (--ui native). On ARM64 the PySide6 wheel needs glibc >= 2.39 (docs/NATIVE_UI.md);
-# on an older distro this line fails: remove it, Raven still runs with --ui web / headless.
+# on an older distro this line fails: omit it, then run Raven with --ui headless.
 PySide6-Essentials==6.8.3
 
 # Local STT: faster-whisper (optional; Groq is the main recognizer) and sherpa-onnx (experimental, CPU/ARM64)

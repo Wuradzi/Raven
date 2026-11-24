@@ -61,7 +61,8 @@ def _print_platform_notes() -> None:
         print(
             "Debian-family: Python venv + libportaudio2 are system prerequisites for audio. "
             "Install them explicitly as administrator if needed. No sudo or OS changes were run. "
-            "Linux TTS/window/power control NOT_IMPLEMENTED; no desktop required."
+            "Linux TTS uses optional system packages RHVoice and ALSA (see docs/LINUX_RUNTIME.md). "
+            "Window/power control NOT_IMPLEMENTED; no desktop required."
         )
 
 

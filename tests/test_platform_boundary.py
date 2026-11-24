@@ -4,9 +4,10 @@ import json
 from pathlib import Path
 import subprocess
 import sys
+import threading
 import unittest
 from types import SimpleNamespace
-from unittest.mock import AsyncMock, Mock, patch
+from unittest.mock import AsyncMock, MagicMock, Mock, patch
 
 from services.platform.resolver import resolve_platform, PlatformServices, PlatformCapabilityUnavailable
 
@@ -18,7 +19,7 @@ class PlatformBoundaryTests(unittest.TestCase):
             with patch('platform.system', return_value=os_name), patch('platform.machine', return_value=arch):
                 target = resolve_platform()
             self.assertEqual((target.os, target.architecture), (os_name, expected))
-            self.assertEqual(target.supports('tts'), os_name == 'Windows')
+            self.assertTrue(target.supports('tts'))
             self.assertIsNot(target.report().get('raspberry_pi'), True)
 
     def test_linux_core_import_does_not_load_windows_implementations(self):
@@ -46,7 +47,7 @@ assert 'win32com.client' not in sys.modules
         target = PlatformServices('Linux', 'arm64')
         with patch('subprocess.Popen') as spawn:
             for operation in (lambda: target.system_action('shutdown'),
-                              lambda: target.windows().close('anything'), lambda: target.speech(None, 'text', None)):
+                              lambda: target.windows().close('anything'), lambda: target.media_key('pause')):
                 with self.assertRaises(PlatformCapabilityUnavailable):
                     operation()
             spawn.assert_not_called()
@@ -92,6 +93,47 @@ assert 'win32com.client' not in sys.modules
     def test_doctor_linux_reports_missing_tts_not_success(self):
         from config import Settings, ProjectPaths
         from services.health.probes import tts_self_test
-        with patch('platform.system', return_value='Linux'):
+        with patch('platform.system', return_value='Linux'), patch(
+            'services.platform.linux_tts.shutil.which', return_value=None,
+        ):
             row = tts_self_test(Settings(ProjectPaths.from_root(Path.cwd())))
         self.assertEqual(row['status'], 'NOT_AVAILABLE')
+        self.assertIn('RHVoice-test', row['data']['exception_message'])
+
+    def test_linux_tts_synthesizes_and_plays_temporary_wav(self):
+        from services.platform import linux_tts
+
+        def synthesize(command, **kwargs):
+            self.assertEqual(command[1:5], ['-p', 'Volodymyr', '-r', '100'])
+            self.assertEqual(kwargs['input_bytes'], 'Привіт'.encode())
+            Path(command[-1]).write_bytes(b'fixture')
+            return True
+
+        owner = SimpleNamespace(settings=SimpleNamespace(tts_voice_hint='Володимир', tts_rate=185, tts_volume=1),
+                                _stop_requested=threading.Event(), _is_valid_wav=lambda path: path.is_file(),
+                                _play_wav=Mock())
+        with patch.object(linux_tts, '_executable', return_value='/usr/bin/RHVoice-test'), patch.object(
+            linux_tts, '_run', side_effect=synthesize,
+        ):
+            PlatformServices('Linux', 'arm64').speech(owner, 'Привіт', None)
+        owner._play_wav.assert_called_once()
+        self.assertFalse(owner._play_wav.call_args.args[0].exists())
+
+    def test_linux_tts_cancellation_kills_and_reaps_child(self):
+        from services.platform import linux_tts
+
+        stop = threading.Event()
+        process = Mock()
+        process.poll.return_value = None
+
+        def interrupt(*args, **kwargs):
+            stop.set()
+            raise subprocess.TimeoutExpired('fixture', 0.05)
+
+        process.communicate.side_effect = interrupt
+        child = MagicMock()
+        child.__enter__.return_value = process
+        with patch.object(linux_tts.subprocess, 'Popen', return_value=child):
+            self.assertFalse(linux_tts._run(['fixture'], timeout=1, stop_requested=stop))
+        process.kill.assert_called_once()
+        child.__exit__.assert_called_once()

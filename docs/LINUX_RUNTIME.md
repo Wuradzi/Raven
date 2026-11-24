@@ -1,4 +1,25 @@
-# Phase 3C — Linux / ARM64 runtime
+# Linux / ARM64 runtime
+
+## Local Linux TTS
+
+Raven synthesizes speech locally with `RHVoice-test` and defaults to the
+Ukrainian voice `Volodymyr`. On Debian-based systems with the packages available
+in the configured repositories, install the optional system dependencies:
+
+```sh
+sudo apt install rhvoice rhvoice-ukrainian alsa-utils
+```
+
+`aplay` uses the default ALSA output. If Raven has an explicit output device,
+it first tries that device through PortAudio and falls back to ALSA on error.
+`tts.voice_hint` selects the RHVoice profile. A rate of 185 uses the voice’s
+default speed, and other rates scale it proportionally. Raven also applies
+`tts.volume`.
+
+Run `python main.py --doctor` to check synthesis and the WAV result. Use a
+normal reply to check audible output on the target device and the UI stop
+button to check cancellation. TTS works in headless and graphical modes.
+Pi latency and actual playback remain to be measured.
 
 ## Linux CI — recorded 2026-10-30
 
@@ -95,7 +116,7 @@ ARCHITECTURE and this guide; local development log/roadmap/evidence updated.
 - Fixed errors: unsupported, not_found, permission_denied, not_available,
   execution_failed. No raw stderr/arguments in user-facing platform errors.
 - No Linux window control, process closing, workplace, power/session control,
-  automatic drive inventory or TTS yet. No mandatory wmctrl/xdotool/RHVoice.
+  automatic drive inventory. RHVoice is optional for text use.
 - Pi detection: bounded read of device-tree `model` from
   `/sys/firmware/devicetree/base/model` or `/proc/device-tree/model`; only bool/null
   exported. ARM64 alone never labels Pi. No serial, environment or /proc dump.
@@ -173,6 +194,6 @@ explicitly; localized/XDG custom locations are not automatically discovered.
 
 Phase 3D: explicitly install an edge candidate (`--with-voice` opts into current
 experimental sherpa runtime), provision compatible model files per STT_BACKENDS,
-benchmark recorded Ukrainian corpus on real Pi, choose TTS and measure first sound,
+benchmark recorded Ukrainian corpus on real Pi and measure the RHVoice time to first sound,
 memory/CPU/latency and thermal throttling. Existing auto ARM edge policy unchanged;
 no downloads at startup and no fake low-quality fallback PASS.

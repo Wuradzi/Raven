@@ -495,11 +495,8 @@ class SpeakerLifecycleTests(unittest.IsolatedAsyncioTestCase):
                 await asyncio.gather(task, return_exceptions=True)
 
     def test_default_windows_output_uses_direct_speech_without_wav(self):
-        speaker = self.speaker()
-        with (
-            patch("services.platform.resolver.PlatformServices.supports", return_value=True),
-            patch.object(speaker, "_generate_with_windows_speech") as synth,
-        ):
+        speaker = with_tts_capable_platform(self.speaker())
+        with patch.object(speaker, "_generate_with_windows_speech") as synth:
             speaker._speak_sync("Привіт")
         synth.assert_called_once_with("Привіт", None)
 

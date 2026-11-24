@@ -60,7 +60,8 @@ def tts_self_test(settings, synthesize=None):
     if not platform.supports('tts') and synthesize is None:
         return check('TTS', 'NOT_AVAILABLE', 'TTS NOT_IMPLEMENTED on this platform; text responses supported')
     started = time.perf_counter()
-    data = dict(backend='Windows Speech', voice_requested=settings.tts_voice_hint,
+    data = dict(backend='RHVoice' if platform.os == 'Linux' else 'Windows Speech',
+                voice_requested=settings.tts_voice_hint,
                 voice_resolved=None, culture=None, wav_bytes=0, temp_wav_exists=False,
                 stage='temp_file_creation', error_type=None, exception_message=None, exit_code=None)
     status = 'synthesis_failed'
@@ -90,4 +91,6 @@ def tts_self_test(settings, synthesize=None):
         data.update(error_type=type(exc).__name__, exception_message=str(exc)[:2048])
         status = 'synthesis_failed' if status != 'wav_empty' else 'wav_empty'
     data.update(self_test_duration_ms=round((time.perf_counter() - started) * 1000, 1), self_test_status=status)
+    if status == 'backend_unavailable':
+        return check('TTS', 'NOT_AVAILABLE', data['exception_message'], **data)
     return check('TTS', ('WARN' if data.get('fallback') else 'PASS') if status == 'ok' else 'FAIL', status, **data)
