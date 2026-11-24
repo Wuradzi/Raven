@@ -67,7 +67,6 @@ PROBES = {
     "turn": ("Замір голосового циклу зі штучною відповіддю LLM", "run"),
     "performance": ("Читання наявного звіту швидкодії", "main"),
     "record": ("Вікно запису 24 фраз; мікрофон лише за кнопкою, приватні локальні WAV", "main"),
-    "recorded": ("Локальне порівняння STT на записаних фразах; без мережі/мікрофона", "run"),
 }
 
 
@@ -126,16 +125,8 @@ def probe_options(name, argv):
         parser.add_argument("--rounds", type=int, choices=range(1, 6), default=2)
         parser.add_argument("--download-only", action="store_true")
         parser.add_argument("--no-hints", action="store_true")
-    elif name in {"turn", "tuning", "endpoint", "recorded"}:
+    elif name in {"turn", "tuning", "endpoint"}:
         parser.add_argument("--corpus", type=Path, required=True)
-        if name == "recorded":
-            parser.add_argument("--endpoint-comparison", action="store_true",
-                                help="Порівняти фіксовану й адаптивну паузу на записах; Vosk, без API/мікрофона")
-            parser.add_argument("--endpoint-block-ms", type=int, choices=(100, 250), default=250,
-                                help="Розмір аудіоблоку кандидата для --endpoint-comparison")
-            parser.add_argument("--resume", type=Path, help="Продовжити сумісний звіт без повторення завершених записів")
-            parser.add_argument("--policy-comparison", action="store_true",
-                                help="Порівняти Vosk на endpoint, legacy та vosk_first на тих самих аудіоблоках")
         if name == "tuning":
             parser.add_argument("--threads", type=int, nargs="+", choices=(0, 1, 2, 4), default=[0, 1, 2, 4])
             parser.add_argument("--word-modes", nargs="+", choices=("on", "off"), default=["on", "off"])
@@ -152,12 +143,6 @@ def probe_options(name, argv):
         parser.add_argument("path", nargs="?", type=Path)
         parser.add_argument("--turns", action="store_true")
     args = parser.parse_args(argv)
-    if name == "recorded" and args.policy_comparison and args.resume:
-        parser.error("--policy-comparison не поєднується з --resume")
-    if name == "recorded" and args.endpoint_comparison and (args.policy_comparison or args.resume):
-        parser.error("--endpoint-comparison не поєднується з --policy-comparison або --resume")
-    if name == "recorded" and args.endpoint_block_ms != 250 and not args.endpoint_comparison:
-        parser.error("--endpoint-block-ms потребує --endpoint-comparison")
     if name == "gemini" and args.live_web and args.web_summary:
         parser.error("Оберіть --live-web або --web-summary, не обидва.")
     if name == "gemini" and args.connection_comparison and (args.live_web or args.web_summary or args.extended or args.cases):
@@ -721,7 +706,7 @@ def main(argv=None) -> int:
                 if value.lower() in [f"p{i}" for i in range(1, len(PROBES) + 1)]:
                     args.probe = list(PROBES)[int(value[1:]) - 1]
                     options = []
-                    if args.probe in {"turn", "tuning", "endpoint", "recorded"}:
+                    if args.probe in {"turn", "tuning", "endpoint"}:
                         options = ["--corpus", input("Папка корпусу: ").strip().strip('"')]
                     elif args.probe == "smoke":
                         options = ["--" + input("Перевірка: audio, stt або network: ").strip()]
@@ -967,7 +952,6 @@ class TesterChecks(unittest.TestCase):
             "whisper": ["--models", "base", "tiny", "--no-hints"],
             "tuning": ["--corpus=logs/corpus with spaces", "--threads", "1", "2"],
             "endpoint": ["--corpus", "logs/corpus with spaces"],
-            "recorded": ["--corpus", "logs/corpus with spaces", "--endpoint-comparison", "--endpoint-block-ms", "100"],
             "turn": ["--corpus", "logs/corpus with spaces"],
             "performance": ["logs/timing with spaces.jsonl", "--turns"],
         }
@@ -1002,9 +986,6 @@ class TesterChecks(unittest.TestCase):
             ["--probe", "whisper", "--allow-live", "--", "--models", "base", "base"],
             ["--probe", "endpoint", "--allow-live", "--", "--corpus", "logs", "--silences", "1200"],
             ["--probe", "endpoint", "--allow-live", "--", "--corpus", "logs", "--silences", "0", "0"],
-            ["--probe", "recorded", "--allow-live", "--", "--corpus", "logs", "--endpoint-comparison", "--resume", "logs/report.json"],
-            ["--probe", "recorded", "--allow-live", "--", "--corpus", "logs", "--endpoint-comparison", "--policy-comparison"],
-            ["--probe", "recorded", "--allow-live", "--", "--corpus", "logs", "--endpoint-block-ms", "100"],
             ["--all", "--probe", "gemini", "--allow-live"],
         )
         for argv in examples:
@@ -1121,177 +1102,6 @@ class RecordingChecks(unittest.TestCase):
         self.assertEqual(len(trace.events), 1)
         self.assertEqual(set(trace.events[0]), {'event', 'status', 'ms'})
         self.assertNotIn('do-not-save', json.dumps(trace.events))
-
-    def test_vosk_policy_config_is_validated_without_changing_legacy_defaults(self):
-        from config import default_config, validate_config, ConfigError
-        config = default_config()
-        self.assertEqual(config['stt']['refinement_policy'], 'legacy')
-        for policy in ('legacy', 'vosk_first'):
-            config['stt']['refinement_policy'] = policy
-            validate_config(config)
-        for policy in ('automatic', None, 1):
-            config['stt']['refinement_policy'] = policy
-            with self.assertRaises(ConfigError):
-                validate_config(config)
-
-    def test_vosk_first_live_path_skips_chat_but_checks_command_prefix(self):
-        from tests.platform_fixtures import sounddevice_or_stub
-        self.enterContext(sounddevice_or_stub())
-        from config import Settings, ProjectPaths
-        from core.listen import VoskListener
-        from core.models import RecognitionResult
-        with tempfile.TemporaryDirectory() as tmp:
-            settings = Settings(paths=ProjectPaths.from_root(Path(tmp)), stt_refinement_policy='vosk_first')
-            listener = VoskListener(settings)
-            pcm = b'\x00\x10' * 16000
-            try:
-                with patch.object(listener, '_input_candidates', return_value=[(0, 16000)]), \
-                     patch.object(listener, '_listen_on_device') as capture, \
-                     patch.object(listener.whisper, 'transcribe') as transcribe:
-                    chat = RecognitionResult('Розкажи про планети', .96, 'vosk')
-                    capture.return_value = (chat, pcm)
-                    self.assertIs(listener.listen_once(), chat)
-                    transcribe.assert_not_called()
-                    command = RecognitionResult('Команда відкрий браузер', .96, 'vosk')
-                    capture.return_value = (command, pcm)
-                    transcribe.return_value = RecognitionResult('Відкрий браузер', .8, 'whisper')
-                    result = listener.listen_once()
-                    transcribe.assert_called_once_with(pcm, 16000)
-                    self.assertEqual(result.engine, 'conflict')
-                    self.assertFalse(listener._contains_command_prefix(result.text))
-                    transcribe.reset_mock()
-                    capture.return_value = (chat, pcm)
-                    listener.listen_once(grammar=['так', 'ні'])
-                    transcribe.assert_not_called()
-            finally:
-                listener.close()
-
-    def test_vosk_first_skips_only_confident_noncommands(self):
-        from types import SimpleNamespace
-        from core.listen import VoskListener
-        from core.models import RecognitionResult
-        listener = VoskListener.__new__(VoskListener)
-        listener.settings = SimpleNamespace(stt_refinement_policy='vosk_first',
-            stt_whisper_skip_silence=False, performance_profile='balanced')
-        for text, confidence, expected in (
-            ('Поясни рух планет', .9, False), ('Поясни рух планет', .8, True),
-            ('Команда відкрий браузер', .99, True), ('', .99, True),
-            ('Що нового', float('nan'), True), ('Що нового', 1.1, True)):
-            with self.subTest(text=text, confidence=confidence):
-                self.assertEqual(listener._should_refine(RecognitionResult(text, confidence, 'vosk'), b'', 16000)[0], expected)
-        listener.settings.stt_refinement_policy = 'legacy'
-        self.assertTrue(listener._should_refine(RecognitionResult('Поясни рух планет', .99, 'vosk'), b'', 16000)[0])
-
-    def test_vosk_first_preserves_command_conflict_and_uncertain_fallback(self):
-        from types import SimpleNamespace
-        from core.listen import VoskListener
-        from core.models import RecognitionResult
-        listener = VoskListener.__new__(VoskListener)
-        listener.settings = SimpleNamespace(stt_refinement_policy='vosk_first', stt_whisper_min_confidence=.45)
-        confident = RecognitionResult('Команда відкрий браузер', .95, 'vosk')
-        other = RecognitionResult('Команда відкрей браузер', .99, 'whisper')
-        self.assertIs(listener._select_result(confident, other), confident)
-        uncertain = RecognitionResult(confident.text, .6, 'vosk')
-        self.assertIs(listener._select_result(uncertain, other), other)
-        conversation = RecognitionResult('Поговорімо про браузери', .9, 'whisper')
-        self.assertEqual(listener._select_result(confident, conversation).engine, 'conflict')
-        self.assertFalse(listener._contains_command_prefix(listener._select_result(confident, conversation).text))
-        vosk_chat = RecognitionResult('Поговорімо про браузери', .95, 'vosk')
-        self.assertEqual(listener._select_result(vosk_chat, other).engine, 'conflict')
-
-    def test_policy_probe_disallows_checkpoint_from_other_experiment(self):
-        with self.assertRaises(SystemExit):
-            probe_options('recorded', ['--corpus', '.', '--policy-comparison', '--resume', 'old.json'])
-        self.assertTrue(probe_options('recorded', ['--corpus', '.', '--policy-comparison']).policy_comparison)
-
-    def test_recorded_resume_validates_identity_configuration_and_scores(self):
-        from testing.probes.recorded import resume_results
-        from testing.probes.whisper import score
-        report = dict(kind='private_recorded_audio_replay', synthetic=False, live_microphone=False,
-                      network=False, corpus_sha256='abc', model='base', beam=1, threads=2,
-                      endpoint_ms=1200, block_ms=250)
-        source = dict(file='greeting.wav', reference='Привіт')
-        sample = dict(id='greeting', **source, audio_seconds=1.0)
-        for mode in ('vosk_full', 'whisper_full', 'current_pipeline'):
-            sample[mode] = dict(text='Привіт', seconds=1.0, **score('Привіт', 'Привіт'))
-        samples = {'greeting': (source, b'', 16000, 1.0)}
-        with tempfile.TemporaryDirectory() as tmp:
-            path = Path(tmp) / 'checkpoint.json'
-            old = dict(report, status='running', results=[sample])
-            write_json(path, old)
-            before = path.read_bytes()
-            rows, provenance = resume_results(path, report, samples)
-            self.assertEqual(rows, [sample])
-            self.assertEqual(provenance['reused_samples'], 1)
-            self.assertEqual(path.read_bytes(), before)
-            with self.assertRaisesRegex(ValueError, 'configuration mismatch'):
-                resume_results(path, dict(report, model='small'), samples)
-            with self.assertRaisesRegex(ValueError, 'refinement_policy'):
-                resume_results(path, dict(report, refinement_policy='vosk_first'), samples)
-            with self.assertRaisesRegex(ValueError, 'endpoint_adaptive'):
-                resume_results(path, dict(report, endpoint_adaptive=True), samples)
-            write_json(path, dict(old, results=[sample, sample]))
-            with self.assertRaises(ValueError):
-                resume_results(path, report, samples)
-            sample['vosk_full']['word_errors'] = 99
-            write_json(path, old)
-            with self.assertRaisesRegex(ValueError, 'score mismatch'):
-                resume_results(path, report, samples)
-
-    def test_recorded_corpus_validation_and_tamper_detection(self):
-        from testing.probes.record import CaptureBuffer, PHRASES, save_clip
-        from testing.probes.recorded import read_corpus
-        with tempfile.TemporaryDirectory() as tmp:
-            capture = CaptureBuffer(16000)
-            capture.feed(b'\x00\x10' * 16000)
-            for phrase in PHRASES:
-                save_clip(tmp, capture, phrase, {}, reference_confirmed=True)
-            samples, digest = read_corpus(tmp)
-            self.assertEqual(len(samples), 24)
-            self.assertEqual(len(digest), 64)
-            first = Path(tmp) / samples[PHRASES[0][0]][0]['file']
-            with first.open('ab') as out:
-                out.write(b'tampered')
-            with self.assertRaisesRegex(ValueError, 'hash mismatch'):
-                read_corpus(tmp)
-
-    def test_recorded_reader_rejects_paths_and_incomplete_corpus(self):
-        from testing.probes.record import PHRASES
-        from testing.probes.recorded import read_corpus
-        with tempfile.TemporaryDirectory() as tmp:
-            path = Path(tmp) / 'corpus.json'
-            for filename in ('../secret.wav', '..\\secret.wav', 'C:\\secret.wav'):
-                write_json(path, {'schema_version': 1, 'synthetic': False, 'samples': [{
-                    'id': PHRASES[0][0], 'reference': PHRASES[0][1], 'reference_confirmed': True, 'file': filename}]})
-                with self.assertRaisesRegex(ValueError, 'audio path'):
-                    read_corpus(tmp)
-            write_json(path, {'schema_version': 1, 'synthetic': True, 'samples': []})
-            with self.assertRaisesRegex(ValueError, 'recorded corpus'):
-                read_corpus(tmp)
-
-    def test_replay_uses_original_pcm_and_restores_production_clock(self):
-        import core.listen as module
-        from types import SimpleNamespace
-        import threading
-        from testing.probes.recorded import replay
-        original_time, original_queue = module.time, module.queue
-        pcm = b'\x00\x10' * 8000
-        def capture(sd, device, rate, timeout, grammar):
-            pending = module.queue.Queue()
-            def callback(raw, *args):
-                pending.put((raw, module.time.monotonic()))
-            with sd.RawInputStream(callback=callback):
-                first, timestamp = pending.get()
-                second, _ = pending.get()
-                self.assertTrue(pending.empty())
-                self.assertEqual(timestamp, .25)
-            return 'fixture', first + second
-        listener = SimpleNamespace(settings=SimpleNamespace(stt_audio_block_ms=250),
-                                   _interrupt=threading.Event(), _listen_on_device=capture)
-        result, captured = replay(listener, pcm, 16000)
-        self.assertEqual(captured, pcm)
-        self.assertIs(module.time, original_time)
-        self.assertIs(module.queue, original_queue)
 
     def test_fixed_corpus_has_unique_names_and_pause_examples(self):
         from testing.probes.record import PHRASES
@@ -3657,31 +3467,6 @@ class NaturalTurnChecks(unittest.IsolatedAsyncioTestCase):
             result = await self.processor().process('я думав про нашу розмову', AsyncMock(),
                                                      'voice', allow_actions=False)
             self.assertEqual(result.response, 'Розкажіть більше.')
-
-    async def test_final_complete_stt_command_uses_normal_execution(self):
-        from tests.platform_fixtures import sounddevice_or_stub
-        self.enterContext(sounddevice_or_stub())
-        from types import SimpleNamespace
-        from unittest.mock import AsyncMock, Mock
-        from core.listen import VoskListener
-        from core.models import RecognitionResult
-        from config import Settings, ProjectPaths
-        with tempfile.TemporaryDirectory() as directory:
-            listener = VoskListener(Settings(ProjectPaths.from_root(Path(directory)), stt_endpoint_adaptive=True))
-            listener._input_candidates = Mock(return_value=[(0, 16000)])
-            listener._listen_on_device = Mock(return_value=(
-                RecognitionResult('відкрий', .6, fragmented=True, incomplete=True), b'pcm'))
-            listener._should_refine = Mock(return_value=(True, 'test'))
-            listener.whisper = SimpleNamespace(enabled=True, transcribe=Mock(
-                return_value=RecognitionResult('відкрий браузер', .95, 'whisper')))
-            recognized = listener.listen_once()
-        processor = self.processor()
-        self.action()
-        confirm = AsyncMock(return_value=False)
-        await processor.process(recognized.text, confirm, 'voice', allow_actions=not recognized.fragmented)
-        # The refined complete command reaches the normal executor; open_app needs no «так» (04.11.2026).
-        confirm.assert_not_awaited()
-        processor.services['apps'].open_default_browser.assert_called_once()
 
     async def test_short_stt_reply_keeps_existing_scoped_clarification(self):
         from unittest.mock import AsyncMock

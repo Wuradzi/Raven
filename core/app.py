@@ -182,8 +182,7 @@ class RavenApp:
                           "Звичайна репліка → розмова; «Команда: <дія>» → локальна дія.")
             whisper_ok, whisper_detail = self.listener.status()
             mode = self.settings.stt_backend
-            policy = getattr(self.settings, "stt_refinement_policy", "legacy")
-            print(f"[STT] Режим: {mode}; policy={policy} — {whisper_detail}")
+            print(f"[STT] Режим: {mode} — {whisper_detail}")
         startup_ms = round(
             (asyncio.get_running_loop().time() - startup_started) * 1000,
             2,

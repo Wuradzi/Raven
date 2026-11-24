@@ -11,11 +11,10 @@ from unittest.mock import Mock, patch
 from config import ProjectPaths, Settings
 from core.listen import VoskListener
 from core.metrics import MetricsCollector
-from core.models import RecognitionResult
 from core.performance import CURRENT_TURN, PerformanceRecorder, TurnTiming, mark_turn
 from core.speak import Speaker
 from testing.probes.performance import summarize_turns
-from tests.platform_fixtures import hermetic_sounddevice, with_tts_capable_platform
+from tests.platform_fixtures import with_tts_capable_platform
 
 
 class TurnTests(unittest.TestCase):
@@ -81,19 +80,6 @@ class TurnTests(unittest.TestCase):
         self.assertEqual(result.text, "привіт")
         self.assertAlmostEqual(result.timing.speech_end_at, 10.35)
         self.assertEqual(result.timing.endpoint_at, 10.5)
-
-    @hermetic_sounddevice
-    def test_whisper_replacement_preserves_parent_turn(self):
-        listener = VoskListener(self.settings)
-        listener.performance = PerformanceRecorder(enabled=False)
-        timing = TurnTiming(listener.performance, endpoint_at=10)
-        listener._input_candidates = Mock(return_value=[(0, 16000)])
-        listener._listen_on_device = Mock(return_value=(RecognitionResult("привіт", .8, timing=timing), b"pcm"))
-        listener._should_refine = Mock(return_value=(True, "test"))
-        listener.whisper = SimpleNamespace(enabled=True, transcribe=Mock(return_value=RecognitionResult("Привіт!", .9, "whisper")))
-        result = listener.listen_once()
-        self.assertIs(result.timing, timing)
-        self.assertEqual(result.engine, "whisper")
 
     def test_file_synthesis_does_not_claim_playback(self):
         import queue

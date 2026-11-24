@@ -186,26 +186,6 @@ class AudioBlockTests(unittest.TestCase):
         endpoint.feed(b'\0\0' * 16000)
         self.assertFalse(endpoint.ready('тиха повільна репліка'))
 
-    def test_adaptive_listener_flushes_short_chat_without_executing_partial(self):
-        from testing.probes.recorded import replay
-        with tempfile.TemporaryDirectory() as directory:
-            listener = VoskListener(Settings(ProjectPaths.from_root(Path(directory)),
-                stt_endpoint_silence_ms=1200, stt_endpoint_adaptive=True))
-            listener._get_model = Mock()
-            listener.whisper.status = Mock(return_value=(True, 'ready'))
-            recognizer = Mock()
-            recognizer.AcceptWaveform.return_value = False
-            recognizer.PartialResult.return_value = json.dumps({'partial': 'привіт'})
-            recognizer.FinalResult.return_value = json.dumps({'text': 'привіт рейвен', 'result': []})
-            pcm = b'\x00\x10' * 8000 + b'\0\0' * 32000
-            with patch('vosk.KaldiRecognizer', return_value=recognizer), self.assertLogs('core.listen', level='DEBUG') as logs:
-                result, captured = replay(listener, pcm, 16000)
-            self.assertTrue(any('kind=quiet' in line for line in logs.output))
-            self.assertEqual(result.text, 'привіт рейвен')
-            self.assertEqual(captured, pcm[:48000])  # .5 s speech + 1 s pause (250 ms blocks)
-            recognizer.FinalResult.assert_called_once()
-            listener.close()
-
     def test_endpoint_configuration_is_explicit_and_bounded(self):
         self.assertEqual(merge_config({})["stt"]["endpoint_silence_ms"], 0)
         for ms in (0, 1200, 1400, 1600):

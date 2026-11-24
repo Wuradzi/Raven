@@ -97,8 +97,8 @@ confidence), запити пам'яті, прямий gate `direct_request`, л�
 
 `direct=true` означає лише допуск до локальної політики перед підтвердженням,
 не дозвіл виконати дію. Зміна очікування — свідоме рішення з поясненням у `note`.
-Корпус не вимірює якість STT: для WER є записаний корпус (`--probe record`,
-`--probe recorded`).
+Корпус не вимірює якість STT: для WER є записаний корпус (`--probe record`) і
+`--probe stt_benchmark`.
 
 ### Ротація журналів тестів
 
@@ -108,9 +108,9 @@ confidence), запити пам'яті, прямий gate `direct_request`, л�
 
 ### Живі перевірки та заміри — у тому самому тестері
 
-**Сумісність після Phase 3A.2:** наведені нижче порівняння `whisper`, `recorded`,
-`endpoint` і `refinement_policy` описують також попередній Vosk-first pipeline
-та історичні експерименти. Вони не визначають desktop primary backend.
+**Сумісність після Phase 3A.2:** наведені нижче порівняння `whisper` і `endpoint`
+описують також попередній Vosk-first pipeline та історичні експерименти. Комбіновану
+схему «Vosk + уточнення Whisper» (`stt.refinement_policy`, зонд `recorded`) вилучено 24.11.2026. Вони не визначають desktop primary backend.
 Для однакового WAV-корпусу на нових backends використовуйте `stt_benchmark`:
 
 ```powershell
@@ -143,9 +143,6 @@ python tester.py --probe endpoint --allow-live -- --corpus "logs/whisper-compari
 python tester.py --probe turn --allow-live -- --corpus "logs/whisper-comparison-ID"
 python tester.py --probe performance -- --turns
 python tester.py --probe record --allow-live --timeout 1800
-python tester.py --probe recorded --allow-live --timeout 900 -- --corpus "logs/voice-corpus/ID"
-python tester.py --probe recorded --allow-live --timeout 900 -- --corpus "logs/voice-corpus/ID" --policy-comparison
-python tester.py --probe recorded --allow-live --timeout 300 -- --corpus "logs/voice-corpus/ID" --endpoint-comparison
 ```
 
 `record` відкриває майстер запису 24 фраз; мікрофон працює лише після
@@ -198,25 +195,6 @@ keep-alive 60 с. Healthcheck/chat/stream/вебпідсумки викорис�
 блоку; ці показники не містять тексту й не є акустичним виміром.
 Час офлайн-обробки не дорівнює затримці живої розмови. WAV і розпізнаний
 текст залишаються приватними; перед публікацією звіт потрібно знеособити.
-
-`--policy-comparison` порівнює Vosk на чинній межі репліки, `legacy` та
-`vosk_first` на однаковому PCM; еталон використовується лише для оцінювання,
-не для вибору тексту. Розпізнавання Whisper спільне для порівнюваних схем,
-тому наведені витрати — суми виміряних компонентів, не живий час відповіді.
-Цей режим не підтримує `--resume` і не змінює config.json.
-
-Поле `stt.refinement_policy` у config.json:
-
-- `legacy` — попередній вибір із перевагою Whisper; також значення для старих
-  конфігурацій без цього поля.
-- `vosk_first` — Vosk із confidence від 0,85 зберігає пріоритет. Звичайна
-  впевнена репліка обходиться без Whisper; команди й невпевнені репліки
-  уточнюються. Розбіжність рушіїв щодо префікса «Команда» зберігає заборону
-  переходу до локального виконання. Пороги двох моделей не порівнюються між собою.
-
-Історично після порівняння записів 16.09 `vosk_first` було ввімкнено локально.
-Після Phase 3A.2 це не налаштування primary faster-whisper і не спосіб
-перемикання поточного backend; використовуйте `stt.profile` та `stt.profiles`.
 
 Старі скрипти `test_gemini.py` та тестові/вимірювальні скрипти з `tools/`
 видалені як окремі точки запуску. Їхня логіка збережена у внутрішньому пакеті

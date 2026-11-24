@@ -74,7 +74,6 @@ class Settings:
     stt_audio_block_ms: int = 250
     stt_endpoint_silence_ms: int = 0
     stt_endpoint_adaptive: bool = False
-    stt_refinement_policy: str = "legacy"
     stt_command_confidence_threshold: float = 0.55
     stt_chat_confidence_threshold: float = 0.5
     stt_post_tts_pause_seconds: float = 0.25
@@ -172,7 +171,6 @@ def default_config(*, fresh: bool = True) -> dict[str, Any]:
             "audio_block_ms": 250,
             "endpoint_silence_ms": 0,
             "endpoint_adaptive": False,
-            "refinement_policy": "legacy",
             "selective_whisper_enabled": True,
             "vosk_chat_confidence": 0.85,
             "whisper_soft_budget_ms": 4000,
@@ -436,8 +434,6 @@ def _validate_stt_endpoint(stt: dict[str, Any]) -> None:
     endpoint_ms = stt["endpoint_silence_ms"]
     if type(stt["endpoint_adaptive"]) is not bool:
         raise ConfigError("stt.endpoint_adaptive має бути true або false")
-    if stt.get("refinement_policy", "legacy") not in ("legacy", "vosk_first"):
-        raise ConfigError("stt.refinement_policy має бути legacy або vosk_first")
     if type(endpoint_ms) is not int or endpoint_ms not in {0, 1200, 1400, 1600}:
         raise ConfigError("stt.endpoint_silence_ms має бути 0 (штатний Vosk), 1200, 1400 або 1600")
     if not isinstance(stt['selective_whisper_enabled'], bool):
@@ -581,7 +577,6 @@ def load_settings(profile_override: str | None = None, *, read_only=False, root=
         stt_audio_block_ms=int(config["stt"]["audio_block_ms"]),
         stt_endpoint_silence_ms=int(config["stt"]["endpoint_silence_ms"]),
         stt_endpoint_adaptive=config["stt"]["endpoint_adaptive"],
-        stt_refinement_policy=str(config["stt"]["refinement_policy"]),
         stt_selective_whisper_enabled=config['stt']['selective_whisper_enabled'],
         stt_vosk_chat_confidence=float(config['stt']['vosk_chat_confidence']),
         stt_whisper_soft_budget_ms=int(config['stt']['whisper_soft_budget_ms']),

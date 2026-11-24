@@ -4,14 +4,11 @@ import tempfile
 import unittest
 from pathlib import Path
 from unittest.mock import Mock, patch
-from types import SimpleNamespace
 
 from config import ProjectPaths, Settings
 from core.listen import VoskListener
-from core.models import RecognitionResult
 from services.audio.endpoint import QuietEndpoint
-from testing.probes.recorded import replay
-from tests.platform_fixtures import hermetic_sounddevice
+from testing.replay import replay
 
 
 class ContinuationTests(unittest.TestCase):
@@ -35,25 +32,6 @@ class ContinuationTests(unittest.TestCase):
         self.assertFalse(endpoint.wait_expired(11.59))
         self.assertTrue(endpoint.ready('', now=11.61))
         self.assertAlmostEqual(endpoint.wait_actual_ms, 410)
-
-    @hermetic_sounddevice
-    def test_refinement_reassesses_final_selected_text_not_stale_vosk_flags(self):
-        with tempfile.TemporaryDirectory() as directory:
-            listener = VoskListener(Settings(ProjectPaths.from_root(Path(directory)), stt_endpoint_adaptive=True))
-            listener._input_candidates = Mock(return_value=[(0, 16000)])
-            listener._should_refine = Mock(return_value=(True, 'test'))
-            for text, incomplete in (('Цілком завершена відповідь.', False),
-                                     ('розгорни вікно браузера.', False), ('відкрий браузер', False),
-                                     ('я хотів', True)):
-                with self.subTest(text=text):
-                    listener._listen_on_device = Mock(return_value=(
-                        RecognitionResult('я хотів', .6, fragmented=True, incomplete=True), b'pcm'))
-                    listener.whisper = SimpleNamespace(enabled=True, transcribe=Mock(
-                        return_value=RecognitionResult(text, .9, 'whisper')))
-                    result = listener.listen_once()
-                    self.assertEqual(result.text, text)
-                    self.assertEqual(result.fragmented, incomplete)
-                    self.assertEqual(result.incomplete, incomplete)
 
     def endpoint(self, speech=.5):
         result = QuietEndpoint(16000, 1200, adaptive=True)

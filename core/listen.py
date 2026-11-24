@@ -129,55 +129,6 @@ class VoskListener:
                 utterance_incomplete = result.resolved_utterance_incomplete
                 recognition_unreliable = result.recognition_unreliable
                 truncated = result.capture_truncated
-                selective = getattr(self.settings, 'stt_selective_whisper_enabled', False)
-                refine, reason, elapsed, outcome = False, 'confirmation_context' if grammar else 'disabled', 0, 'skip'
-                unsafe_refinement = False
-                if (
-                    grammar is None
-                    and self.whisper.enabled
-                    and result.engine != "interrupted"
-                ):
-                    refine, reason = self._should_refine(
-                        result,
-                        pcm,
-                        sample_rate,
-                    )
-                    if refine:
-                        with self.performance.span("stt.whisper_refinement"):
-                            if selective:
-                                refined, outcome, elapsed = self._refinement_wait.run(
-                                    self.whisper, pcm, sample_rate,
-                                    self.settings.stt_whisper_soft_budget_ms,
-                                    self.settings.stt_whisper_hard_budget_ms,
-                                    lambda: self._closed.is_set() or self._interrupt.is_set() or self._paused.is_set())
-                            else:
-                                refined = self.whisper.transcribe(pcm, sample_rate)
-                        unsafe_refinement = selective and (
-                            not refined.text.strip() or not math.isfinite(refined.confidence)
-                            or refined.confidence < self.settings.stt_whisper_min_confidence
-                            or outcome != 'done')
-                        result = self._select_result(result, refined)
-                        if getattr(self.settings, 'stt_endpoint_adaptive', False):
-                            incomplete = QuietEndpoint.possible_fragment(result.text)
-                            utterance_incomplete = incomplete
-                            fragmented = incomplete or truncated
-                    else:
-                        self.whisper.note_skip(reason)
-                fragmented, incomplete = self.recognition_policy.finish_quality(
-                    result, fragmented=fragmented, incomplete=incomplete,
-                    unsafe_refinement=unsafe_refinement)
-                if selective:
-                    logger.info('whisper_refinement_decision=%s whisper_refinement_reason=%s '
-                                'whisper_refinement_ms=%s whisper_refinement_timeout=%s '
-                                'whisper_skipped_reason=%s stt_final_engine=%s stt_fast_path=%s outcome=%s',
-                                'run' if refine else 'skip', reason, round(elapsed),
-                                str(outcome == 'timeout').lower(), reason if not refine else 'none',
-                                result.engine, str(not refine and result.engine == 'vosk').lower(), outcome)
-                if refine and getattr(self.settings, 'stt_endpoint_adaptive', False):
-                    logger.info('STT fragment final: reassessed=True engine=%s incomplete=%s '
-                                'action_eligible=%s fragment_resolution=%s', result.engine, incomplete,
-                                not fragmented and result.engine != 'conflict',
-                                'clarify' if fragmented or result.engine == 'conflict' else 'released')
                 if self._closed.is_set() or self._interrupt.is_set():
                     return RecognitionResult("", 0.0, "interrupted")
                 result.timing = timing
@@ -185,7 +136,7 @@ class VoskListener:
                 result.incomplete = incomplete
                 result.capture_truncated = truncated
                 result.utterance_incomplete = utterance_incomplete
-                result.recognition_unreliable = recognition_unreliable or unsafe_refinement or result.engine == 'conflict'
+                result.recognition_unreliable = recognition_unreliable
                 if timing is not None:
                     timing.mark("recognition_ready")
                 return result
@@ -525,14 +476,6 @@ class VoskListener:
             if words else 0.0
         )
         return RecognitionResult(result.get("text", "").strip(), confidence, "vosk")
-
-    def _select_result(self, vosk_result, whisper_result):
-        """Compatibility adapter for existing recognition probes."""
-        return self.recognition_policy._select_result(vosk_result, whisper_result)
-
-    def _should_refine(self, result, pcm, sample_rate):
-        return self.recognition_policy._should_refine(
-            result, pcm, sample_rate, self._has_speech_energy)
 
     @staticmethod
     def _has_speech_energy(
