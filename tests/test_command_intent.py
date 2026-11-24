@@ -924,10 +924,8 @@ class ProcessorInterpretationTests(unittest.IsolatedAsyncioTestCase):
         await self.processor.process("Команда: невідомий намір", self.confirm)
         self.llm.interpret_command.assert_not_awaited()
 
-    async def test_pentest_mode_and_sensitive_requests_never_use_interpreter(self):
+    async def test_sensitive_requests_never_use_interpreter(self):
         await self.processor.process("Команда: секрет fixture", self.confirm)
-        self.services["state"]["mode"] = "pentest"
-        await self.processor.process("Команда: невідомий намір", self.confirm)
         self.llm.interpret_command.assert_not_awaited()
 
     async def test_compound_command_does_not_execute_first_part(self):

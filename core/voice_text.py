@@ -11,8 +11,6 @@ _REPLACEMENTS = (
     ),
     (r"\bпід\s+край\b", "відкрий"),
     (r"\b(?:кілограм|голограм)\b", "телеграм"),
-    (r"\bдушу\s+(?:гук|губ)\b", "душогуб"),
-    (r"\bпан\s+тест(?:у|ом)?\b", "пентесту"),
     (r"\b(?:замовкли|замовкне)\b", "замовкни"),
     (r"\b(?:знайде|знайдеє)\b", "знайди"),
     (r"\bзавершила\s+роботу\b", "заверши роботу"),
@@ -25,7 +23,7 @@ def repair_voice_text(text: str, mode: str = "chat") -> str:
     has_command_boundary = bool(
         re.match(r"^команда\b", repaired, flags=re.IGNORECASE)
     )
-    if mode != "pentest" and not has_command_boundary:
+    if not has_command_boundary:
         # Corrections must never manufacture permission for a local action or
         # rewrite an ordinary conversational message.
         return repaired
@@ -78,6 +76,4 @@ def repair_voice_text(text: str, mode: str = "chat") -> str:
         repaired,
         flags=re.IGNORECASE,
     )
-    if mode == "pentest" and repaired.casefold() == "старова":
-        repaired = "статус душогуба"
     return " ".join(repaired.split())

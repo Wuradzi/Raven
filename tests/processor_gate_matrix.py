@@ -36,7 +36,7 @@ TEXTS = {
     "memory": "Запам’ятай проєкт: Рейвен",
     "ip": "192.168.1.10",
 }
-MODES = ("chat", "pentest")
+MODES = ("chat",)
 NATURAL = (False, True)
 
 
@@ -59,7 +59,7 @@ def build(mode: str, natural: bool):
     services = {
         "state": {"mode": mode},
         "memory": memory,
-        "enabled_skills": {"files", "memory", "apps", "pentest"},
+        "enabled_skills": {"files", "memory", "apps"},
     }
     speaker = SimpleNamespace(stop=AsyncMock(), say=AsyncMock())
     settings = SimpleNamespace(natural_actions_enabled=natural,

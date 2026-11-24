@@ -64,7 +64,6 @@ LOCAL_ACTION_TYPES = {
     "media",
     "shutdown",
     "lock",
-    "pentest",
 }
 OPEN_ACTION_TYPES = {"open_browser", "open_application", "file_open", "agent_workplace"}
 STOP_SPEECH = re.compile(r"^(?:команда\s*[:,]?\s*)?(?:стоп|замовкни|зупини озвучення)[.!?]*$", re.I)
@@ -281,9 +280,6 @@ class CommandProcessor:
                     "Після слова «Команда» назвіть локальну дію.",
                     {"command_type": "empty_command"},
                 )
-            elif mode == "pentest":
-                result = await self._pentest_turn(raw_text, normalized, command_match,
-                                                  local_raw, local_command, context)
             elif decision.kind is DecisionKind.LOCAL_COMMAND:
                 result = await self._local_command(local_raw, local_command, context)
             else:
@@ -630,16 +626,6 @@ class CommandProcessor:
         finally:
             filler.stop()
             self._chat_task = None  # Local operations must not be cancelled by conversation interruption.
-
-    async def _pentest_turn(self, raw_text, normalized, command_match, local_raw, local_command, context):
-        """Pentest mode: speech stop, «Команда, …», otherwise only the pentest skill."""
-        if command_match is None and STOP_SPEECH.fullmatch(raw_text):
-            # Speech control, not a scan command: same effect as in chat mode (J125).
-            await self.speaker.stop()
-            return SkillResult(True, "", {"command_type": "speech_stopped"})
-        if command_match:
-            return await self._route_local(local_command, context, raw_command=local_raw)
-        return await self._route_local(normalized, context, {"pentest"}, raw_command=raw_text)
 
     async def _local_command(self, local_raw, local_command, context):
         """«Команда, …» in chat mode: one local action, never compound."""

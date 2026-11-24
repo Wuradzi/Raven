@@ -29,7 +29,6 @@ from services.apps.workplace import CANCEL_WORKPLACE, WorkplaceAgent
 from services.diagnostics import DiagnosticsService
 from services.files.file_service import FileService
 from services.llm.manager import LLMManager
-from services.pentest import PentestService
 from services.storage.knowledge_store import KnowledgeStore
 from services.storage.memory_store import MemoryStore
 from services.storage.notes_store import NotesStore
@@ -87,15 +86,6 @@ class RavenApp:
                                    import_folder=settings.paths.data_dir / "knowledge")
         notes = NotesStore(settings.paths.data_dir / "notes.json")
         reminders = ReminderStore(settings.paths.data_dir / "reminders.json")
-        pentest = PentestService(
-            settings.paths.data_dir,
-            enabled=settings.pentest_enabled,
-            max_hosts=settings.pentest_max_hosts,
-            connect_timeout=settings.pentest_connect_timeout_seconds,
-            scan_timeout=settings.pentest_scan_timeout_seconds,
-            concurrency=settings.pentest_concurrency,
-            allowed_targets=settings.pentest_allowed_targets,
-        )
         app_indexer = ApplicationIndexer(
             settings.paths.data_dir / "applications.json",
             settings.application_aliases,
@@ -118,7 +108,6 @@ class RavenApp:
             "weather": WeatherService(),
             "metrics": self.metrics,
             "performance": self.performance,
-            "pentest": pentest,
             "speaker": self.speaker,
             "llm": self.llm,
             "state": {
@@ -131,7 +120,6 @@ class RavenApp:
             self.listener,
             self.speaker,
             self.llm,
-            pentest,
         )
         self.services = services
 
@@ -237,7 +225,6 @@ class RavenApp:
                 await self.web_ui.close()
             if self.listener is not None:
                 self.listener.interrupt()
-            await self.services["pentest"].deactivate()
             for task in tasks:
                 task.cancel()
             cleanup = [self.speaker.close(), self.llm.close()]
@@ -365,11 +352,7 @@ class RavenApp:
                 if source == "voice":
                     selection_reply = (self.services.get("tasks") is not None
                                        and self.services["tasks"].is_selection_reply(text))
-                    is_local = (
-                        self.services["state"].get("mode") == "pentest"
-                        or COMMAND_PREFIX.match(text.strip())
-                        or selection_reply
-                    )
+                    is_local = bool(COMMAND_PREFIX.match(text.strip()) or selection_reply)
                     threshold = (
                         self.settings.stt_command_confidence_threshold if is_local
                         else self.settings.stt_chat_confidence_threshold

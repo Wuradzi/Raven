@@ -25,13 +25,11 @@ class DiagnosticsService:
         listener,
         speaker,
         llm,
-        pentest,
     ):
         self.settings = settings
         self.listener = listener
         self.speaker = speaker
         self.llm = llm
-        self.pentest = pentest
 
     async def run(self) -> tuple[str, dict[str, Any]]:
         checks: list[dict[str, Any]] = []
@@ -67,13 +65,6 @@ class DiagnosticsService:
             "працює" if self.speaker.healthy else "не запущений",
         )
         self._check_storage(checks)
-        self._add(
-            checks,
-            "pentest-engine",
-            self.pentest.enabled,
-            "доступний" if self.pentest.enabled else "вимкнений у конфігурації",
-            required=False,
-        )
 
         statuses = await self.llm.check_all()
         for name, status in statuses.items():

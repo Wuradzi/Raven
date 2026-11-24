@@ -92,15 +92,7 @@
     "interpretation_timeout_seconds": 12
   },
   "security": {
-    "dynamic_code_enabled": false,
-    "pentest": {
-      "enabled": false,
-      "max_hosts": 256,
-      "connect_timeout_seconds": 1.0,
-      "scan_timeout_seconds": 180.0,
-      "concurrency": 100,
-      "allowed_targets": []
-    }
+    "dynamic_code_enabled": false
   },
   "updates": {
     "check": true,

@@ -121,5 +121,3 @@ class ConfigTests(unittest.TestCase):
         config = apply_performance_profile(merge_config({}), "raspberry_pi")
         self.assertFalse(config["stt"]["whisper"]["enabled"])
         self.assertFalse(config["stt"]["whisper"]["preload"])
-        self.assertLessEqual(config["security"]["pentest"]["concurrency"], 20)
-        self.assertLessEqual(config["security"]["pentest"]["max_hosts"], 64)

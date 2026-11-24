@@ -675,39 +675,14 @@ class CommandProcessorModeTests(unittest.IsolatedAsyncioTestCase):
         self.llm.chat.assert_not_awaited()
         self.assertEqual(self.router.commands, ["відкрий телеграм"])
 
-    async def test_pentest_mode_routes_only_to_pentest_skill(self):
-        self.services["state"]["mode"] = "pentest"
-
-        await self.processor.process(
-            "відкрий телеграм",
-            AsyncMock(return_value=True),
-            "voice",
-        )
-
-        self.assertEqual(self.router.allowed_skills, [{"pentest"}])
-
     async def test_local_command_drops_trailing_question_mark(self):
-        self.services["state"]["mode"] = "pentest"
-
         await self.processor.process(
-            "довго чекати?",
+            "Команда: довго чекати?",
             AsyncMock(return_value=True),
             "text",
         )
 
         self.assertEqual(self.router.commands, ["довго чекати"])
-
-    async def test_prefixed_command_in_pentest_can_use_other_skills(self):
-        self.services["state"]["mode"] = "pentest"
-
-        await self.processor.process(
-            "Команда: відкрий хром",
-            AsyncMock(return_value=True),
-            "voice",
-        )
-
-        self.assertEqual(self.router.commands, ["відкрий хром"])
-        self.assertEqual(self.router.allowed_skills, [None])
 
     async def test_llm_cannot_claim_that_local_action_was_executed(self):
         self.llm.chat.return_value = "Відкриваю Telegram."
@@ -890,10 +865,6 @@ class SkillIntentTests(unittest.IsolatedAsyncioTestCase):
             "команда знайди в браузері лента ру",
         )
         self.assertEqual(
-            repair_voice_text("команда режим душу гук"),
-            "команда режим душогуб",
-        )
-        self.assertEqual(
             repair_voice_text("команда від хром"),
             "команда відкрий хром",
         )
@@ -918,10 +889,6 @@ class SkillIntentTests(unittest.IsolatedAsyncioTestCase):
         self.assertEqual(
             repair_voice_text("банда відкриють браузер"),
             "банда відкриють браузер",
-        )
-        self.assertEqual(
-            repair_voice_text("старова", mode="pentest"),
-            "статус душогуба",
         )
 
     def test_embedded_open_word_is_not_an_app_command(self):

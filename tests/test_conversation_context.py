@@ -215,7 +215,7 @@ class NewConversationTests(unittest.IsolatedAsyncioTestCase):
                 ])
 
     async def test_new_dialogue_does_not_silently_exit_special_mode(self):
-        self.services["state"]["mode"] = "pentest"
+        self.services["state"]["mode"] = "special"
         confirm = AsyncMock(return_value=True)
         context = CommandContext(SimpleNamespace(), self.services, confirm)
         await skill.handle("нова розмова", context, self.services)

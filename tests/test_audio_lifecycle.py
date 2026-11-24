@@ -469,7 +469,7 @@ class SpeakerLifecycleTests(unittest.IsolatedAsyncioTestCase):
         app.listener = SimpleNamespace(interrupt=Mock(), close=worker.close)
         app.llm = SimpleNamespace(provisional_statuses=Mock(return_value={}), select_startup_provider=Mock(), close=AsyncMock())
         app.metrics = SimpleNamespace(record=Mock())
-        app.services = {"pentest": SimpleNamespace(deactivate=AsyncMock())}
+        app.services = {}
 
         async def idle():
             await asyncio.Event().wait()

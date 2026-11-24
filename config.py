@@ -115,12 +115,6 @@ class Settings:
     natural_actions_enabled: bool = True
     command_interpretation_timeout_seconds: int = 12
     dynamic_code_enabled: bool = False
-    pentest_enabled: bool = False
-    pentest_max_hosts: int = 256
-    pentest_connect_timeout_seconds: float = 1.0
-    pentest_scan_timeout_seconds: float = 180.0
-    pentest_concurrency: int = 100
-    pentest_allowed_targets: tuple[str, ...] = ()
     check_updates: bool = True
     github_repository: str = ""
     log_level: str = "INFO"
@@ -227,14 +221,6 @@ def default_config(*, fresh: bool = True) -> dict[str, Any]:
         },
         "security": {
             "dynamic_code_enabled": False,
-            "pentest": {
-                "enabled": False,
-                "max_hosts": 256,
-                "connect_timeout_seconds": 1.0,
-                "scan_timeout_seconds": 180.0,
-                "concurrency": 100,
-                "allowed_targets": [],
-            },
         },
         "commands": {"natural_actions": True, "llm_interpretation": True, "interpretation_timeout_seconds": 12},
         "updates": {"check": True, "github_repository": ""},
@@ -328,14 +314,6 @@ def apply_performance_profile(
         config["llm"]["history_limit"] = min(
             20,
             int(config["llm"]["history_limit"]),
-        )
-        config["security"]["pentest"]["concurrency"] = min(
-            20,
-            int(config["security"]["pentest"]["concurrency"]),
-        )
-        config["security"]["pentest"]["max_hosts"] = min(
-            64,
-            int(config["security"]["pentest"]["max_hosts"]),
         )
     return config
 
@@ -494,18 +472,6 @@ def _seconds_in_range(value: Any, high: float) -> bool:
     return not isinstance(value, bool) and isinstance(value, (int, float)) and 0 <= value <= high
 
 
-def _validate_pentest(pentest: dict[str, Any]) -> None:
-    if int(pentest["max_hosts"]) < 1:
-        raise ConfigError("security.pentest.max_hosts має бути не менше 1")
-    if not 1 <= int(pentest["concurrency"]) <= 1000:
-        raise ConfigError("security.pentest.concurrency має бути від 1 до 1000")
-    from services.pentest.scope import ScopeError, TargetAllowlist
-    try:
-        TargetAllowlist.parse(pentest["allowed_targets"])
-    except ScopeError as exc:
-        raise ConfigError(f"security.pentest.allowed_targets: {exc}") from exc
-
-
 def _validate_llm_order(llm: dict[str, Any]) -> None:
     supported = {"gemini", "groq", "openai", "anthropic", "ollama"}
     order = list(llm["order"])
@@ -554,7 +520,6 @@ def validate_config(config: dict[str, Any]) -> None:
         _validate_stt_capture(config["stt"])
         _validate_stt_endpoint(config["stt"])
         _validate_timeouts(config)
-        _validate_pentest(config["security"]["pentest"])
         _validate_llm_order(config["llm"])
         _validate_audio_devices(config)
         _validate_file_search(config)
@@ -666,16 +631,6 @@ def load_settings(profile_override: str | None = None, *, read_only=False, root=
         natural_actions_enabled=config["commands"]["natural_actions"],
         command_interpretation_timeout_seconds=config["commands"]["interpretation_timeout_seconds"],
         dynamic_code_enabled=bool(config["security"]["dynamic_code_enabled"]),
-        pentest_enabled=bool(config["security"]["pentest"]["enabled"]),
-        pentest_max_hosts=int(config["security"]["pentest"]["max_hosts"]),
-        pentest_connect_timeout_seconds=float(
-            config["security"]["pentest"]["connect_timeout_seconds"]
-        ),
-        pentest_scan_timeout_seconds=float(
-            config["security"]["pentest"]["scan_timeout_seconds"]
-        ),
-        pentest_concurrency=int(config["security"]["pentest"]["concurrency"]),
-        pentest_allowed_targets=tuple(config["security"]["pentest"]["allowed_targets"]),
         check_updates=bool(config["updates"]["check"]),
         github_repository=config["updates"]["github_repository"],
         log_level=config["logging"]["level"],

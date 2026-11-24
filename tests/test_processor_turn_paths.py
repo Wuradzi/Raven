@@ -71,24 +71,6 @@ class ProcessorTurnPathTests(unittest.IsolatedAsyncioTestCase):
         self.assertEqual(result.data["command_type"], "compound_command")
         self.assertEqual(router.calls, [])
 
-    async def test_stop_in_pentest_mode_stops_speech_without_routing(self):
-        """J125: «стоп» is speech control in pentest mode too, never a scan command."""
-        processor, router, _llm, _memory, speaker = build("pentest", False)
-
-        result = await processor.process(turn("Стоп!"), None)
-
-        self.assertEqual(result.data["command_type"], "speech_stopped")
-        speaker.stop.assert_awaited_once()
-        self.assertEqual(router.calls, [])
-
-    async def test_prefixed_stop_in_pentest_mode_keeps_local_routing(self):
-        processor, router, _llm, _memory, speaker = build("pentest", False)
-
-        await processor.process(turn("Команда: стоп"), None)
-
-        self.assertEqual(router.calls, [("стоп", None)])
-        speaker.stop.assert_not_awaited()
-
 
 if __name__ == "__main__":
     unittest.main()

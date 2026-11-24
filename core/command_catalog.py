@@ -63,7 +63,6 @@ CATALOG = (
     Capability("microphone", "audio", "перевір мікрофон"),
     Capability("memory", "memory", "що ти пам'ятаєш"),
     Capability("metrics", "metrics", "покажи метрики"),
-    Capability("audit_status", "pentest", "статус душогуба"),
     Capability("help", "help", "список команд"),
 )
 

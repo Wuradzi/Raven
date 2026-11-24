@@ -47,7 +47,6 @@ GROUPS = {
     "logging": ("Сесійні журнали", ("session_logging", "log_retention")),
     "runtime": ("Життєвий цикл процесів", (
         "audio_lifecycle", "single_instance", "session_logging")),
-    "audit": ("Модуль аудиту — тільки ізольовані тести", ("pentest",)),
     "tester": ("Самоперевірка комплексного тестера", ()),
     "other": ("Нові тести без призначеної групи", ()),
 }
