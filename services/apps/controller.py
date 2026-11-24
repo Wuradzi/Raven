@@ -58,10 +58,23 @@ class ApplicationController:
         return resolve_platform().open_application(app)
 
     @staticmethod
+    def _verify_posix(app):
+        """macOS: опитування до ~2,5 с, поки з'явиться вікно; інші системи — без доказів."""
+        if app is None or resolve_platform().os != "Darwin":
+            return {"process": False, "window": False}
+        from services.platform.macos import application_evidence
+        deadline = time.monotonic() + 2.5
+        while True:
+            evidence = application_evidence(app)
+            if evidence["window"] or time.monotonic() >= deadline:
+                return evidence
+            time.sleep(.2)
+
+    @staticmethod
     def verify_launch(app=None):
         """Bounded read-only check; shell acceptance alone is not a visible window."""
         if os.name != "nt":
-            return {"process": False, "window": False}
+            return ApplicationController._verify_posix(app)
         from services.apps.workplace import WorkplaceAgent
         from services.apps.workplace_windows import application_evidence, default_browser_executable
         command = app["command"] if app is not None else default_browser_executable()

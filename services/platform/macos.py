@@ -107,6 +107,32 @@ def open_application(app):
     return True
 
 
+def application_evidence(app):
+    """Лише читання: чи працює програма (NSWorkspace) і чи має вона звичайне вікно на екрані (Quartz).
+
+    Порівнюється шлях пакета `.app` або назва; заголовки вікон не читаються, тож дозвіл на запис екрана не потрібен.
+    """
+    try:
+        from AppKit import NSWorkspace
+        from Quartz import CGWindowListCopyWindowInfo, kCGNullWindowID, kCGWindowListOptionOnScreenOnly
+    except ImportError:
+        return {'process': False, 'window': False}
+    command = str((app or {}).get('command', '')).strip().rstrip('/')
+    name = str((app or {}).get('name', '')).strip().casefold()
+    pids = set()
+    for running in NSWorkspace.sharedWorkspace().runningApplications():
+        url = running.bundleURL()
+        path = str(url.path()).rstrip('/') if url is not None else ''
+        label = str(running.localizedName() or '').casefold()
+        if (command.endswith('.app') and path == command) or (name and label == name):
+            pids.add(int(running.processIdentifier()))
+    if not pids:
+        return {'process': False, 'window': False}
+    windows = CGWindowListCopyWindowInfo(kCGWindowListOptionOnScreenOnly, kCGNullWindowID) or []
+    visible = any(int(w.get('kCGWindowOwnerPID', -1)) in pids and int(w.get('kCGWindowLayer', 1)) == 0 for w in windows)
+    return {'process': True, 'window': visible}
+
+
 def open_file(path):
     target = str(path)
     if target.startswith('-'):

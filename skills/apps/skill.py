@@ -100,8 +100,8 @@ async def launch_result(apps, accepted, name, app=None, *, command_type="open_ap
         except Exception:
             pass  # Accepted launch with unknown evidence is not a verified success.
     if isinstance(evidence, dict) and evidence.get("window") and evidence.get("process"):
+        # Перевірку не озвучуємо (рішення користувача 24.11.2026): результат — у даних і журналі дій.
         data.update(verified=True, success=True, status="verified")
-        return SkillResult(True, f"Процес і видиме вікно {name} знайдено.", data)
     # Непідтверджена поява вікна не озвучується щоразу: data["verified"] лишається False,
     # а відповідь не стверджує виконання, лише передачу команди системі.
     return SkillResult(True, f"Команду запуску {name} передано системі.", data)
