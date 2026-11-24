@@ -9,11 +9,18 @@ from core.atomic_json import AtomicJSONFile
 
 
 class MemoryStore:
-    def __init__(self, path: Path):
-        self.file = AtomicJSONFile(path, {"items": []})
+    """Факти про користувача (колекція items). Може ділити файл із KnowledgeStore (колекція entries)."""
+
+    def __init__(self, path: Path, file: AtomicJSONFile | None = None):
+        self.file = file if file is not None else AtomicJSONFile(path, {"items": []})
+
+    def _state(self) -> dict:
+        state = self.file.load()
+        state.setdefault("items", [])
+        return state
 
     def remember(self, key: str, value: str, category: str = "general") -> dict:
-        state = self.file.load()
+        state = self._state()
         now = datetime.now(timezone.utc).isoformat()
         for item in state["items"]:
             if item["key"].lower() == key.lower():
@@ -37,7 +44,7 @@ class MemoryStore:
     def find(self, query: str) -> list[dict]:
         words = set(re.findall(r"[\w'’]+", query.lower()))
         scored = []
-        for item in self.file.load()["items"]:
+        for item in self._state()["items"]:
             haystack = f"{item['key']} {item['value']} {item['category']}".lower()
             score = sum(word in haystack for word in words)
             if score:
@@ -48,7 +55,7 @@ class MemoryStore:
         return self.find(query)[:limit]
 
     def forget(self, query: str) -> int:
-        state = self.file.load()
+        state = self._state()
         before = len(state["items"])
         state["items"] = [
             item for item in state["items"]
@@ -58,12 +65,14 @@ class MemoryStore:
         return before - len(state["items"])
 
     def all(self) -> list[dict]:
-        return self.file.load()["items"]
+        return self._state()["items"]
 
     def remove_ids(self, ids: set[str]) -> None:
-        state = self.file.load()
+        state = self._state()
         state['items'] = [item for item in state['items'] if item['id'] not in ids]
         self.file.save(state, forget_history=True)
 
     def clear(self) -> None:
-        self.file.save({"items": []}, forget_history=True)
+        state = self._state()
+        state["items"] = []  # колекцію довідок спільного файлу не чіпаємо
+        self.file.save(state, forget_history=True)

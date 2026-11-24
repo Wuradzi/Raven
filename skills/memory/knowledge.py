@@ -114,13 +114,19 @@ async def handle_knowledge_request(request, context):
     return SkillResult(True, "Базу знань очищено." + note, {"command_type": "knowledge_clear"})
 
 
-def _list(store):
+def reference_labels(store):
+    """Назви довідок без дублів: тема запису або «файл <ім'я>» для імпортованих."""
     labels = []
     for entry in store.entries():
         source = entry.get("source", {})
         label = f"файл {source['name']}" if source.get("kind") == "file" else entry["title"]
         if label not in labels:
             labels.append(label)
+    return labels
+
+
+def _list(store):
+    labels = reference_labels(store)
     return SkillResult(True, ("У базі знань: " + "; ".join(labels[:20]) + ".") if labels else
                        "База знань поки порожня.", {"command_type": "knowledge_list"})
 

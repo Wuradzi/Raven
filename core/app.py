@@ -29,8 +29,7 @@ from services.apps.workplace import CANCEL_WORKPLACE, WorkplaceAgent
 from services.diagnostics import DiagnosticsService
 from services.files.file_service import FileService
 from services.llm.manager import LLMManager
-from services.storage.knowledge_store import KnowledgeStore
-from services.storage.memory_store import MemoryStore
+from services.storage.unified_memory import open_memory
 from services.storage.notes_store import NotesStore
 from services.storage.reminder_store import ReminderStore
 from services.update_checker import UpdateChecker
@@ -81,9 +80,7 @@ class RavenApp:
         if self.microphone_enabled:
             self._mic_ready.set()
 
-        memory = MemoryStore(settings.paths.data_dir / "memory.json")
-        knowledge = KnowledgeStore(settings.paths.data_dir / "knowledge_base.json",
-                                   import_folder=settings.paths.data_dir / "knowledge")
+        memory, knowledge = open_memory(settings.paths.data_dir)
         notes = NotesStore(settings.paths.data_dir / "notes.json")
         reminders = ReminderStore(settings.paths.data_dir / "reminders.json")
         app_indexer = ApplicationIndexer(

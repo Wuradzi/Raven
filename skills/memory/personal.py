@@ -63,6 +63,17 @@ def fact_text(key, value):
     return value if key.casefold() == value.casefold() else f"{key}: {value}"
 
 
+def memory_listing(items, references):
+    """Одна пам'ять: факти про користувача й, якщо є, довідки з бази знань в одному переліку."""
+    lines = [fact_text(i['key'], i['value']) for i in items[:20]]
+    if references is not None:
+        from skills.memory.knowledge import reference_labels
+        labels = reference_labels(references)
+        if labels:
+            lines.append('Довідки: ' + '; '.join(labels[:20]) + '.')
+    return '\n'.join(lines) or 'Збережених фактів поки немає.'
+
+
 async def handle_request(request, context, llm):
     operation, content = request
     store = context.services['memory']
@@ -72,8 +83,8 @@ async def handle_request(request, context, llm):
     if operation == 'list':
         items = [item for item in store.all() if not item.get('sensitive')]
         # Live test 06.11.2026: «кафедра…: кафедра…» was read out twice.
-        return SkillResult(True, '\n'.join(fact_text(i['key'], i['value']) for i in items[:20]) or
-                           'Збережених фактів поки немає.', {'command_type': 'memory_list'})
+        return SkillResult(True, memory_listing(items, context.services.get('knowledge')),
+                           {'command_type': 'memory_list'})
     key = value = ''
     if operation in {'remember', 'update'}:
         content = re.sub(r"^(?:про\s+мене[,:\s]+)?(?:що\s+)?", '', content, flags=re.I)

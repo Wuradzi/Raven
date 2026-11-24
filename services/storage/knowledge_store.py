@@ -68,9 +68,16 @@ def _file_entries(name: str, digest: str, chunks: list[str]) -> list[dict]:
 
 
 class KnowledgeStore:
-    def __init__(self, path: Path, import_folder: Path | None = None):
-        self.file = AtomicJSONFile(path, {"entries": []})
+    """Довідки (колекція entries). Може ділити файл із MemoryStore (колекція items)."""
+
+    def __init__(self, path: Path, import_folder: Path | None = None, file: AtomicJSONFile | None = None):
+        self.file = file if file is not None else AtomicJSONFile(path, {"entries": []})
         self.import_folder = import_folder
+
+    def _state(self) -> dict:
+        state = self.file.load()
+        state.setdefault("entries", [])
+        return state
 
     def imported_files(self) -> dict[str, str]:
         """name -> sha256 of every imported file currently in the base."""
@@ -79,7 +86,7 @@ class KnowledgeStore:
 
     def apply_import(self, plan) -> dict[str, int]:
         """Apply a confirmed ImportPlan atomically; files over the limits are skipped."""
-        state = self.file.load()
+        state = self._state()
         replaced = plan.removed | plan.changed
         entries = [entry for entry in state["entries"]
                    if not (entry.get("source", {}).get("kind") == "file" and entry["source"]["name"] in replaced)]
@@ -99,13 +106,13 @@ class KnowledgeStore:
         return {"added": added, "updated": updated, "removed": len(plan.removed), "skipped": len(plan.skipped)}
 
     def entries(self) -> list[dict]:
-        return self.file.load()["entries"]
+        return self._state()["entries"]
 
     def add(self, title: str, text: str) -> dict:
         title, text = " ".join(title.split()), text.strip()
         if not title or not text or len(title) > MAX_TITLE or len(text) > MAX_TEXT:
             raise KnowledgeError("invalid entry size")
-        state = self.file.load()
+        state = self._state()
         if len(state["entries"]) >= MAX_ENTRIES:
             raise KnowledgeError("knowledge base is full")
         now = datetime.now(timezone.utc).isoformat()
@@ -147,7 +154,7 @@ class KnowledgeStore:
         return [by_id[item] for item in wanted if item in by_id]
 
     def remove_ids(self, ids: set[str]) -> int:
-        state = self.file.load()
+        state = self._state()
         before = len(state["entries"])
         state["entries"] = [entry for entry in state["entries"] if entry["id"] not in ids]
         # Forgotten reference text must not survive in rotating backups (J128).
@@ -155,4 +162,6 @@ class KnowledgeStore:
         return before - len(state["entries"])
 
     def clear(self) -> None:
-        self.file.save({"entries": []}, forget_history=True)
+        state = self._state()
+        state["entries"] = []  # колекцію фактів спільного файлу не чіпаємо
+        self.file.save(state, forget_history=True)
