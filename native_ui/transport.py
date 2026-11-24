@@ -1,21 +1,20 @@
-"""In-process reuse of the existing UI action boundary. No HTTP server."""
+"""Native window transport over the in-process UI bridge."""
 from __future__ import annotations
 
 import asyncio
 import copy
-import json
 import logging
 
-from core.web_ui import LocalWebUI
+from core.ui_bridge import UIBridge
 
 
 class Wakeup:
-    """Speaker callback compatible with LocalWebUI.changed, not a poller."""
+    """Speaker callback compatible with UIBridge.changed, not a poller."""
     def __init__(self, notify):
         self.set = notify
 
 
-class NativeTransport(LocalWebUI):
+class NativeTransport(UIBridge):
     console_input = False
     source_label = 'NATIVE'
 
@@ -68,7 +67,7 @@ class NativeTransport(LocalWebUI):
         if self._closed:
             return 409, {'error': 'Сесію завершено.'}
         try:
-            return await self._api('POST', '/api/action', json.dumps(data).encode())
+            return await self.handle_action(data)
         finally:
             self.notify()
 

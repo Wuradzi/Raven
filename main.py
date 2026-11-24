@@ -27,30 +27,22 @@ def parse_args() -> argparse.Namespace:
     parser.add_argument('--probe-audio', action='store_true', help='Explicit microphone recording during doctor')
     parser.add_argument("--text-only", action="store_true")
     parser.add_argument("--setup", action="store_true")
-    parser.add_argument("--web-ui", action="store_true", help="Локальний вебінтерфейс")
-    parser.add_argument('--ui', choices=('native', 'web', 'headless'), default=None,
-                        help='Інтерфейс: Qt Widgets (за замовчуванням), браузер або консоль')
-    parser.add_argument("--web-port", type=int, default=0, help="Порт UI; 0 — вільний порт")
-    parser.add_argument("--no-browser", action="store_true", help="Не відкривати UI автоматично")
+    parser.add_argument('--ui', choices=('native', 'headless'), default=None,
+                        help='Інтерфейс: Qt Widgets (за замовчуванням) або консоль')
     parser.add_argument(
         "--profile",
         choices=("balanced", "fast", "raspberry_pi"),
         help="Профіль продуктивності лише для цього запуску",
     )
     args = parser.parse_args()
-    if args.web_ui and args.ui in {'native', 'headless'}:
-        parser.error('--web-ui не поєднується з --ui native/headless')
     args.ui_explicit = args.ui is not None
     if args.ui is None:
         args.ui = _default_ui(args)
-    args.web_ui = args.web_ui or args.ui == 'web'
     return args
 
 
 def _default_ui(args: argparse.Namespace) -> str:
     """Native Qt window by default; console flows (--text-only, --setup, maintenance) stay in the CLI."""
-    if args.web_ui:
-        return 'web'
     console_flow = args.text_only or args.setup or any(
         getattr(args, name) for name in ('doctor', 'diagnostics', 'audio_test', 'models', 'smoke_live'))
     return 'headless' if console_flow else 'native'
@@ -65,9 +57,6 @@ def _native_unavailable_reason() -> str:
 
 async def async_main(args=None, native_bridge=None) -> int:
     args = args or parse_args()
-    if not 0 <= args.web_port <= 65535:
-        console_print("Порт має бути від 0 до 65535.")
-        return 2
     try:
         settings = load_settings(args.profile)
     except ConfigError as exc:
@@ -111,28 +100,6 @@ async def async_main(args=None, native_bridge=None) -> int:
         try:
             if native_bridge is not None:
                 await native_bridge.attach(app)
-            if args.web_ui:
-                from core.web_ui import LocalWebUI
-                from core.console import console_stream
-                from core.logging_setup import register_secret
-
-                app.web_ui = LocalWebUI(app, args.web_port)
-                # Opening a web panel is not consent to start the microphone.
-                app.microphone_enabled = False
-                app._mic_ready.clear()
-                if app.listener is not None:
-                    app.listener.set_paused(True)
-                url = await app.web_ui.start()
-                register_secret(app.web_ui.token)
-                # Do not persist the local bearer token in session logs.
-                print(f"Вебінтерфейс цієї сесії: {url}", file=console_stream(), flush=True)
-                if not args.no_browser:
-                    import webbrowser
-
-                    try:
-                        await asyncio.to_thread(webbrowser.open, url)
-                    except Exception:
-                        console_print("Відкрийте посилання вебінтерфейсу вручну.")
             await app.run()
         finally:
             if app.web_ui is not None:

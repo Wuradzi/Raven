@@ -1,4 +1,4 @@
-"""Render web_ui/avatar.svg into a square PNG for the macOS app icon. No network, no writes elsewhere.
+"""Render native_ui/avatar.svg into a square PNG for the macOS app icon. No network, no writes elsewhere.
 
 Usage: .venv/bin/python tools/macos_app_icon.py OUTPUT.png [SIZE]
 """
@@ -37,7 +37,7 @@ def visible_bounds(renderer, size):
 
 def render(output: Path, size: int = 1024) -> None:
     app = QGuiApplication.instance() or QGuiApplication([])  # noqa: F841 - renderer needs a GUI app
-    renderer = QSvgRenderer(str(ROOT / "web_ui" / "avatar.svg"))
+    renderer = QSvgRenderer(str(ROOT / "native_ui" / "avatar.svg"))
     if not renderer.isValid():
         raise SystemExit("avatar.svg is not a valid SVG")
     image = QImage(size, size, QImage.Format.Format_ARGB32)

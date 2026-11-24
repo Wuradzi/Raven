@@ -84,7 +84,7 @@ class Emblem(QWidget):
     def __init__(self):
         super().__init__()
         self.setFixedSize(190, 200)
-        renderer = QSvgRenderer(str(ROOT / 'web_ui/avatar.svg'))
+        renderer = QSvgRenderer(str(ROOT / 'native_ui/avatar.svg'))
         viewbox = renderer.viewBoxF()
         scale = min(166 / viewbox.width(), 200 / viewbox.height())
         self.artwork_rect = QRectF(95 - viewbox.width()*scale/2, 0,
@@ -154,7 +154,7 @@ class RavenWindow(QMainWindow):
     def __init__(self):
         super().__init__()
         self.setWindowTitle('Raven — простір розмови')
-        self.setWindowIcon(QIcon(str(ROOT / 'web_ui/avatar.svg')))
+        self.setWindowIcon(QIcon(str(ROOT / 'native_ui/avatar.svg')))
         self.resize(900, 850)
         self.setMinimumSize(380, 580)
         self.state = {}

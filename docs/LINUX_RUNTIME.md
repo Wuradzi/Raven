@@ -145,7 +145,7 @@ existing setup/vault workflow, never put keys in a shell command or public log.
 Text input works without STT weights/TTS; LLM needs configured provider/network.
 Without a provider, local actions still work and dialogue reports unavailable.
 
-Optional local UI: `python main.py --text-only --web-ui --no-browser`.
+Optional local UI: `python main.py --ui native --text-only` (the web UI was removed on 24.11.2026).
 Keep loopback binding; remote UI exposure/authentication is not added in this phase.
 No desktop required for Core; `open browser` on headless returns unavailable.
 

@@ -236,8 +236,7 @@ class VoiceTurnContractTests(unittest.IsolatedAsyncioTestCase):
             await asyncio.gather(task, return_exceptions=True)
 
     async def test_ui_valid_id_and_web_text_delivery_keep_correlation(self):
-        import json
-        from core.web_ui import LocalWebUI
+        from core.ui_bridge import UIBridge
         app = self.app()
         app.web_ui = Mock()
         app.confirmation.awaiting = True
@@ -249,9 +248,8 @@ class VoiceTurnContractTests(unittest.IsolatedAsyncioTestCase):
         self.assertEqual(status, 200)
         app.confirmation.submit.assert_called_once_with('ні', 'request')
         receiver = SimpleNamespace(_submit_text=AsyncMock())
-        ui = LocalWebUI(receiver)
-        status, _ = await ui._api('POST', '/api/action', json.dumps(
-            {'action': 'message', 'text': 'так', 'request_id': 'old-A'}).encode())
+        ui = UIBridge(receiver)
+        status, _ = await ui.handle_action({'action': 'message', 'text': 'так', 'request_id': 'old-A'})
         self.assertEqual(status, 202)
         await ui.submission
         receiver._submit_text.assert_awaited_once_with('так', 'old-A')

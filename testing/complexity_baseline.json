@@ -18,8 +18,6 @@
     "core/processor.py::CommandProcessor.process": 17,
     "core/speak.py::Speaker._speak_with_output": 11,
     "core/stt_listener.py::SpeechListener._recognize_capture": 15,
-    "core/web_ui.py::LocalWebUI._api": 14,
-    "core/web_ui.py::LocalWebUI._request": 13,
     "install.py::main": 13,
     "main.py::async_main": 14,
     "native_ui/window.py::RavenWindow.append_event": 14,

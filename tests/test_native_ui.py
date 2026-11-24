@@ -78,14 +78,13 @@ class NativeTransportTests(unittest.IsolatedAsyncioTestCase):
         count = len(self.packets)
         await asyncio.sleep(.3)
         self.assertEqual(len(self.packets), count)
-        self.assertIsNone(self.ui.server)
 
     async def test_submission_failure_becomes_notice_and_pending_work_is_cancelled(self):
         async def failed(*args):
             raise RuntimeError('fixture')
         self.app._submit_text = failed
         await self.ui.dispatch({'action': 'message', 'text': 'test'})
-        with self.assertLogs('core.web_ui', level='ERROR'):
+        with self.assertLogs('core.ui_bridge', level='ERROR'):
             await self.ui.submission
         self.assertEqual(self.ui.events[-1]['kind'], 'notice')
         cancelled = []
@@ -103,21 +102,18 @@ class NativeTransportTests(unittest.IsolatedAsyncioTestCase):
 
 
 class NativeLaunchTests(unittest.TestCase):
-    def test_cli_keeps_web_alias_and_rejects_mixed_modes(self):
+    def test_web_interface_flags_are_gone(self):
         from main import parse_args
-        for flags, expected in [(['--web-ui'], True), (['--ui', 'web'], True),
-                                (['--ui', 'native'], False), (['--ui', 'headless'], False)]:
-            with patch.object(sys, 'argv', ['main.py', *flags]):
-                self.assertEqual(parse_args().web_ui, expected)
-        with patch.object(sys, 'argv', ['main.py', '--web-ui', '--ui', 'native']):
-            with self.assertRaises(SystemExit):
+        for flags in (['--web-ui'], ['--ui', 'web'], ['--web-port', '8080'], ['--no-browser']):
+            with self.subTest(flags=flags), patch.object(sys, 'argv', ['main.py', *flags]), \
+                    patch('sys.stderr'), self.assertRaises(SystemExit):
                 parse_args()
 
     def test_native_is_the_default_and_console_flows_stay_in_cli(self):
         from main import parse_args
         cases = [([], 'native', False), (['--ui', 'native'], 'native', True), (['--text-only'], 'headless', False),
-                 (['--setup'], 'headless', False), (['--doctor'], 'headless', False), (['--web-ui'], 'web', False),
-                 (['--ui', 'web'], 'web', True), (['--ui', 'headless'], 'headless', True)]
+                 (['--setup'], 'headless', False), (['--doctor'], 'headless', False),
+                 (['--ui', 'headless'], 'headless', True)]
         for flags, ui, explicit in cases:
             with self.subTest(flags=flags), patch.object(sys, 'argv', ['main.py', *flags]):
                 args = parse_args()
