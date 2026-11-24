@@ -50,11 +50,6 @@ services/llm/__init__.py
 services/llm/base.py
 services/llm/manager.py
 services/llm/providers.py
-services/pentest/__init__.py
-services/pentest/reporting.py
-services/pentest/scanner.py
-services/pentest/scope.py
-services/pentest/service.py
 services/storage/__init__.py
 services/storage/memory_store.py
 services/storage/notes_store.py
@@ -84,8 +79,6 @@ skills/metrics/manifest.json
 skills/metrics/skill.py
 skills/notes/manifest.json
 skills/notes/skill.py
-skills/pentest/manifest.json
-skills/pentest/skill.py
 skills/reminders/manifest.json
 skills/reminders/skill.py
 skills/system/manifest.json
@@ -98,7 +91,6 @@ tests/test_atomic_json.py
 tests/test_gemini_provider.py
 tests/test_interaction.py
 tests/test_memory_store.py
-tests/test_pentest.py
 tests/test_router.py
 tools/download_vosk_model.py
 version.py
