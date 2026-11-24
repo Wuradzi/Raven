@@ -31,7 +31,8 @@ with tempfile.TemporaryDirectory() as root:
     app = RavenApp(settings, text_only=True)
     assert app.listener is None
     asyncio.run(app.speaker.say('fixture response'))
-    assert app.speaker._queue.empty()
+    # Linux тепер озвучує локально (RHVoice): чергу озвучення більше не вважаємо порожньою.
+    assert app.speaker.platform.os == 'Linux' and app.speaker.platform.supports('tts')
     assert 'services.platform.windows_tts' not in sys.modules
     assert 'services.apps.workplace_windows' not in sys.modules
 '''
@@ -102,15 +103,15 @@ with tempfile.TemporaryDirectory() as root:
                 self.assertEqual(caught.exception.status, 'unsupported')
             run.assert_not_called()
 
-    def test_linux_text_speaker_no_audio_queue_or_windows_import(self):
+    def test_linux_text_speaker_uses_local_tts_without_windows_import(self):
         from core.speak import Speaker
         with tempfile.TemporaryDirectory() as root, patch('core.speak.resolve_platform', return_value=PlatformServices('Linux', 'arm64')):
             speaker = Speaker(Settings(ProjectPaths.from_root(Path(root))))
             speaker.on_text = Mock()
             asyncio.run(speaker.say('fixture'))
             speaker.on_text.assert_called_once_with('fixture')
-            self.assertTrue(speaker._queue.empty())
-            self.assertFalse(speaker.busy)
+            self.assertTrue(speaker.platform.supports('tts'))  # RHVoice, не Windows TTS
+            self.assertNotIn('services.platform.windows_tts', sys.modules)
 
     def test_linux_manual_index_no_windows_scan(self):
         from services.apps.indexer import ApplicationIndexer

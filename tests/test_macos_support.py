@@ -461,8 +461,8 @@ class DependencyAndScriptTests(unittest.TestCase):
             self.assertIn("MACOS_SETUP.md", (ROOT / name).read_text(encoding="utf-8"), name)
         guide = (ROOT / "docs" / "MACOS_SETUP.md").read_text(encoding="utf-8")
         # The guide must state honestly what is and is not verified on a real Mac.
-        self.assertIn("ПЕРЕВІРЕНО ЧАСТКОВО", guide)
-        self.assertIn("Ще не перевірено", guide)
+        self.assertIn("Частково перевірено", guide)
+        self.assertIn("Окремої перевірки ще потребують", guide)
 
 
 if __name__ == "__main__":
